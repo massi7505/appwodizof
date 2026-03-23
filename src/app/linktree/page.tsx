@@ -1,5 +1,7 @@
 import { prisma } from '@/lib/db';
 import NotificationBarComponent from '@/components/linktree/NotificationBar';
+
+export const dynamic = 'force-dynamic';
 import LinktreeCover from '@/components/linktree/LinktreeCover';
 import LinktreeProfile from '@/components/linktree/LinktreeProfile';
 import LinktreeButtons from '@/components/linktree/LinktreeButtons';

@@ -2,6 +2,8 @@ import { prisma } from '@/lib/db';
 import MenuClient from '@/components/menu/MenuClient';
 import NotificationBarComponent from '@/components/linktree/NotificationBar';
 
+export const dynamic = 'force-dynamic';
+
 const LOCALE = 'fr';
 
 function serializeCategories(categories: any[]) {
