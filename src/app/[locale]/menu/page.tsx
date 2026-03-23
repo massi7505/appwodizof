@@ -43,6 +43,15 @@ function serializeReviews(reviews: any[]) {
   }));
 }
 
+function serializeSite(site: any) {
+  if (!site) return null;
+  return {
+    ...site,
+    createdAt: site.createdAt?.toISOString() ?? null,
+    updatedAt: site.updatedAt?.toISOString() ?? null,
+  };
+}
+
 export default async function MenuPage({ params }: Props) {
   const { locale } = await params;
 
@@ -80,7 +89,7 @@ export default async function MenuPage({ params }: Props) {
   const reviews = serializeReviews(reviewsRes.status === 'fulfilled' ? reviewsRes.value : []);
   const faqs = faqsRes.status === 'fulfilled' ? faqsRes.value : [];
   const notifBar = notifRes.status === 'fulfilled' ? notifRes.value : null;
-  const site = siteRes.status === 'fulfilled' ? siteRes.value : null;
+  const site = serializeSite(siteRes.status === 'fulfilled' ? siteRes.value : null);
 
   const enabledLocales: string[] = (() => {
     try { return JSON.parse(site?.enabledLocales || '["fr","en","it","es"]'); } catch { return ['fr', 'en', 'it', 'es']; }
