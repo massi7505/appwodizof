@@ -33,6 +33,10 @@ model SiteSettings {
   metaKeywords     String?
   metaImageUrl     String?
   enabledLocales   String?  @default("[\"fr\",\"en\",\"it\",\"es\"]")
+  showFeatured     Boolean  @default(true)
+  showWeekSpecial  Boolean  @default(true)
+  featuredTitles   String?  // JSON {"fr":"...","en":"...","it":"...","es":"..."}
+  weekTitles       String?  // JSON {"fr":"...","en":"...","it":"...","es":"..."}
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 

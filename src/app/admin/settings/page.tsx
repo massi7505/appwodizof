@@ -22,6 +22,9 @@ const DEFAULT_SETTINGS = {
   googleMapsUrl: '', googleReviewsUrl: '', instagramUrl: '',
   phoneNumber: '', address: '', metaTitle: '', metaDescription: '', metaKeywords: '',
   metaImageUrl: '', enabledLocales: '["fr","en","it","es"]',
+  showFeatured: true, showWeekSpecial: true,
+  featuredTitles: '{"fr":"⭐ Produits en Vedette","en":"⭐ Featured Products","it":"⭐ Prodotti in Evidenza","es":"⭐ Productos Destacados"}',
+  weekTitles: '{"fr":"🔥 Produit de la Semaine","en":"🔥 Product of the Week","it":"🔥 Prodotto della Settimana","es":"🔥 Producto de la Semana"}',
 };
 
 const ALL_LOCALES = [
@@ -35,7 +38,7 @@ export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<any>(DEFAULT_SETTINGS);
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
-  const [tab, setTab] = useState<'general' | 'seo' | 'colors' | 'social'>('general');
+  const [tab, setTab] = useState<'general' | 'seo' | 'colors' | 'social' | 'menu'>('general');
 
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2500); }
 
@@ -78,7 +81,7 @@ export default function AdminSettingsPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-800 rounded-xl p-1 overflow-x-auto">
-        {([['general', '🏠 Général'], ['colors', '🎨 Couleurs'], ['seo', '🔍 SEO'], ['social', '🌐 Liens']] as const).map(([t, label]) => (
+        {([['general', '🏠 Général'], ['colors', '🎨 Couleurs'], ['seo', '🔍 SEO'], ['social', '🌐 Liens'], ['menu', '🍕 Menu']] as const).map(([t, label]) => (
           <button key={t} onClick={() => setTab(t as any)}
             className={`flex-1 min-w-fit py-2 px-3 rounded-lg text-sm font-semibold transition-all whitespace-nowrap ${tab === t ? 'bg-amber-500 text-gray-900' : 'text-gray-400 hover:text-white'}`}>
             {label}
@@ -286,6 +289,86 @@ export default function AdminSettingsPage() {
               <input type="url" value={settings[key] || ''} onChange={e => set(key, e.target.value)} className="admin-input" placeholder={placeholder} />
             </div>
           ))}
+        </div>
+      )}
+
+      {tab === 'menu' && (
+        <div className="space-y-4">
+          {/* Featured section */}
+          <div className="admin-card space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-white">⭐ Produits en Vedette</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Section affichée en haut du menu</p>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={!!settings.showFeatured} onChange={e => set('showFeatured', e.target.checked)} className="accent-amber-500 w-4 h-4" />
+                <span className="text-sm text-white font-medium">Afficher</span>
+              </label>
+            </div>
+            {settings.showFeatured && (
+              <div className="space-y-2 pt-2 border-t border-gray-700">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Titre de la section par langue</p>
+                {[['fr','🇫🇷'],['en','🇬🇧'],['it','🇮🇹'],['es','🇪🇸']].map(([loc, flag]) => {
+                  let titles: Record<string, string> = {};
+                  try { titles = JSON.parse(settings.featuredTitles || '{}'); } catch {}
+                  return (
+                    <div key={loc} className="flex items-center gap-2">
+                      <span className="text-sm w-6 flex-shrink-0">{flag}</span>
+                      <input
+                        type="text"
+                        value={titles[loc] || ''}
+                        onChange={e => {
+                          const updated = { ...titles, [loc]: e.target.value };
+                          set('featuredTitles', JSON.stringify(updated));
+                        }}
+                        className="admin-input text-sm"
+                        placeholder={loc === 'fr' ? '⭐ Produits en Vedette' : loc === 'en' ? '⭐ Featured Products' : loc === 'it' ? '⭐ Prodotti in Evidenza' : '⭐ Productos Destacados'}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Week special section */}
+          <div className="admin-card space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-white">🔥 Produit de la Semaine</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Section mise en avant hebdomadaire</p>
+              </div>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={!!settings.showWeekSpecial} onChange={e => set('showWeekSpecial', e.target.checked)} className="accent-amber-500 w-4 h-4" />
+                <span className="text-sm text-white font-medium">Afficher</span>
+              </label>
+            </div>
+            {settings.showWeekSpecial && (
+              <div className="space-y-2 pt-2 border-t border-gray-700">
+                <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">Titre de la section par langue</p>
+                {[['fr','🇫🇷'],['en','🇬🇧'],['it','🇮🇹'],['es','🇪🇸']].map(([loc, flag]) => {
+                  let titles: Record<string, string> = {};
+                  try { titles = JSON.parse(settings.weekTitles || '{}'); } catch {}
+                  return (
+                    <div key={loc} className="flex items-center gap-2">
+                      <span className="text-sm w-6 flex-shrink-0">{flag}</span>
+                      <input
+                        type="text"
+                        value={titles[loc] || ''}
+                        onChange={e => {
+                          const updated = { ...titles, [loc]: e.target.value };
+                          set('weekTitles', JSON.stringify(updated));
+                        }}
+                        className="admin-input text-sm"
+                        placeholder={loc === 'fr' ? '🔥 Produit de la Semaine' : loc === 'en' ? '🔥 Product of the Week' : loc === 'it' ? '🔥 Prodotto della Settimana' : '🔥 Producto de la Semana'}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </div>
       )}
 

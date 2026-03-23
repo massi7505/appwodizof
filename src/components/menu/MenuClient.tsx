@@ -51,6 +51,16 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
 
   const primaryColor = site?.primaryColor || '#F59E0B';
 
+  // Custom section titles from site settings
+  const featuredTitle = (() => {
+    try { return JSON.parse(site?.featuredTitles || '{}')[locale] || L.featured; } catch { return L.featured; }
+  })();
+  const weekTitle = (() => {
+    try { return JSON.parse(site?.weekTitles || '{}')[locale] || L.week; } catch { return L.week; }
+  })();
+  const showFeatured = site?.showFeatured !== false;
+  const showWeekSpecial = site?.showWeekSpecial !== false;
+
   // Featured products across all categories
   const featuredProducts = useMemo(() =>
     categories.flatMap(c => c.products.filter(p => p.isFeatured)),
@@ -99,9 +109,9 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
       <div className="max-w-7xl mx-auto px-4 pb-16">
 
         {/* ===== FEATURED ===== */}
-        {featuredProducts.length > 0 && !search && (
+        {showFeatured && featuredProducts.length > 0 && !search && (
           <section className="mt-8">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">{L.featured}</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">{featuredTitle}</h2>
             <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide">
               {featuredProducts.map(p => {
                 const cat = categories.find(c => c.products.some(cp => cp.id === p.id));
@@ -122,9 +132,9 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
         )}
 
         {/* ===== WEEK SPECIALS ===== */}
-        {weekSpecials.length > 0 && !search && (
+        {showWeekSpecial && weekSpecials.length > 0 && !search && (
           <section className="mt-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">{L.week}</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">{weekTitle}</h2>
             <div className="flex gap-4 overflow-x-auto pb-2">
               {weekSpecials.map(p => {
                 const cat = categories.find(c => c.products.some(cp => cp.id === p.id));
