@@ -72,5 +72,14 @@
     "4": "Vendredi",
     "5": "Samedi",
     "6": "Dimanche"
+  },
+  "hero": {
+    "ratingText": "Avis",
+    "exploreMenu": "Découvrir le Menu",
+    "delivery": "Livraison à domicile",
+    "genuine": "Produits 100% Authentiques",
+    "discount": "Bons de Réduction",
+    "freshFood": "Nourriture Fraîche & Saine",
+    "fastDelivery": "Livraison Rapide"
   }
 }

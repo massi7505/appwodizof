@@ -72,5 +72,14 @@
     "4": "Friday",
     "5": "Saturday",
     "6": "Sunday"
+  },
+  "hero": {
+    "ratingText": "Rating",
+    "exploreMenu": "Explore Menu",
+    "delivery": "Delivery to your doorstep",
+    "genuine": "100% Genuine Products",
+    "discount": "Discount Voucher in Shop",
+    "freshFood": "Fresh Healthy Food",
+    "fastDelivery": "Fast Home Delivery"
   }
 }

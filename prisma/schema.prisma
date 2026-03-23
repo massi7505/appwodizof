@@ -326,3 +326,81 @@ model AdminUser {
 
   @@map("admin_users")
 }
+
+// ===================== HERO SECTION =====================
+model HeroSettings {
+  id               Int     @id @default(1)
+  isVisible        Boolean @default(true)
+  autoplay         Boolean @default(true)
+  autoplayDelay    Int     @default(5000)
+  showDots         Boolean @default(true)
+  showArrows       Boolean @default(true)
+  ratingCount      String  @default("3,500+")
+  ratingTextJson   String? // JSON {"fr":"Avis","en":"Rating","it":"Valutazione","es":"Valoración"}
+  showRating       Boolean @default(true)
+  showFeatureCards Boolean @default(true)
+  accentColor      String  @default("#F59E0B")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  slides           HeroSlide[]
+  featureCards     HeroFeatureCard[]
+
+  @@map("hero_settings")
+}
+
+model HeroSlide {
+  id           Int      @id @default(autoincrement())
+  settingsId   Int      @default(1)
+  titleJson    String   @default("{\"fr\":\"Titre\",\"en\":\"Title\",\"it\":\"Titolo\",\"es\":\"Título\"}")
+  subtitleJson String?
+  badgesJson   String?  // JSON array: [{"fr":"...","en":"...","it":"...","es":"..."}]
+  sideTextJson String?
+  imageUrl     String?
+  bgColor      String   @default("#1F2937")
+  bgGradient   String?
+  bgType       String   @default("color") // "color" | "image" | "gradient"
+  isVisible    Boolean  @default(true)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  settings     HeroSettings    @relation(fields: [settingsId], references: [id], onDelete: Cascade)
+  buttons      HeroSlideButton[]
+
+  @@map("hero_slides")
+}
+
+model HeroSlideButton {
+  id          Int    @id @default(autoincrement())
+  slideId     Int
+  labelJson   String @default("{\"fr\":\"Bouton\",\"en\":\"Button\",\"it\":\"Bottone\",\"es\":\"Botón\"}")
+  url         String @default("#")
+  icon        String?
+  bgColor     String @default("#F59E0B")
+  bgGradient  String?
+  bgType      String @default("color")
+  textColor   String @default("#FFFFFF")
+  style       String @default("filled") // "filled" | "outline" | "ghost"
+  sortOrder   Int    @default(0)
+  slide       HeroSlide @relation(fields: [slideId], references: [id], onDelete: Cascade)
+
+  @@map("hero_slide_buttons")
+}
+
+model HeroFeatureCard {
+  id          Int      @id @default(autoincrement())
+  settingsId  Int      @default(1)
+  titleJson   String   @default("{\"fr\":\"Titre\",\"en\":\"Title\",\"it\":\"Titolo\",\"es\":\"Título\"}")
+  icon        String   @default("truck")
+  bgColor     String   @default("#FEF08A")
+  textColor   String   @default("#1F2937")
+  iconColor   String   @default("#1F2937")
+  arrowColor  String   @default("#1F2937")
+  url         String?
+  isVisible   Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  settings    HeroSettings @relation(fields: [settingsId], references: [id], onDelete: Cascade)
+
+  @@map("hero_feature_cards")
+}

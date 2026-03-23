@@ -24,6 +24,10 @@ export async function POST(req: NextRequest) {
           return prisma.fAQ.update({ where: { id }, data: { sortOrder } });
         case 'review':
           return prisma.review.update({ where: { id }, data: { sortOrder } });
+        case 'heroSlide':
+          return prisma.heroSlide.update({ where: { id }, data: { sortOrder } });
+        case 'heroCard':
+          return prisma.heroFeatureCard.update({ where: { id }, data: { sortOrder } });
         default:
           return null;
       }

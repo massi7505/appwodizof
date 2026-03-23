@@ -8,6 +8,7 @@ import LinktreeHours from '@/components/linktree/LinktreeHours';
 import LinktreePromos from '@/components/linktree/LinktreePromos';
 import LinktreeFAQs from '@/components/linktree/LinktreeFAQs';
 import LinktreeFooter from '@/components/linktree/LinktreeFooter';
+import HeroSection from '@/components/linktree/HeroSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,7 +17,7 @@ type Props = { params: Promise<{ locale: string }> };
 export default async function LinktreePage({ params }: Props) {
   const { locale } = await params;
 
-  const [ltSettings, ltButtons, hours, promos, faqs, siteSettings, footerData] = await Promise.allSettled([
+  const [ltSettings, ltButtons, hours, promos, faqs, siteSettings, footerData, heroResult] = await Promise.allSettled([
     prisma.linktreeSettings.findFirst(),
     prisma.linktreeButton.findMany({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' } }),
     prisma.openingHours.findMany({ orderBy: { dayOfWeek: 'asc' } }),
@@ -32,6 +33,28 @@ export default async function LinktreePage({ params }: Props) {
     }),
     prisma.siteSettings.findFirst(),
     prisma.footerSettings.findFirst(),
+    (async () => {
+      try {
+        const p = prisma as any;
+        if (!p.heroSettings) return { settings: null, slides: [], featureCards: [] };
+        const heroSettings = await p.heroSettings.findFirst();
+        if (!heroSettings?.isVisible) return { settings: heroSettings, slides: [], featureCards: [] };
+        const [slides, featureCards] = await Promise.all([
+          p.heroSlide.findMany({
+            where: { isVisible: true },
+            orderBy: { sortOrder: 'asc' },
+            include: { buttons: { orderBy: { sortOrder: 'asc' } } },
+          }),
+          p.heroFeatureCard.findMany({
+            where: { isVisible: true },
+            orderBy: { sortOrder: 'asc' },
+          }),
+        ]);
+        return { settings: heroSettings, slides: slides || [], featureCards: featureCards || [] };
+      } catch {
+        return { settings: null, slides: [], featureCards: [] };
+      }
+    })(),
   ]);
 
   const settings = ltSettings.status === 'fulfilled' ? ltSettings.value : null;
@@ -45,6 +68,7 @@ export default async function LinktreePage({ params }: Props) {
   const faqsList = faqs.status === 'fulfilled' ? faqs.value : [];
   const site = siteSettings.status === 'fulfilled' ? siteSettings.value : null;
   const footer = footerData.status === 'fulfilled' ? footerData.value : null;
+  const heroData = heroResult.status === 'fulfilled' ? heroResult.value : null;
 
   // Redirect to FR if this locale is disabled
   const enabledLocales: string[] = (() => {
@@ -59,6 +83,15 @@ export default async function LinktreePage({ params }: Props) {
   return (
     <div className="min-h-screen" style={bgStyle}>
       <VisitTracker page="linktree" />
+      {/* Hero Section - full width */}
+      {heroData?.settings?.isVisible && heroData.slides.length > 0 && (
+        <HeroSection
+          settings={heroData.settings as any}
+          slides={heroData.slides as any}
+          featureCards={heroData.featureCards as any}
+          locale={locale}
+        />
+      )}
       <div className="max-w-md mx-auto pb-12">
         <LinktreeCover settings={settings} site={site} />
         <LinktreeProfile settings={settings} site={site} />

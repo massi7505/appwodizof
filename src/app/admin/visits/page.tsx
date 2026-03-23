@@ -120,6 +120,7 @@ export default function AdminVisitsPage() {
       ]);
       const data = await statsRes.json();
       const settings = await settingsRes.json();
+      if (!statsRes.ok || data.error) { setLoading(false); return; }
       setStats(data);
       setTrackingEnabled(settings.trackingEnabled !== false);
     } catch {
@@ -215,7 +216,7 @@ export default function AdminVisitsPage() {
             {kpis.map(kpi => (
               <div key={kpi.label} className="admin-card p-4 text-center">
                 <div className="text-2xl mb-1">{kpi.icon}</div>
-                <p className="text-3xl font-black" style={{ color: kpi.color }}>{kpi.value.toLocaleString()}</p>
+                <p className="text-3xl font-black" style={{ color: kpi.color }}>{(kpi.value ?? 0).toLocaleString()}</p>
                 <p className="text-xs text-gray-500 mt-1 leading-tight">{kpi.label}</p>
               </div>
             ))}

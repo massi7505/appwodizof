@@ -24,5 +24,14 @@
   },
   "promo": { "delivery": "Entrega", "takeaway": "Para llevar", "onsite": "En el local", "all": "Todas las ofertas" },
   "footer": { "rights": "Todos los derechos reservados" },
-  "days": { "0": "Lunes", "1": "Martes", "2": "Miércoles", "3": "Jueves", "4": "Viernes", "5": "Sábado", "6": "Domingo" }
+  "days": { "0": "Lunes", "1": "Martes", "2": "Miércoles", "3": "Jueves", "4": "Viernes", "5": "Sábado", "6": "Domingo" },
+  "hero": {
+    "ratingText": "Valoración",
+    "exploreMenu": "Explorar el Menú",
+    "delivery": "Entrega a domicilio",
+    "genuine": "Productos 100% Auténticos",
+    "discount": "Cupones de Descuento",
+    "freshFood": "Comida Fresca y Saludable",
+    "fastDelivery": "Entrega Rápida"
+  }
 }

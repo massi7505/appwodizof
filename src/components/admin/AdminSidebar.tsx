@@ -9,6 +9,7 @@ import {
   ClockIcon, BellIcon, GearIcon, ExternalLinkIcon, LogoutIcon,
   SidebarCollapseIcon, SidebarExpandIcon, ChartIcon,
 } from '@/components/ui/icons';
+import { Layers } from 'lucide-react';
 
 const NAV_GROUPS = [
   {
@@ -16,6 +17,7 @@ const NAV_GROUPS = [
     items: [
       { href: '/admin', label: 'Tableau de bord', icon: <HomeIcon />, exact: true },
       { href: '/admin/linktree', label: 'Linktree', icon: <LinkIcon /> },
+      { href: '/admin/hero', label: 'Hero Section', icon: <Layers className="w-[18px] h-[18px]" /> },
       { href: '/admin/menu', label: 'Menu & Carte', icon: <ClipboardIcon /> },
       { href: '/admin/promotions', label: 'Promotions', icon: <TagIcon /> },
       { href: '/admin/reviews', label: 'Avis clients', icon: <StarIcon /> },
