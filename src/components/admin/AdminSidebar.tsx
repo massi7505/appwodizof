@@ -40,7 +40,7 @@ export default function AdminSidebar() {
   async function handleLogout() {
     setLoggingOut(true);
     await fetch('/api/admin/logout', { method: 'POST' });
-    window.location.href = '/admin/login'; // hard reload to clear layout cache
+    window.location.href = '/admin/login';
   }
 
   function isActive(href: string, exact?: boolean) {
@@ -50,34 +50,44 @@ export default function AdminSidebar() {
 
   return (
     <aside
-      className="flex flex-col flex-shrink-0 transition-all duration-200 relative"
+      className="flex flex-col flex-shrink-0 transition-all duration-300 relative"
       style={{
-        width: collapsed ? '60px' : '220px',
+        width: collapsed ? '64px' : '224px',
         minHeight: '100vh',
-        background: 'var(--admin-bg)',
+        background: 'var(--admin-surface)',
         borderRight: '1px solid var(--admin-border)',
+        boxShadow: '1px 0 0 var(--admin-border)',
       }}
     >
       {/* Logo */}
-      <div className="flex items-center gap-3 px-4 py-5" style={{ borderBottom: '1px solid var(--admin-border)' }}>
+      <div
+        className="flex items-center gap-3 px-4 py-4 flex-shrink-0"
+        style={{ borderBottom: '1px solid var(--admin-border)' }}
+      >
         <div
-          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-sm text-gray-950"
+          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-sm text-white shadow-sm"
           style={{ background: 'linear-gradient(135deg, #F59E0B, #F97316)' }}
         >
           W
         </div>
         {!collapsed && (
           <div className="flex-1 min-w-0">
-            <p className="font-black text-sm" style={{ color: 'var(--admin-text)' }}>Woodiz</p>
-            <p className="text-xs" style={{ color: 'var(--admin-text-muted)' }}>Admin Panel</p>
+            <p className="font-black text-sm leading-tight" style={{ color: 'var(--admin-text)' }}>Woodiz</p>
+            <p className="text-[11px] leading-tight" style={{ color: 'var(--admin-text-muted)' }}>Admin Panel</p>
           </div>
         )}
         <button
           onClick={() => setCollapsed(c => !c)}
           className="ml-auto flex-shrink-0 rounded-lg p-1.5 transition-colors"
           style={{ color: 'var(--admin-text-muted)' }}
-          onMouseEnter={e => (e.currentTarget.style.color = 'var(--admin-text)')}
-          onMouseLeave={e => (e.currentTarget.style.color = 'var(--admin-text-muted)')}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'var(--admin-surface-2)';
+            e.currentTarget.style.color = 'var(--admin-text)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'var(--admin-text-muted)';
+          }}
         >
           {collapsed ? <SidebarExpandIcon /> : <SidebarCollapseIcon />}
         </button>
@@ -86,9 +96,12 @@ export default function AdminSidebar() {
       {/* Nav */}
       <nav className="flex-1 py-4 overflow-y-auto overflow-x-hidden">
         {NAV_GROUPS.map(group => (
-          <div key={group.label} className="mb-6">
+          <div key={group.label} className="mb-5">
             {!collapsed && (
-              <p className="px-4 mb-2 text-[10px] font-bold tracking-widest" style={{ color: 'var(--admin-text-muted)' }}>
+              <p
+                className="px-4 mb-1.5 text-[10px] font-bold tracking-widest uppercase"
+                style={{ color: 'var(--admin-text-muted)', opacity: 0.6 }}
+              >
                 {group.label}
               </p>
             )}
@@ -100,15 +113,15 @@ export default function AdminSidebar() {
                     key={item.href}
                     href={item.href}
                     title={collapsed ? item.label : undefined}
-                    className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 relative"
+                    className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150"
                     style={{
-                      background: active ? 'rgba(245,158,11,0.10)' : 'transparent',
-                      color: active ? '#F59E0B' : 'var(--admin-text-muted)',
+                      background: active ? '#FFFBEB' : 'transparent',
+                      color: active ? '#D97706' : 'var(--admin-text-muted)',
                       borderLeft: active ? '2px solid #F59E0B' : '2px solid transparent',
                     }}
                     onMouseEnter={e => {
                       if (!active) {
-                        e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                        e.currentTarget.style.background = 'var(--admin-surface-2)';
                         e.currentTarget.style.color = 'var(--admin-text)';
                       }
                     }}
@@ -119,9 +132,7 @@ export default function AdminSidebar() {
                       }
                     }}
                   >
-                    <span className="flex-shrink-0">
-                      {item.icon}
-                    </span>
+                    <span className="flex-shrink-0">{item.icon}</span>
                     {!collapsed && <span className="truncate">{item.label}</span>}
                   </Link>
                 );
@@ -132,16 +143,22 @@ export default function AdminSidebar() {
       </nav>
 
       {/* Footer */}
-      <div className="px-2 py-3 space-y-1" style={{ borderTop: '1px solid var(--admin-border)' }}>
+      <div className="px-2 py-3 space-y-0.5" style={{ borderTop: '1px solid var(--admin-border)' }}>
         <a
           href="/"
           target="_blank"
           rel="noopener noreferrer"
           title={collapsed ? 'Voir le site' : undefined}
-          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150"
+          className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150"
           style={{ color: 'var(--admin-text-muted)' }}
-          onMouseEnter={e => { e.currentTarget.style.color = 'var(--admin-text)'; e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'var(--admin-text-muted)'; e.currentTarget.style.background = 'transparent'; }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = 'var(--admin-surface-2)';
+            e.currentTarget.style.color = 'var(--admin-text)';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'var(--admin-text-muted)';
+          }}
         >
           <ExternalLinkIcon />
           {!collapsed && <span>Voir le site</span>}
@@ -150,10 +167,16 @@ export default function AdminSidebar() {
           onClick={handleLogout}
           disabled={loggingOut}
           title={collapsed ? 'Déconnexion' : undefined}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 disabled:opacity-50"
+          className="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150 disabled:opacity-50"
           style={{ color: 'var(--admin-text-muted)' }}
-          onMouseEnter={e => { e.currentTarget.style.color = '#EF4444'; e.currentTarget.style.background = 'rgba(239,68,68,0.08)'; }}
-          onMouseLeave={e => { e.currentTarget.style.color = 'var(--admin-text-muted)'; e.currentTarget.style.background = 'transparent'; }}
+          onMouseEnter={e => {
+            e.currentTarget.style.background = '#FEF2F2';
+            e.currentTarget.style.color = '#DC2626';
+          }}
+          onMouseLeave={e => {
+            e.currentTarget.style.background = 'transparent';
+            e.currentTarget.style.color = 'var(--admin-text-muted)';
+          }}
         >
           <LogoutIcon />
           {!collapsed && <span>{loggingOut ? 'Déconnexion...' : 'Déconnexion'}</span>}
