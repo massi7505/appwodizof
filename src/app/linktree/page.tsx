@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db';
 import NotificationBarComponent from '@/components/linktree/NotificationBar';
+import VisitTracker from '@/components/VisitTracker';
 
 export const dynamic = 'force-dynamic';
 import LinktreeCover from '@/components/linktree/LinktreeCover';
@@ -51,6 +52,7 @@ export default async function LinktreePageFR() {
 
   return (
     <div className="min-h-screen" style={bgStyle}>
+      <VisitTracker page="linktree" />
       {notifBar?.isVisible && settings?.showNotif !== false && <NotificationBarComponent bar={notifBar} locale={LOCALE} />}
       <div className="max-w-md mx-auto pb-12">
         <LinktreeCover settings={settings} site={site} />

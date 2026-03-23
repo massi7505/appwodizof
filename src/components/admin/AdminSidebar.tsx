@@ -7,7 +7,7 @@ import React from 'react';
 import {
   HomeIcon, LinkIcon, ClipboardIcon, TagIcon, StarIcon, QuestionIcon,
   ClockIcon, BellIcon, GearIcon, ExternalLinkIcon, LogoutIcon,
-  SidebarCollapseIcon, SidebarExpandIcon,
+  SidebarCollapseIcon, SidebarExpandIcon, ChartIcon,
 } from '@/components/ui/icons';
 
 const NAV_GROUPS = [
@@ -20,6 +20,12 @@ const NAV_GROUPS = [
       { href: '/admin/promotions', label: 'Promotions', icon: <TagIcon /> },
       { href: '/admin/reviews', label: 'Avis clients', icon: <StarIcon /> },
       { href: '/admin/faqs', label: 'FAQs', icon: <QuestionIcon /> },
+    ],
+  },
+  {
+    label: 'ANALYTICS',
+    items: [
+      { href: '/admin/visits', label: 'Statistiques', icon: <ChartIcon /> },
     ],
   },
   {

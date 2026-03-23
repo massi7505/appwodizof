@@ -2,29 +2,32 @@ import { prisma } from '@/lib/db';
 import Link from 'next/link';
 
 export default async function AdminDashboard() {
-  const [categories, products, promos, reviews, faqs, buttons] = await Promise.allSettled([
+  const today = new Date(new Date().toISOString().split('T')[0]);
+  const [categories, products, promos, reviews, faqs, buttons, todayVisits, totalVisits] = await Promise.allSettled([
     prisma.menuCategory.count(),
     prisma.menuItem.count(),
     prisma.promotion.count({ where: { isVisible: true } }),
     prisma.review.count(),
     prisma.fAQ.count(),
     prisma.linktreeButton.count({ where: { isVisible: true } }),
+    prisma.visit.count({ where: { createdAt: { gte: today } } }),
+    prisma.visit.count(),
   ]);
 
   const stats = [
-    { label: 'Catégories Menu',   value: categories.status === 'fulfilled' ? categories.value : 0, icon: '📂', href: '/admin/menu',        cls: 'kpi-blue'   },
-    { label: 'Produits',          value: products.status   === 'fulfilled' ? products.value   : 0, icon: '🍕', href: '/admin/menu',        cls: 'kpi-amber'  },
-    { label: 'Promotions actives',value: promos.status     === 'fulfilled' ? promos.value     : 0, icon: '🎯', href: '/admin/promotions',  cls: 'kpi-red'    },
-    { label: 'Avis Google',       value: reviews.status    === 'fulfilled' ? reviews.value    : 0, icon: '⭐', href: '/admin/reviews',     cls: 'kpi-yellow' },
-    { label: 'FAQs',              value: faqs.status       === 'fulfilled' ? faqs.value       : 0, icon: '❓', href: '/admin/faqs',        cls: 'kpi-purple' },
-    { label: 'Boutons Linktree',  value: buttons.status    === 'fulfilled' ? buttons.value    : 0, icon: '🔗', href: '/admin/linktree',    cls: 'kpi-green'  },
+    { label: 'Visites aujourd\'hui', value: todayVisits.status === 'fulfilled' ? todayVisits.value : 0, icon: '📊', href: '/admin/visits',      cls: 'kpi-blue'   },
+    { label: 'Visites totales',     value: totalVisits.status === 'fulfilled' ? totalVisits.value : 0, icon: '👁️', href: '/admin/visits',      cls: 'kpi-purple' },
+    { label: 'Produits',            value: products.status    === 'fulfilled' ? products.value    : 0, icon: '🍕', href: '/admin/menu',        cls: 'kpi-amber'  },
+    { label: 'Promotions actives',  value: promos.status      === 'fulfilled' ? promos.value      : 0, icon: '🎯', href: '/admin/promotions',  cls: 'kpi-red'    },
+    { label: 'Avis Google',         value: reviews.status     === 'fulfilled' ? reviews.value     : 0, icon: '⭐', href: '/admin/reviews',     cls: 'kpi-yellow' },
+    { label: 'Boutons Linktree',    value: buttons.status     === 'fulfilled' ? buttons.value     : 0, icon: '🔗', href: '/admin/linktree',    cls: 'kpi-green'  },
   ];
 
   const quickLinks = [
+    { href: '/admin/visits',     label: 'Statistiques',    desc: 'Visites & trafic',          icon: '📊' },
     { href: '/admin/linktree',   label: 'Gérer Linktree',  desc: 'Boutons, cover, profil',   icon: '🔗' },
     { href: '/admin/menu',       label: 'Gérer le Menu',   desc: 'Catégories & produits',     icon: '🍕' },
     { href: '/admin/promotions', label: 'Promotions',      desc: 'Offres en cours',           icon: '🎯' },
-    { href: '/admin/reviews',    label: 'Avis Clients',    desc: 'Ajouter des avis Google',   icon: '⭐' },
     { href: '/admin/hours',      label: 'Horaires',        desc: "Horaires d'ouverture",      icon: '🕐' },
     { href: '/admin/settings',   label: 'Paramètres',      desc: 'SEO, couleurs, logo',       icon: '⚙️' },
   ];

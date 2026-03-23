@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import MenuClient from '@/components/menu/MenuClient';
 import NotificationBarComponent from '@/components/linktree/NotificationBar';
+import VisitTracker from '@/components/VisitTracker';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,6 +96,7 @@ export default async function MenuPageFR() {
           <NotificationBarComponent bar={notifBar} locale={LOCALE} />
         </div>
       )}
+      <VisitTracker page="menu" />
       <MenuClient
         categories={categories}
         promos={promos}

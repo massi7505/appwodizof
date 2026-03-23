@@ -43,6 +43,7 @@ model SiteSettings {
   reviewPopupFrequency   String   @default("repeat") // "always" | "once" | "repeat"
   reviewPopupRepeatDays  Int      @default(7)    // days before re-showing (frequency=repeat)
   defaultCategoryId   Int?    // ID of the category shown by default in the menu tabs
+  trackingEnabled     Boolean  @default(true)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -298,6 +299,20 @@ model FooterSettings {
   updatedAt   DateTime @updatedAt
 
   @@map("footer_settings")
+}
+
+// ===================== VISITS =====================
+model Visit {
+  id        Int      @id @default(autoincrement())
+  visitorId String   // hash(IP + UserAgent), 16-char hex
+  ip        String?  // anonymized (first 3 octets only for IPv4)
+  userAgent String?
+  page      String   @default("menu") // "menu" | "linktree"
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([visitorId])
+  @@map("visits")
 }
 
 // ===================== ADMIN USER =====================

@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
+import VisitTracker from '@/components/VisitTracker';
 import LinktreeCover from '@/components/linktree/LinktreeCover';
 import LinktreeProfile from '@/components/linktree/LinktreeProfile';
 import LinktreeButtons from '@/components/linktree/LinktreeButtons';
@@ -57,6 +58,7 @@ export default async function LinktreePage({ params }: Props) {
 
   return (
     <div className="min-h-screen" style={bgStyle}>
+      <VisitTracker page="linktree" />
       <div className="max-w-md mx-auto pb-12">
         <LinktreeCover settings={settings} site={site} />
         <LinktreeProfile settings={settings} site={site} />
