@@ -68,11 +68,11 @@ export default async function MenuPage({ params }: Props) {
       where: { isVisible: true },
       orderBy: { sortOrder: 'asc' },
       include: {
-        translations: true,
+        translations: { where: { locale: { in: [locale, 'fr'] } } },
         products: {
           where: { isVisible: true },
           orderBy: { sortOrder: 'asc' },
-          include: { translations: true },
+          include: { translations: { where: { locale: { in: [locale, 'fr'] } } } },
         },
       },
     }),
