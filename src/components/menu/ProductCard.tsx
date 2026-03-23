@@ -2,6 +2,18 @@
 
 import Image from 'next/image';
 
+const ALLERGEN_ICONS: Record<string, string> = {
+  gluten: '🌾', lactose: '🥛', eggs: '🥚', fish: '🐟', shellfish: '🦞',
+  peanuts: '🥜', nuts: '🌰', celery: '🥬', mustard: '🌿', sesame: '🌱',
+  sulfites: '🍷', lupin: '🌸', molluscs: '🦪', soya: '🫘', soy: '🫘',
+};
+const ALLERGEN_LABELS: Record<string, Record<string, string>> = {
+  fr: { gluten:'Gluten', lactose:'Lactose', eggs:'Œufs', fish:'Poisson', shellfish:'Crustacés', peanuts:'Arachides', nuts:'Fruits à coque', celery:'Céleri', mustard:'Moutarde', sesame:'Sésame', sulfites:'Sulfites', lupin:'Lupin', molluscs:'Mollusques', soya:'Soja', soy:'Soja' },
+  en: { gluten:'Gluten', lactose:'Lactose', eggs:'Eggs', fish:'Fish', shellfish:'Shellfish', peanuts:'Peanuts', nuts:'Tree Nuts', celery:'Celery', mustard:'Mustard', sesame:'Sesame', sulfites:'Sulphites', lupin:'Lupin', molluscs:'Molluscs', soya:'Soya', soy:'Soya' },
+  it: { gluten:'Glutine', lactose:'Lattosio', eggs:'Uova', fish:'Pesce', shellfish:'Crostacei', peanuts:'Arachidi', nuts:'Frutta a guscio', celery:'Sedano', mustard:'Senape', sesame:'Sesamo', sulfites:'Solfiti', lupin:'Lupini', molluscs:'Molluschi', soya:'Soia', soy:'Soia' },
+  es: { gluten:'Gluten', lactose:'Lactosa', eggs:'Huevos', fish:'Pescado', shellfish:'Mariscos', peanuts:'Cacahuetes', nuts:'Frutos secos', celery:'Apio', mustard:'Mostaza', sesame:'Sésamo', sulfites:'Sulfitos', lupin:'Altramuz', molluscs:'Moluscos', soya:'Soja', soy:'Soja' },
+};
+
 interface Product {
   id: number;
   imageUrl?: string | null;
@@ -136,9 +148,10 @@ export default function ProductCard({ product, locale, onClick, compact = false,
         {/* Allergens */}
         {product.allergens && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {(JSON.parse(product.allergens) as string[]).slice(0, 3).map(a => (
-              <span key={a} className="text-[10px] font-medium px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded-md">
-                {a}
+            {(JSON.parse(product.allergens) as string[]).map(a => (
+              <span key={a} className="bg-orange-50 border border-orange-200 text-orange-700 text-[10px] rounded-lg px-2 py-0.5 flex items-center gap-1">
+                <span>{ALLERGEN_ICONS[a] || '⚠️'}</span>
+                <span>{(ALLERGEN_LABELS[locale] || ALLERGEN_LABELS.fr)[a] || a}</span>
               </span>
             ))}
           </div>

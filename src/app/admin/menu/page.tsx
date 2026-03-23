@@ -163,6 +163,38 @@ export default function AdminMenuPage() {
     showToast('🗑️ Catégorie supprimée');
   }
 
+  async function deleteAllCategories() {
+    if (!confirm('Supprimer TOUTES les catégories et leurs produits ? Cette action est irréversible.')) return;
+    for (const cat of categories) {
+      await fetch(`/api/menu/${cat.id}?type=category`, { method: 'DELETE' });
+    }
+    setCategories([]);
+    showToast('🗑️ Toutes les catégories supprimées');
+  }
+
+  function exportProducts() {
+    const data = allProducts.map(p => ({
+      slug: p.slug,
+      imageUrl: p.imageUrl,
+      price: p.price,
+      comparePrice: p.comparePrice,
+      allergens: p.allergens,
+      badges: p.badges,
+      isVisible: p.isVisible,
+      isOutOfStock: p.isOutOfStock,
+      isFeatured: p.isFeatured,
+      isWeekSpecial: p.isWeekSpecial,
+      sortOrder: p.sortOrder,
+      categoryId: p.categoryId,
+      translations: p.translations,
+    }));
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'produits.json'; a.click();
+    URL.revokeObjectURL(url);
+  }
+
   async function moveCat(i: number, dir: -1 | 1) {
     const arr = [...categories];
     const j = i + dir;
@@ -251,9 +283,21 @@ export default function AdminMenuPage() {
             Importer
           </button>
           {tab === 'categories' ? (
-            <button onClick={openNewCat} className="admin-btn-primary">+ Catégorie</button>
+            <>
+              {categories.length > 0 && (
+                <button onClick={deleteAllCategories} className="admin-btn-ghost text-xs text-red-400 hover:text-red-300 hover:bg-red-500/10">
+                  🗑️ Supprimer tout
+                </button>
+              )}
+              <button onClick={openNewCat} className="admin-btn-primary">+ Catégorie</button>
+            </>
           ) : (
-            <button onClick={() => openNewProd(filterCatId === 'all' ? (categories[0]?.id || 0) : filterCatId)} className="admin-btn-primary">+ Produit</button>
+            <>
+              <button onClick={exportProducts} className="admin-btn-ghost text-xs">
+                ⬇️ Exporter
+              </button>
+              <button onClick={() => openNewProd(filterCatId === 'all' ? (categories[0]?.id || 0) : filterCatId)} className="admin-btn-primary">+ Produit</button>
+            </>
           )}
         </div>
       </div>

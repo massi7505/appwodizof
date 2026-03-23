@@ -21,7 +21,7 @@ const DEFAULT_SETTINGS = {
   backgroundColor: '#111827', textColor: '#FFFFFF',
   googleMapsUrl: '', googleReviewsUrl: '', instagramUrl: '',
   phoneNumber: '', address: '', metaTitle: '', metaDescription: '', metaKeywords: '',
-  metaImageUrl: '', enabledLocales: '["fr","en","it","es"]',
+  metaImageUrl: '', canonicalUrl: '', enabledLocales: '["fr","en","it","es"]',
   showFeatured: true, showWeekSpecial: true,
   featuredTitles: '{"fr":"⭐ Produits en Vedette","en":"⭐ Featured Products","it":"⭐ Prodotti in Evidenza","es":"⭐ Productos Destacados"}',
   weekTitles: '{"fr":"🔥 Produit de la Semaine","en":"🔥 Product of the Week","it":"🔥 Prodotto della Settimana","es":"🔥 Producto de la Semana"}',
@@ -255,23 +255,72 @@ export default function AdminSettingsPage() {
 
       {/* ===== SEO ===== */}
       {tab === 'seo' && (
-        <div className="admin-card space-y-4">
-          <h3 className="font-bold text-white">Référencement (SEO)</h3>
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1.5">Titre SEO</label>
-            <input type="text" value={settings.metaTitle || ''} onChange={e => set('metaTitle', e.target.value)} className="admin-input" placeholder="Woodiz Paris 15 — Pizza artisanale au feu de bois" />
-            <p className="text-xs text-gray-600 mt-1">{(settings.metaTitle || '').length}/60 caractères recommandés</p>
+        <div className="space-y-4">
+          {/* SERP Preview */}
+          <div className="admin-card">
+            <p className="text-xs font-bold uppercase tracking-widest text-gray-500 mb-3">Aperçu Google</p>
+            <div className="bg-white rounded-xl p-4 border border-gray-200">
+              <p className="text-[#1a0dab] text-lg font-medium truncate hover:underline cursor-pointer">
+                {settings.metaTitle || settings.siteName || 'Titre de votre site'}
+              </p>
+              <p className="text-[#006621] text-sm">votre-site.vercel.app › menu</p>
+              <p className="text-[#545454] text-sm mt-1 line-clamp-2">
+                {settings.metaDescription || 'Description de votre site...'}
+              </p>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1.5">Description SEO</label>
-            <textarea value={settings.metaDescription || ''} onChange={e => set('metaDescription', e.target.value)} className="admin-input resize-none h-20" placeholder="Pizzeria artisanale au feu de bois à Paris 15. Pâte maison, ingrédients frais du marché. Commandez en ligne sur Uber Eats, Deliveroo..." />
-            <p className="text-xs text-gray-600 mt-1">{(settings.metaDescription || '').length}/160 caractères recommandés</p>
+
+          {/* Fields */}
+          <div className="admin-card space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-medium text-gray-400">Titre SEO (balise title)</label>
+                <span className={`text-xs font-bold ${(settings.metaTitle || '').length > 60 ? 'text-red-400' : (settings.metaTitle || '').length > 50 ? 'text-amber-400' : 'text-green-400'}`}>
+                  {(settings.metaTitle || '').length}/60
+                </span>
+              </div>
+              <input type="text" value={settings.metaTitle || ''} onChange={e => set('metaTitle', e.target.value)} className="admin-input" placeholder="Woodiz Paris 15 — Pizza artisanale au feu de bois" />
+              <p className="text-xs text-gray-600 mt-1">Affiché dans l'onglet du navigateur et les résultats Google.</p>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-sm font-medium text-gray-400">Description SEO (meta description)</label>
+                <span className={`text-xs font-bold ${(settings.metaDescription || '').length > 160 ? 'text-red-400' : (settings.metaDescription || '').length > 140 ? 'text-amber-400' : 'text-green-400'}`}>
+                  {(settings.metaDescription || '').length}/160
+                </span>
+              </div>
+              <textarea value={settings.metaDescription || ''} onChange={e => set('metaDescription', e.target.value)} className="admin-input resize-none h-20" placeholder="Pizzeria artisanale au feu de bois à Paris 15. Pâte maison, ingrédients frais du marché. Commandez en ligne sur Uber Eats, Deliveroo..." />
+              <p className="text-xs text-gray-600 mt-1">Résumé affiché sous le titre dans Google. Inclure des mots-clés.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1.5">Mots-clés (meta keywords)</label>
+              <input type="text" value={settings.metaKeywords || ''} onChange={e => set('metaKeywords', e.target.value)} className="admin-input" placeholder="pizza, pizzeria, paris, artisanale, feu de bois, paris 15" />
+              <p className="text-xs text-gray-600 mt-1">Séparés par des virgules. Impact limité sur Google, utile pour Bing.</p>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1.5">URL Canonique</label>
+              <input type="url" value={settings.canonicalUrl || ''} onChange={e => set('canonicalUrl', e.target.value)} className="admin-input" placeholder="https://votre-site.vercel.app" />
+              <p className="text-xs text-gray-600 mt-1">Évite le contenu dupliqué. Laisser vide pour utiliser l'URL par défaut.</p>
+            </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1.5">Mots-clés SEO</label>
-            <input type="text" value={settings.metaKeywords || ''} onChange={e => set('metaKeywords', e.target.value)} className="admin-input" placeholder="pizza, pizzeria, paris, artisanale, feu de bois, paris 15" />
+
+          {/* OG Image */}
+          <div className="admin-card">
+            <h4 className="font-semibold text-white mb-3">🖼️ Image de partage (Open Graph)</h4>
+            <p className="text-xs text-gray-500 mb-3">Affichée quand le lien est partagé sur WhatsApp, Facebook, Twitter. Format recommandé : 1200×630px.</p>
+            <ImageUploader value={settings.metaImageUrl} onChange={url => set('metaImageUrl', url)} onRemove={() => set('metaImageUrl', '')} folder="brand" label="Image sociale / OG (1200×630px recommandé)" />
           </div>
-          <ImageUploader value={settings.metaImageUrl} onChange={url => set('metaImageUrl', url)} onRemove={() => set('metaImageUrl', '')} folder="brand" label="Image sociale / OG (1200×630px recommandé)" />
+
+          {/* JSON-LD badge */}
+          <div className="admin-card">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-green-500/15 flex items-center justify-center text-green-400 text-xl">✅</div>
+              <div>
+                <p className="font-semibold text-white text-sm">Schema.org Restaurant activé</p>
+                <p className="text-xs text-gray-500 mt-0.5">Données structurées JSON-LD automatiques : nom, adresse, horaires, menu. Améliore les rich snippets Google.</p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
