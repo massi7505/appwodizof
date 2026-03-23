@@ -17,8 +17,9 @@ export async function GET(req: NextRequest) {
     ]);
 
     return NextResponse.json({ settings, buttons });
-  } catch {
-    return NextResponse.json({ error: 'Failed to fetch linktree data' }, { status: 500 });
+  } catch (error) {
+    console.error('[linktree GET]', error);
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }
 
@@ -33,7 +34,18 @@ export async function POST(req: NextRequest) {
 
     if (type === 'settings') {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { id, createdAt, updatedAt, ...settingsData } = data;
+      const { id, createdAt, updatedAt, ...rawSettings } = data;
+      // Keep only known LinktreeSettings fields
+      const settingsData: Record<string, any> = {};
+      const allowed = [
+        'coverType','coverColor','coverImageUrl','coverVideoUrl',
+        'bgColor','bgImageUrl','profileName','profileSubtitle',
+        'profileImageUrl','noticeText','noticeIcon',
+        'showHours','showFaqs','showPromos','showNotif',
+      ];
+      for (const key of allowed) {
+        if (key in rawSettings) settingsData[key] = rawSettings[key];
+      }
       const settings = await prisma.linktreeSettings.upsert({
         where: { id: 1 },
         update: settingsData,
@@ -46,7 +58,8 @@ export async function POST(req: NextRequest) {
     const { bgType, id: _id, createdAt: _ca, updatedAt: _ua, ...buttonData } = data;
     const button = await prisma.linktreeButton.create({ data: buttonData });
     return NextResponse.json(button, { status: 201 });
-  } catch {
-    return NextResponse.json({ error: 'Failed to create' }, { status: 500 });
+  } catch (error) {
+    console.error('[linktree POST]', error);
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }

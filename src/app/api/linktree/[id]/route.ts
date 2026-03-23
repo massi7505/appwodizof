@@ -10,15 +10,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { id } = await params;
     const body = await req.json();
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { bgType, id: _id, createdAt, updatedAt, ...updateData } = body;
+    const { bgType, id: _id, createdAt, updatedAt, sortOrder, ...updateData } = body;
 
     const button = await prisma.linktreeButton.update({
       where: { id: parseInt(id) },
       data: { ...updateData, updatedAt: new Date() },
     });
     return NextResponse.json(button);
-  } catch {
-    return NextResponse.json({ error: 'Failed to update button' }, { status: 500 });
+  } catch (error) {
+    console.error('[linktree PATCH]', error);
+    return NextResponse.json({ error: String(error) }, { status: 500 });
   }
 }
 
