@@ -7,17 +7,24 @@ export const dynamic = 'force-dynamic';
 
 const LOCALE = 'fr';
 
+function pickBestTranslation(translations: any[], locale: string) {
+  const priority = (loc: string) => loc === locale ? 0 : loc === 'fr' ? 1 : loc === 'en' ? 2 : loc === 'it' ? 3 : loc === 'es' ? 4 : 5;
+  return [...translations].sort((a, b) => priority(a.locale) - priority(b.locale));
+}
+
 function serializeCategories(categories: any[]) {
   return categories.map(cat => ({
     ...cat,
     createdAt: cat.createdAt?.toISOString() ?? null,
     updatedAt: cat.updatedAt?.toISOString() ?? null,
+    translations: pickBestTranslation(cat.translations || [], LOCALE),
     products: cat.products.map((p: any) => ({
       ...p,
       price: parseFloat(p.price?.toString() ?? '0'),
       comparePrice: p.comparePrice ? parseFloat(p.comparePrice.toString()) : null,
       createdAt: p.createdAt?.toISOString() ?? null,
       updatedAt: p.updatedAt?.toISOString() ?? null,
+      translations: pickBestTranslation(p.translations || [], LOCALE),
     })),
   }));
 }
@@ -58,11 +65,11 @@ export default async function MenuPageFR() {
       where: { isVisible: true },
       orderBy: { sortOrder: 'asc' },
       include: {
-        translations: { where: { locale: LOCALE } },
+        translations: { where: { locale: { in: [LOCALE, 'fr'] } } },
         products: {
           where: { isVisible: true },
           orderBy: { sortOrder: 'asc' },
-          include: { translations: { where: { locale: LOCALE } } },
+          include: { translations: { where: { locale: { in: [LOCALE, 'fr'] } } } },
         },
       },
     }),
@@ -77,7 +84,7 @@ export default async function MenuPageFR() {
       orderBy: { sortOrder: 'asc' },
       include: { translations: { where: { locale: LOCALE } } },
     }),
-    prisma.notificationBar.findFirst({ where: { id: 1 }, include: { translations: { where: { locale: LOCALE } } } }),
+    prisma.notificationBar.findFirst({ where: { id: 1 }, include: { translations: true } }),
     prisma.siteSettings.findFirst(),
   ]);
 
@@ -89,14 +96,33 @@ export default async function MenuPageFR() {
   const notifBar = notifRes.status === 'fulfilled' ? notifRes.value : null;
   const site = serializeSite(siteRes.status === 'fulfilled' ? siteRes.value : null);
 
+  // Hero data
+  let heroData: { settings: any; slides: any[]; featureCards: any[] } | null = null;
+  try {
+    const p = prisma as any;
+    const DEFAULT_SETTINGS = { isVisible: true, autoplay: true, autoplayDelay: 5000, showDots: true, showArrows: true, showFeatureCards: true, accentColor: '#F59E0B' };
+    const [heroSettings, heroSlides, heroCards] = await Promise.all([
+      p.heroSettings?.findFirst?.().catch(() => null) ?? null,
+      p.heroSlide?.findMany?.({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' }, include: { buttons: { orderBy: { sortOrder: 'asc' } } } }).catch(() => []) ?? [],
+      p.heroFeatureCard?.findMany?.({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' } }).catch(() => []) ?? [],
+    ]);
+    heroData = {
+      settings: heroSettings ?? DEFAULT_SETTINGS,
+      slides: heroSlides ?? [],
+      featureCards: heroCards ?? [],
+    };
+  } catch (e) {
+    console.error('[hero fetch error]', e);
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
+      <VisitTracker page="menu" />
       {notifBar?.isVisible && (
         <div className="sticky top-0 z-50">
           <NotificationBarComponent bar={notifBar} locale={LOCALE} />
         </div>
       )}
-      <VisitTracker page="menu" />
       <MenuClient
         categories={categories}
         promos={promos}
@@ -104,6 +130,7 @@ export default async function MenuPageFR() {
         faqs={faqs}
         site={site}
         locale={LOCALE}
+        heroData={heroData as any}
       />
     </div>
   );

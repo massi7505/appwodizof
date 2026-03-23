@@ -1,8 +1,5 @@
 import { prisma } from '@/lib/db';
-import NotificationBarComponent from '@/components/linktree/NotificationBar';
 import VisitTracker from '@/components/VisitTracker';
-
-export const dynamic = 'force-dynamic';
 import LinktreeCover from '@/components/linktree/LinktreeCover';
 import LinktreeProfile from '@/components/linktree/LinktreeProfile';
 import LinktreeButtons from '@/components/linktree/LinktreeButtons';
@@ -11,10 +8,12 @@ import LinktreePromos from '@/components/linktree/LinktreePromos';
 import LinktreeFAQs from '@/components/linktree/LinktreeFAQs';
 import LinktreeFooter from '@/components/linktree/LinktreeFooter';
 
+export const dynamic = 'force-dynamic';
+
 const LOCALE = 'fr';
 
 export default async function LinktreePageFR() {
-  const [ltSettings, ltButtons, hours, promos, faqs, nbData, siteSettings, footerData] = await Promise.allSettled([
+  const [ltSettings, ltButtons, hours, promos, faqs, siteSettings, footerData] = await Promise.allSettled([
     prisma.linktreeSettings.findFirst(),
     prisma.linktreeButton.findMany({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' } }),
     prisma.openingHours.findMany({ orderBy: { dayOfWeek: 'asc' } }),
@@ -24,11 +23,10 @@ export default async function LinktreePageFR() {
       include: { translations: { where: { locale: LOCALE } } },
     }),
     prisma.fAQ.findMany({
-      where: { isVisible: true, showOnLinktree: true },
+      where: { isVisible: true, showOnMenu: true },
       orderBy: { sortOrder: 'asc' },
       include: { translations: { where: { locale: LOCALE } } },
     }),
-    prisma.notificationBar.findFirst({ include: { translations: { where: { locale: LOCALE } } } }),
     prisma.siteSettings.findFirst(),
     prisma.footerSettings.findFirst(),
   ]);
@@ -42,36 +40,46 @@ export default async function LinktreePageFR() {
     originalPrice: p.originalPrice != null ? p.originalPrice.toString() : null,
   }));
   const faqsList = faqs.status === 'fulfilled' ? faqs.value : [];
-  const notifBar = nbData.status === 'fulfilled' ? nbData.value : null;
   const site = siteSettings.status === 'fulfilled' ? siteSettings.value : null;
   const footer = footerData.status === 'fulfilled' ? footerData.value : null;
+
+  const enabledLocales: string[] = (() => {
+    try { return JSON.parse(site?.enabledLocales || '["fr","en","it","es"]'); } catch { return ['fr', 'en', 'it', 'es']; }
+  })();
 
   const bgStyle = settings?.bgImageUrl
     ? { backgroundImage: `url(${settings.bgImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
     : { backgroundColor: settings?.bgColor || '#111827' };
 
+  const allLocales = [['fr', 'FR'], ['en', 'EN'], ['it', 'IT'], ['es', 'ES']] as const;
+  const visibleLocales = allLocales.filter(([code]) => enabledLocales.includes(code));
+
   return (
     <div className="min-h-screen" style={bgStyle}>
       <VisitTracker page="linktree" />
-      {notifBar?.isVisible && settings?.showNotif !== false && <NotificationBarComponent bar={notifBar} locale={LOCALE} />}
-      <div className="max-w-md mx-auto pb-12">
+      <div className="max-w-md mx-auto pb-12 relative">
+        {visibleLocales.length > 1 && (
+          <div className="absolute top-3 right-3 z-40">
+            <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md rounded-full px-2 py-1 border border-white/10">
+              {visibleLocales.map(([code, label]) => (
+                <a
+                  key={code}
+                  href={code === 'fr' ? '/linktree' : `/${code}/linktree`}
+                  className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all ${code === LOCALE ? 'bg-white text-gray-900' : 'text-white/70 hover:text-white'}`}
+                >
+                  {label}
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
         <LinktreeCover settings={settings} site={site} />
-        <LinktreeProfile settings={settings} site={site} />
+        <LinktreeProfile settings={settings} site={site} hours={openHours} locale={LOCALE} />
         {settings?.showPromos && promotions.length > 0 && <LinktreePromos promos={promotions} locale={LOCALE} />}
-        <LinktreeButtons buttons={buttons} />
+        <LinktreeButtons buttons={buttons} locale={LOCALE} />
         {settings?.showHours && openHours.length > 0 && <LinktreeHours hours={openHours} locale={LOCALE} />}
         {settings?.showFaqs && faqsList.length > 0 && <LinktreeFAQs faqs={faqsList} locale={LOCALE} />}
         <LinktreeFooter site={site} footer={footer} />
-      </div>
-      <div className="fixed top-3 right-3 z-40">
-        <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md rounded-full px-2 py-1 border border-white/10">
-          {[['fr','FR'],['en','EN'],['it','IT'],['es','ES']].map(([code, label]) => (
-            <a key={code} href={code === 'fr' ? '/linktree' : `/${code}/linktree`}
-              className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all ${code === LOCALE ? 'bg-white text-gray-900' : 'text-white/70 hover:text-white'}`}>
-              {label}
-            </a>
-          ))}
-        </div>
       </div>
     </div>
   );

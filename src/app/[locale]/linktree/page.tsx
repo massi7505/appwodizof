@@ -56,25 +56,15 @@ export default async function LinktreePage({ params }: Props) {
     ? { backgroundImage: `url(${settings.bgImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
     : { backgroundColor: settings?.bgColor || '#111827' };
 
+  const allLocales = [['fr', 'FR'], ['en', 'EN'], ['it', 'IT'], ['es', 'ES']] as const;
+  const visibleLocales = allLocales.filter(([code]) => enabledLocales.includes(code));
+
   return (
     <div className="min-h-screen" style={bgStyle}>
       <VisitTracker page="linktree" />
-      <div className="max-w-md mx-auto pb-12">
-        <LinktreeCover settings={settings} site={site} />
-        <LinktreeProfile settings={settings} site={site} hours={openHours} locale={locale} />
-        {settings?.showPromos && promotions.length > 0 && <LinktreePromos promos={promotions} locale={locale} />}
-        <LinktreeButtons buttons={buttons} locale={locale} />
-        {settings?.showHours && openHours.length > 0 && <LinktreeHours hours={openHours} locale={locale} />}
-        {settings?.showFaqs && faqsList.length > 0 && <LinktreeFAQs faqs={faqsList} locale={locale} />}
-        <LinktreeFooter site={site} footer={footer} />
-      </div>
-      {(() => {
-        const enabledLocales: string[] = (() => { try { return JSON.parse(site?.enabledLocales || '["fr","en","it","es"]'); } catch { return ['fr','en','it','es']; } })();
-        const allLocales = [['fr', 'FR'], ['en', 'EN'], ['it', 'IT'], ['es', 'ES']] as const;
-        const visibleLocales = allLocales.filter(([code]) => enabledLocales.includes(code));
-        if (visibleLocales.length <= 1) return null;
-        return (
-          <div className="fixed top-3 right-3 z-40">
+      <div className="max-w-md mx-auto pb-12 relative">
+        {visibleLocales.length > 1 && (
+          <div className="absolute top-3 right-3 z-40">
             <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md rounded-full px-2 py-1 border border-white/10">
               {visibleLocales.map(([code, label]) => (
                 <a
@@ -87,8 +77,15 @@ export default async function LinktreePage({ params }: Props) {
               ))}
             </div>
           </div>
-        );
-      })()}
+        )}
+        <LinktreeCover settings={settings} site={site} />
+        <LinktreeProfile settings={settings} site={site} hours={openHours} locale={locale} />
+        {settings?.showPromos && promotions.length > 0 && <LinktreePromos promos={promotions} locale={locale} />}
+        <LinktreeButtons buttons={buttons} locale={locale} />
+        {settings?.showHours && openHours.length > 0 && <LinktreeHours hours={openHours} locale={locale} />}
+        {settings?.showFaqs && faqsList.length > 0 && <LinktreeFAQs faqs={faqsList} locale={locale} />}
+        <LinktreeFooter site={site} footer={footer} />
+      </div>
     </div>
   );
 }
