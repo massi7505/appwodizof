@@ -22,7 +22,7 @@ const DEFAULT_SETTINGS = {
   googleMapsUrl: '', googleReviewsUrl: '', instagramUrl: '',
   phoneNumber: '', address: '', metaTitle: '', metaDescription: '', metaKeywords: '',
   metaImageUrl: '', canonicalUrl: '', enabledLocales: '["fr","en","it","es"]',
-  reviewPopupEnabled: false, reviewPopupDelay: 5,
+  reviewPopupEnabled: false, reviewPopupDelay: 5, reviewPopupFrequency: 'repeat', reviewPopupRepeatDays: 7,
   showFeatured: true, showWeekSpecial: true,
   featuredTitles: '{"fr":"⭐ Produits en Vedette","en":"⭐ Featured Products","it":"⭐ Prodotti in Evidenza","es":"⭐ Productos Destacados"}',
   weekTitles: '{"fr":"🔥 Produit de la Semaine","en":"🔥 Product of the Week","it":"🔥 Prodotto della Settimana","es":"🔥 Producto de la Semana"}',
@@ -361,7 +361,9 @@ export default function AdminSettingsPage() {
           </div>
 
           {settings.reviewPopupEnabled && (
-            <div className="space-y-3 pt-3 border-t border-gray-700">
+            <div className="space-y-4 pt-3 border-t border-gray-700">
+
+              {/* Google link */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1.5">Lien Google Avis</label>
                 <input
@@ -371,27 +373,63 @@ export default function AdminSettingsPage() {
                   className="admin-input"
                   placeholder="https://g.page/r/votre-établissement/review"
                 />
-                <p className="text-xs text-gray-600 mt-1">Trouvez votre lien dans Google Business Profile → Demander des avis.</p>
+                <p className="text-xs text-gray-600 mt-1">Google Business Profile → Demander des avis → copier le lien.</p>
               </div>
+
+              {/* Delay */}
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Délai avant affichage</label>
                 <div className="flex flex-wrap gap-2">
                   {[3, 5, 10, 20, 30].map(sec => (
-                    <button
-                      key={sec}
-                      type="button"
-                      onClick={() => set('reviewPopupDelay', sec)}
-                      className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${settings.reviewPopupDelay === sec ? 'bg-amber-500 text-gray-900' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
-                    >
+                    <button key={sec} type="button" onClick={() => set('reviewPopupDelay', sec)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${settings.reviewPopupDelay === sec ? 'bg-amber-500 text-gray-900' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>
                       {sec}s
                     </button>
                   ))}
                 </div>
-                <p className="text-xs text-gray-600 mt-1.5">Le popup ne réapparaît pas pendant 7 jours après fermeture.</p>
               </div>
 
+              {/* Frequency */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Fréquence d'affichage</label>
+                <div className="space-y-2">
+                  {[
+                    { value: 'always', label: '🔁 Toujours', desc: 'S\'affiche à chaque visite' },
+                    { value: 'once', label: '1️⃣ Une seule fois', desc: 'Disparaît définitivement après fermeture' },
+                    { value: 'repeat', label: '⏳ Réapparaître après X jours', desc: 'Si fermé sans cliquer, réapparaît plus tard' },
+                  ].map(opt => (
+                    <label key={opt.value} className={`flex items-start gap-3 rounded-xl px-4 py-3 cursor-pointer transition-all ${settings.reviewPopupFrequency === opt.value ? 'bg-amber-500/15 border border-amber-500/30' : 'bg-gray-800 border border-transparent'}`}>
+                      <input type="radio" name="popupFrequency" value={opt.value}
+                        checked={settings.reviewPopupFrequency === opt.value}
+                        onChange={() => set('reviewPopupFrequency', opt.value)}
+                        className="accent-amber-500 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <p className="text-sm font-semibold text-white">{opt.label}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">{opt.desc}</p>
+                      </div>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              {/* Repeat days — only if frequency === repeat */}
+              {settings.reviewPopupFrequency === 'repeat' && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Réapparaître après</label>
+                  <div className="flex flex-wrap gap-2">
+                    {[1, 3, 7, 14, 30].map(d => (
+                      <button key={d} type="button" onClick={() => set('reviewPopupRepeatDays', d)}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${settings.reviewPopupRepeatDays === d ? 'bg-amber-500 text-gray-900' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}>
+                        {d} jour{d > 1 ? 's' : ''}
+                      </button>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-600 mt-1.5">Si le client clique sur "Laisser un avis" → ne réapparaît jamais.</p>
+                </div>
+              )}
+
               {/* Preview */}
-              <div className="mt-3 pt-3 border-t border-gray-700">
+              <div className="pt-3 border-t border-gray-700">
                 <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Aperçu</p>
                 <div className="bg-white rounded-3xl overflow-hidden max-w-xs mx-auto" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
                   <div className="h-1.5 w-full" style={{ background: settings.primaryColor || '#F59E0B' }} />

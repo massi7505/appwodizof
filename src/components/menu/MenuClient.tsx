@@ -235,6 +235,8 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
         <GoogleReviewPopup
           googleReviewsUrl={site.googleReviewsUrl}
           delay={site.reviewPopupDelay ?? 5}
+          frequency={site.reviewPopupFrequency ?? 'repeat'}
+          repeatDays={site.reviewPopupRepeatDays ?? 7}
           locale={locale}
           primaryColor={primaryColor}
         />
