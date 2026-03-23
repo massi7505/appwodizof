@@ -110,7 +110,7 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
       <MenuHeader site={site} locale={locale} search={search} onSearch={setSearch} L={L} primaryColor={primaryColor} />
 
       {/* ===== HERO SECTION ===== */}
-      {heroData?.settings?.isVisible && heroData.slides.length > 0 && (
+      {heroData?.slides && heroData.slides.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 pt-4">
           <HeroSection
             settings={heroData.settings}

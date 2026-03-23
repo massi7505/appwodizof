@@ -63,7 +63,7 @@ function serializeSite(site: any) {
 export default async function MenuPage({ params }: Props) {
   const { locale } = await params;
 
-  const [categoriesRes, promosRes, reviewsRes, faqsRes, notifRes, siteRes, heroResult] = await Promise.allSettled([
+  const [categoriesRes, promosRes, reviewsRes, faqsRes, notifRes, siteRes] = await Promise.allSettled([
     prisma.menuCategory.findMany({
       where: { isVisible: true },
       orderBy: { sortOrder: 'asc' },
@@ -89,21 +89,6 @@ export default async function MenuPage({ params }: Props) {
     }),
     prisma.notificationBar.findFirst({ where: { id: 1 }, include: { translations: true } }),
     prisma.siteSettings.findFirst(),
-    (async () => {
-      try {
-        const p = prisma as any;
-        const [heroSettings, slides, featureCards] = await Promise.all([
-          p.heroSettings.findFirst(),
-          p.heroSlide.findMany({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' }, include: { buttons: { orderBy: { sortOrder: 'asc' } } } }),
-          p.heroFeatureCard.findMany({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' } }),
-        ]);
-        const settings = heroSettings ?? { isVisible: true, autoplay: true, autoplayDelay: 5000, showDots: true, showArrows: true, showFeatureCards: true, accentColor: '#F59E0B' };
-        return { settings, slides: slides || [], featureCards: featureCards || [] };
-      } catch (e) {
-        console.error('[hero fetch]', e);
-        return { settings: null, slides: [], featureCards: [] };
-      }
-    })(),
   ]);
 
   const rawCategories = categoriesRes.status === 'fulfilled' ? categoriesRes.value : [];
@@ -113,7 +98,25 @@ export default async function MenuPage({ params }: Props) {
   const faqs = faqsRes.status === 'fulfilled' ? faqsRes.value : [];
   const notifBar = notifRes.status === 'fulfilled' ? notifRes.value : null;
   const site = serializeSite(siteRes.status === 'fulfilled' ? siteRes.value : null);
-  const heroData = heroResult.status === 'fulfilled' ? heroResult.value : null;
+
+  // Hero data — fetched separately with per-call fallbacks
+  let heroData: { settings: any; slides: any[]; featureCards: any[] } | null = null;
+  try {
+    const p = prisma as any;
+    const DEFAULT_SETTINGS = { isVisible: true, autoplay: true, autoplayDelay: 5000, showDots: true, showArrows: true, showFeatureCards: true, accentColor: '#F59E0B' };
+    const [heroSettings, heroSlides, heroCards] = await Promise.all([
+      p.heroSettings?.findFirst?.().catch(() => null) ?? null,
+      p.heroSlide?.findMany?.({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' }, include: { buttons: { orderBy: { sortOrder: 'asc' } } } }).catch(() => []) ?? [],
+      p.heroFeatureCard?.findMany?.({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' } }).catch(() => []) ?? [],
+    ]);
+    heroData = {
+      settings: heroSettings ?? DEFAULT_SETTINGS,
+      slides: heroSlides ?? [],
+      featureCards: heroCards ?? [],
+    };
+  } catch (e) {
+    console.error('[hero fetch error]', e);
+  }
 
   const enabledLocales: string[] = (() => {
     try { return JSON.parse(site?.enabledLocales || '["fr","en","it","es"]'); } catch { return ['fr', 'en', 'it', 'es']; }
