@@ -9,7 +9,7 @@ import {
   ExternalLink, LogOut, X, Pencil, Trash2, Eye, Plus, Search, Upload,
   ChevronDown, ChevronUp, ChevronRight, Download, PanelLeftClose, PanelLeftOpen,
   ShoppingBag, UtensilsCrossed, MapPin, Phone, Mail, Globe, Heart,
-  AlertCircle, CheckCircle, Info, Loader2, BarChart2,
+  AlertCircle, CheckCircle, Info, Loader2, BarChart2, Copy,
 } from 'lucide-react';
 
 type IconProps = { className?: string };
@@ -161,4 +161,8 @@ export function SpinnerIcon({ className = 'w-4 h-4' }: IconProps) {
 
 export function ChartIcon({ className = 'w-[18px] h-[18px]' }: IconProps) {
   return <BarChart2 className={`icon-hover-bounce transition-transform ${className}`} />;
+}
+
+export function CopyIcon({ className = 'w-4 h-4' }: IconProps) {
+  return <Copy className={`icon-hover-bounce transition-transform ${className}`} />;
 }

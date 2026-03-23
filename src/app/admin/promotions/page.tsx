@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import ImageUploader from '@/components/admin/ImageUploader';
 import ColorPicker from '@/components/admin/ColorPicker';
-import { ChevronSortUpIcon, ChevronSortDownIcon, EyeIcon, EditIcon, TrashIcon, CloseIcon } from '@/components/ui/icons';
+import { ChevronSortUpIcon, ChevronSortDownIcon, EyeIcon, EditIcon, TrashIcon, CloseIcon, CopyIcon } from '@/components/ui/icons';
 
 const LOCALES = ['fr', 'en', 'it', 'es'];
 const LOCALE_LABELS: Record<string, string> = { fr: '🇫🇷 FR', en: '🇬🇧 EN', it: '🇮🇹 IT', es: '🇪🇸 ES' };
@@ -59,6 +59,25 @@ export default function AdminPromotionsPage() {
     await fetch(`/api/promotions/${id}`, { method: 'DELETE' });
     setPromos(ps => ps.filter(x => x.id !== id));
     showToast('🗑️ Supprimée');
+  }
+
+  async function duplicatePromo(promo: any) {
+    const { id: _id, createdAt: _ca, updatedAt: _ua, sortOrder: _so, ...data } = promo;
+    const payload = {
+      ...data,
+      isVisible: false,
+      promoPrice: data.promoPrice?.toString() || null,
+      originalPrice: data.originalPrice?.toString() || null,
+      translations: (data.translations || []).map(({ id: _tid, promotionId: _pid, ...t }: any) => t),
+    };
+    const res = await fetch('/api/promotions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) { showToast('❌ Erreur duplication'); return; }
+    showToast('📋 Promotion dupliquée (masquée)');
+    load();
   }
 
   async function togglePromo(promo: any, field: string) {
@@ -119,6 +138,9 @@ export default function AdminPromotionsPage() {
               <div className="flex items-center gap-1">
                 <button onClick={() => togglePromo(promo, 'isVisible')} title="Visible" className={`p-1.5 rounded-lg transition-colors ${promo.isVisible ? 'text-green-400' : 'text-gray-600'} hover:bg-white/5`}>
                   <EyeIcon />
+                </button>
+                <button title="Dupliquer" onClick={() => duplicatePromo(promo)} className="p-1.5 rounded-lg text-gray-400 hover:text-blue-400 hover:bg-blue-500/10 transition-colors">
+                  <CopyIcon />
                 </button>
                 <button onClick={() => { setEditing({ ...promo, translations: promo.translations?.length ? promo.translations : DEFAULT_PROMO.translations }); setIsNew(false); }} className="p-1.5 rounded-lg text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors">
                   <EditIcon />

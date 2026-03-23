@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import ImageUploader from '@/components/admin/ImageUploader';
 import {
   ExternalLinkIcon, ImportIcon, ChevronSortUpIcon, ChevronSortDownIcon,
-  ChevronDownIcon, PlusIcon, EyeIcon, EditIcon, TrashIcon, CloseIcon,
+  ChevronDownIcon, PlusIcon, EyeIcon, EditIcon, TrashIcon, CloseIcon, CopyIcon,
 } from '@/components/ui/icons';
 
 const LOCALES = ['fr', 'en', 'it', 'es'];
@@ -247,6 +247,27 @@ export default function AdminMenuPage() {
     showToast('🗑️ Produit supprimé');
   }
 
+  async function duplicateProduct(prod: any) {
+    const { id: _id, createdAt: _ca, updatedAt: _ua, _category, ...data } = prod;
+    const payload = {
+      type: 'product',
+      ...data,
+      slug: `${data.slug}-copie`,
+      isVisible: false,
+      price: data.price?.toString() || '0',
+      comparePrice: data.comparePrice?.toString() || null,
+      translations: (data.translations || []).map(({ id: _tid, ...t }: any) => t),
+    };
+    const res = await fetch('/api/menu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) { showToast('❌ Erreur duplication'); return; }
+    showToast('📋 Produit dupliqué (masqué)');
+    load();
+  }
+
   async function moveProd(catId: number, i: number, dir: -1 | 1) {
     const cat = categories.find(c => c.id === catId);
     if (!cat) return;
@@ -433,6 +454,9 @@ export default function AdminMenuPage() {
                             >
                               <EyeIcon />
                             </button>
+                            <IconBtn title="Dupliquer" onClick={() => duplicateProduct(prod)}>
+                              <CopyIcon />
+                            </IconBtn>
                             <IconBtn onClick={() => openEditProd(prod)}>
                               <EditIcon />
                             </IconBtn>
@@ -533,6 +557,9 @@ export default function AdminMenuPage() {
                     >
                       <CloseIcon className="w-4 h-4" />
                     </button>
+                    <IconBtn title="Dupliquer" onClick={() => duplicateProduct(prod)}>
+                      <CopyIcon />
+                    </IconBtn>
                     <IconBtn onClick={() => openEditProd(prod)}>
                       <EditIcon />
                     </IconBtn>
