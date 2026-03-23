@@ -14,7 +14,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
       where: { id: parseInt(id) },
       data: {
         ...data,
-        promoPrice: data.promoPrice !== undefined ? parseFloat(data.promoPrice) : undefined,
+        promoPrice: data.promoPrice ? parseFloat(data.promoPrice) : null,
         originalPrice: data.originalPrice ? parseFloat(data.originalPrice) : null,
         updatedAt: new Date(),
         ...(translations ? { translations: { deleteMany: {}, create: translations.map(({ id: _id, promotionId: _pid, ...t }: any) => t) } } : {}),

@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     const promo = await prisma.promotion.create({
       data: {
         ...data,
-        promoPrice: parseFloat(data.promoPrice),
+        promoPrice: data.promoPrice ? parseFloat(data.promoPrice) : null,
         originalPrice: data.originalPrice ? parseFloat(data.originalPrice) : null,
         translations: { create: translations || [] },
       },

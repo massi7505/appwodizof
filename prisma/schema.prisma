@@ -172,7 +172,8 @@ model Promotion {
   badgeText       String?  // "MENU MIDI", "OFFRE À EMPORTER"
   badgeColor      String   @default("#EF4444")
   originalPrice   Decimal? @db.Decimal(10, 2)
-  promoPrice      Decimal  @db.Decimal(10, 2)
+  promoPrice      Decimal? @db.Decimal(10, 2)
+  photoOnly       Boolean  @default(false)
   isVisible       Boolean  @default(true)
   showOnLinktree  Boolean  @default(true)
   showOnMenu      Boolean  @default(true)
