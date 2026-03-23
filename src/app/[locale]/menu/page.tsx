@@ -3,7 +3,6 @@ import { prisma } from '@/lib/db';
 import MenuClient from '@/components/menu/MenuClient';
 import NotificationBarComponent from '@/components/linktree/NotificationBar';
 import VisitTracker from '@/components/VisitTracker';
-import HeroSection from '@/components/linktree/HeroSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -125,14 +124,6 @@ export default async function MenuPage({ params }: Props) {
           <NotificationBarComponent bar={notifBar} locale={locale} />
         </div>
       )}
-      {heroData?.settings?.isVisible && heroData.slides.length > 0 && (
-        <HeroSection
-          settings={heroData.settings as any}
-          slides={heroData.slides as any}
-          featureCards={heroData.featureCards as any}
-          locale={locale}
-        />
-      )}
       <MenuClient
         categories={categories}
         promos={promos}
@@ -140,6 +131,7 @@ export default async function MenuPage({ params }: Props) {
         faqs={faqs}
         site={site}
         locale={locale}
+        heroData={heroData as any}
       />
       {visibleLocales.length > 1 && (
         <div className="fixed top-3 right-3 z-40">

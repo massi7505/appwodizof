@@ -180,7 +180,7 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
   try { if (slide.badgesJson) badges = JSON.parse(slide.badgesJson); } catch { /* noop */ }
 
   return (
-    <section className="w-full px-3 py-4 md:px-6 md:py-6">
+    <section className="w-full pb-4">
       {/* ── Hero Card ── */}
       <div
         className="relative w-full rounded-3xl overflow-hidden transition-colors duration-500"

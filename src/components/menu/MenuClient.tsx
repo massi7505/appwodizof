@@ -11,6 +11,7 @@ import ReviewsSection from './ReviewsSection';
 import FAQSection from './FAQSection';
 import MenuFooter from './MenuFooter';
 import GoogleReviewPopup from './GoogleReviewPopup';
+import HeroSection from '@/components/linktree/HeroSection';
 
 interface Translation { locale: string; name: string; description?: string | null }
 interface Product {
@@ -33,6 +34,7 @@ interface Props {
   faqs: any[];
   site: any;
   locale: string;
+  heroData?: { settings: any; slides: any[]; featureCards: any[] } | null;
 }
 
 const LABELS: Record<string, Record<string, string>> = {
@@ -42,7 +44,7 @@ const LABELS: Record<string, Record<string, string>> = {
   es: { search: 'Buscar una pizza...', featured: '⭐ Productos Destacados', week: '🔥 Producto de la Semana', menu: '🍕 Nuestra Carta', noResults: 'Sin resultados para', promos: 'Promociones del Momento', reviews: 'Lo que dicen nuestros clientes', faqs: 'Preguntas Frecuentes', viewGoogle: 'Ver todas las reseñas de Google' },
 };
 
-export default function MenuClient({ categories, promos, reviews, faqs, site, locale }: Props) {
+export default function MenuClient({ categories, promos, reviews, faqs, site, locale, heroData }: Props) {
   const [search, setSearch] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(() => {
     if (site?.defaultCategoryId) return site.defaultCategoryId;
@@ -106,6 +108,18 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
     <div className="bg-gray-50 min-h-screen">
       {/* ===== HEADER ===== */}
       <MenuHeader site={site} locale={locale} search={search} onSearch={setSearch} L={L} primaryColor={primaryColor} />
+
+      {/* ===== HERO SECTION ===== */}
+      {heroData?.settings?.isVisible && heroData.slides.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 pt-4">
+          <HeroSection
+            settings={heroData.settings}
+            slides={heroData.slides}
+            featureCards={heroData.featureCards}
+            locale={locale}
+          />
+        </div>
+      )}
 
       {/* ===== PROMO SLIDER ===== */}
       {promos.length > 0 && (
