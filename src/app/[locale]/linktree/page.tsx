@@ -26,7 +26,7 @@ export default async function LinktreePage({ params }: Props) {
       include: { translations: { where: { locale } } },
     }),
     prisma.fAQ.findMany({
-      where: { isVisible: true, showOnLinktree: true },
+      where: { isVisible: true, showOnMenu: true },
       orderBy: { sortOrder: 'asc' },
       include: { translations: { where: { locale } } },
     }),
@@ -61,7 +61,7 @@ export default async function LinktreePage({ params }: Props) {
       <VisitTracker page="linktree" />
       <div className="max-w-md mx-auto pb-12">
         <LinktreeCover settings={settings} site={site} />
-        <LinktreeProfile settings={settings} site={site} />
+        <LinktreeProfile settings={settings} site={site} hours={openHours} locale={locale} />
         {settings?.showPromos && promotions.length > 0 && <LinktreePromos promos={promotions} locale={locale} />}
         <LinktreeButtons buttons={buttons} locale={locale} />
         {settings?.showHours && openHours.length > 0 && <LinktreeHours hours={openHours} locale={locale} />}

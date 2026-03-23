@@ -1,13 +1,65 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
+interface HourSlot { open: string; close: string; }
+interface HourRow { id: number; dayOfWeek: number; isOpen: boolean; slots: string; }
+
 interface Props {
   settings: any;
   site: any;
+  hours?: HourRow[];
+  locale?: string;
 }
 
-export default function LinktreeProfile({ settings, site }: Props) {
+const STATUS_LABELS: Record<string, { open: string; closed: string; until: string }> = {
+  fr: { open: 'Ouvert maintenant', closed: 'Fermé maintenant', until: "Jusqu'à" },
+  en: { open: 'Open now', closed: 'Closed now', until: 'Until' },
+  it: { open: 'Aperto adesso', closed: 'Chiuso adesso', until: 'Fino alle' },
+  es: { open: 'Abierto ahora', closed: 'Cerrado ahora', until: 'Hasta las' },
+};
+
+function getCurrentDayOfWeek() {
+  const d = new Date().getDay();
+  return d === 0 ? 6 : d - 1;
+}
+
+function parseTime(t: string) {
+  const [h, m] = t.split(':').map(Number);
+  return h * 60 + (m || 0);
+}
+
+function getTodayStatus(hours: HourRow[]) {
+  const today = getCurrentDayOfWeek();
+  const row = hours.find(r => r.dayOfWeek === today);
+  if (!row || !row.isOpen) return null;
+  try {
+    const now = new Date();
+    const currentMin = now.getHours() * 60 + now.getMinutes();
+    const slots: HourSlot[] = JSON.parse(row.slots);
+    for (const slot of slots) {
+      const open = parseTime(slot.open);
+      let close = parseTime(slot.close);
+      if (close < open) close += 24 * 60;
+      if (currentMin >= open && currentMin < close) {
+        return { isOpen: true, closeTime: slot.close };
+      }
+    }
+  } catch { /* noop */ }
+  return { isOpen: false, closeTime: null };
+}
+
+export default function LinktreeProfile({ settings, site, hours = [], locale = 'fr' }: Props) {
+  const [status, setStatus] = useState(() => hours.length ? getTodayStatus(hours) : null);
   const name = settings?.profileName || site?.siteName || 'Woodiz Paris 15';
   const subtitle = settings?.profileSubtitle || site?.siteSlogan || '';
+  const L = STATUS_LABELS[locale] || STATUS_LABELS.fr;
+
+  useEffect(() => {
+    if (!hours.length) return;
+    const t = setInterval(() => setStatus(getTodayStatus(hours)), 60_000);
+    return () => clearInterval(t);
+  }, [hours]);
 
   return (
     <div className="flex flex-col items-center px-6 pt-16 pb-2">
@@ -19,6 +71,28 @@ export default function LinktreeProfile({ settings, site }: Props) {
       {/* Subtitle */}
       {subtitle && (
         <p className="text-white/50 text-sm mt-1 text-center">{subtitle}</p>
+      )}
+
+      {/* Opening status */}
+      {status !== null && (
+        <div className="mt-2 flex items-center gap-1.5">
+          {status.isOpen ? (
+            <>
+              <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse inline-block" />
+              <span className="text-green-400 text-xs font-semibold">
+                {L.open}
+                {status.closeTime && (
+                  <span className="text-white/40 font-normal"> · {L.until} {status.closeTime}</span>
+                )}
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="w-2 h-2 rounded-full bg-red-400 inline-block" />
+              <span className="text-red-400 text-xs font-semibold">{L.closed}</span>
+            </>
+          )}
+        </div>
       )}
 
       {/* Notice */}
