@@ -50,13 +50,15 @@ function getTodayStatus(hours: HourRow[]) {
 }
 
 export default function LinktreeProfile({ settings, site, hours = [], locale = 'fr' }: Props) {
-  const [status, setStatus] = useState(() => hours.length ? getTodayStatus(hours) : null);
+  // null initial state avoids SSR/hydration mismatch (date depends on client timezone)
+  const [status, setStatus] = useState<ReturnType<typeof getTodayStatus> | null>(null);
   const name = settings?.profileName || site?.siteName || 'Woodiz Paris 15';
   const subtitle = settings?.profileSubtitle || site?.siteSlogan || '';
   const L = STATUS_LABELS[locale] || STATUS_LABELS.fr;
 
   useEffect(() => {
     if (!hours.length) return;
+    setStatus(getTodayStatus(hours));
     const t = setInterval(() => setStatus(getTodayStatus(hours)), 60_000);
     return () => clearInterval(t);
   }, [hours]);

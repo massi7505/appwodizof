@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Clock } from 'lucide-react';
 
 interface HourSlot { open: string; close: string; }
 interface HourRow {
@@ -17,10 +16,10 @@ const DAY_NAMES: Record<string, Record<number, string>> = {
 };
 
 const LABELS: Record<string, Record<string, string>> = {
-  fr: { title: "Horaires d'ouverture", closed: 'Fermé', open: 'Ouvert maintenant', closedNow: 'Fermé maintenant', until: "Jusqu'à", opensAt: 'Ouvre à' },
-  en: { title: 'Opening Hours', closed: 'Closed', open: 'Open now', closedNow: 'Closed now', until: 'Until', opensAt: 'Opens at' },
-  it: { title: 'Orari di apertura', closed: 'Chiuso', open: 'Aperto adesso', closedNow: 'Chiuso adesso', until: 'Fino alle', opensAt: 'Apre alle' },
-  es: { title: 'Horario de apertura', closed: 'Cerrado', open: 'Abierto ahora', closedNow: 'Cerrado ahora', until: 'Hasta las', opensAt: 'Abre a las' },
+  fr: { title: "Horaires d'ouverture", closed: 'Fermé', open: 'Ouvert maintenant', closedNow: 'Fermé maintenant', until: "Jusqu'à", opensAt: 'Ouvre', opensToday: 'Ouvre tout à l\'heure à', nextOpen: 'Prochaine ouverture' },
+  en: { title: 'Opening Hours', closed: 'Closed', open: 'Open now', closedNow: 'Closed now', until: 'Until', opensAt: 'Opens', opensToday: 'Opens later at', nextOpen: 'Next opening' },
+  it: { title: 'Orari di apertura', closed: 'Chiuso', open: 'Aperto adesso', closedNow: 'Chiuso adesso', until: 'Fino alle', opensAt: 'Apre', opensToday: 'Apre più tardi alle', nextOpen: 'Prossima apertura' },
+  es: { title: 'Horario de apertura', closed: 'Cerrado', open: 'Abierto ahora', closedNow: 'Cerrado ahora', until: 'Hasta las', opensAt: 'Abre', opensToday: 'Abre luego a las', nextOpen: 'Próxima apertura' },
 };
 
 function getCurrentDayOfWeek(): number {
@@ -39,36 +38,82 @@ function formatSlots(slotsJson: string): string {
   } catch { return slotsJson; }
 }
 
-function getStatus(row: HourRow, L: Record<string, string>): { isOpenNow: boolean; badge: string; closeTime?: string } {
-  if (!row.isOpen) return { isOpenNow: false, badge: L.closed };
-  try {
-    const now = new Date();
-    const currentMin = now.getHours() * 60 + now.getMinutes();
-    const slots: HourSlot[] = JSON.parse(row.slots);
-    for (const slot of slots) {
-      const open = parseTime(slot.open);
-      let close = parseTime(slot.close);
-      if (close < open) close += 24 * 60; // crosses midnight
-      if (currentMin >= open && currentMin < close) {
-        return { isOpenNow: true, badge: L.open, closeTime: slot.close };
+interface StatusResult {
+  isOpenNow: boolean;
+  badge: string;
+  closeTime?: string;
+  nextOpenDay?: string;    // day name
+  nextOpenTime?: string;   // "12:00"
+  openLaterToday?: string; // next slot opens today
+}
+
+function computeStatus(hours: HourRow[], L: Record<string, string>, dayNames: Record<number, string>): StatusResult {
+  const today = getCurrentDayOfWeek();
+  const row = hours.find(r => r.dayOfWeek === today);
+
+  const now = new Date();
+  const currentMin = now.getHours() * 60 + now.getMinutes();
+
+  // Check if open now
+  if (row?.isOpen) {
+    try {
+      const slots: HourSlot[] = JSON.parse(row.slots);
+      for (const slot of slots) {
+        const open = parseTime(slot.open);
+        let close = parseTime(slot.close);
+        if (close < open) close += 24 * 60;
+        if (currentMin >= open && currentMin < close) {
+          return { isOpenNow: true, badge: L.open, closeTime: slot.close };
+        }
       }
+      // Not open now — check if opens later today
+      for (const slot of slots) {
+        const open = parseTime(slot.open);
+        if (open > currentMin) {
+          return { isOpenNow: false, badge: L.closedNow, openLaterToday: slot.open };
+        }
+      }
+    } catch { /* noop */ }
+  }
+
+  // Find next opening day (up to 7 days ahead)
+  for (let offset = 1; offset <= 7; offset++) {
+    const nextDay = (today + offset) % 7;
+    const nextRow = hours.find(r => r.dayOfWeek === nextDay);
+    if (nextRow?.isOpen) {
+      try {
+        const slots: HourSlot[] = JSON.parse(nextRow.slots);
+        if (slots.length > 0) {
+          return {
+            isOpenNow: false,
+            badge: L.closedNow,
+            nextOpenDay: dayNames[nextDay],
+            nextOpenTime: slots[0].open,
+          };
+        }
+      } catch { /* noop */ }
     }
-  } catch { /* noop */ }
+  }
+
   return { isOpenNow: false, badge: L.closedNow };
 }
 
 export default function LinktreeHours({ hours, locale }: Props) {
-  const [now, setNow] = useState(() => new Date());
-  useEffect(() => {
-    const t = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(t);
-  }, []);
+  // Hydration-safe: compute status only on client after mount
+  const [mounted, setMounted] = useState(false);
+  const [status, setStatus] = useState<StatusResult>({ isOpenNow: false, badge: '' });
 
-  const today = getCurrentDayOfWeek();
   const dayNames = DAY_NAMES[locale] || DAY_NAMES.fr;
   const L = LABELS[locale] || LABELS.fr;
-  const todayRow = hours.find(r => r.dayOfWeek === today);
-  const todayStatus = todayRow ? getStatus(todayRow, L) : null;
+  const today = getCurrentDayOfWeek();
+
+  useEffect(() => {
+    setMounted(true);
+    setStatus(computeStatus(hours, L, dayNames));
+    const t = setInterval(() => setStatus(computeStatus(hours, L, dayNames)), 60_000);
+    return () => clearInterval(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hours, locale]);
 
   return (
     <div className="mx-4 mt-4">
@@ -81,31 +126,39 @@ export default function LinktreeHours({ hours, locale }: Props) {
             <span className="text-lg">🕐</span>
             <div>
               <p className="text-sm font-bold text-white uppercase tracking-wide leading-none">{L.title}</p>
-              {todayStatus && (
-                <p className="text-[11px] mt-0.5 leading-none" style={{ color: todayStatus.isOpenNow ? '#4ade80' : '#f87171' }}>
-                  {todayStatus.badge}
-                  {todayStatus.isOpenNow && todayStatus.closeTime && (
-                    <span className="text-white/40"> · {L.until} {todayStatus.closeTime}</span>
+              {mounted && (
+                <div className="text-[11px] mt-0.5 leading-none">
+                  {status.isOpenNow && status.closeTime && (
+                    <span style={{ color: '#4ade80' }}>{status.badge} · {L.until} {status.closeTime}</span>
                   )}
-                </p>
+                  {!status.isOpenNow && status.openLaterToday && (
+                    <span className="text-amber-400">{L.opensToday} {status.openLaterToday}</span>
+                  )}
+                  {!status.isOpenNow && !status.openLaterToday && status.nextOpenDay && (
+                    <span className="text-amber-400">{L.nextOpen} : {status.nextOpenDay} {L.opensAt} {status.nextOpenTime}</span>
+                  )}
+                  {!status.isOpenNow && !status.openLaterToday && !status.nextOpenDay && (
+                    <span style={{ color: '#f87171' }}>{status.badge}</span>
+                  )}
+                </div>
               )}
             </div>
           </div>
-          {/* Live dot */}
-          {todayStatus?.isOpenNow && (
+          {/* Live badge */}
+          {mounted && status.isOpenNow && (
             <span className="flex items-center gap-1.5 bg-green-500/20 text-green-400 text-[11px] font-bold px-2.5 py-1 rounded-full border border-green-500/30">
               <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse inline-block" />
               {L.open}
             </span>
           )}
-          {todayStatus && !todayStatus.isOpenNow && (
+          {mounted && !status.isOpenNow && (
             <span className="bg-red-500/20 text-red-400 text-[11px] font-bold px-2.5 py-1 rounded-full border border-red-500/30">
               {L.closedNow}
             </span>
           )}
         </div>
 
-        {/* Days */}
+        {/* Days list */}
         <div className="divide-y divide-white/5">
           {hours.map((row) => {
             const isToday = row.dayOfWeek === today;
