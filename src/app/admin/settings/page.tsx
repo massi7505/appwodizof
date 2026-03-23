@@ -22,6 +22,7 @@ const DEFAULT_SETTINGS = {
   googleMapsUrl: '', googleReviewsUrl: '', instagramUrl: '',
   phoneNumber: '', address: '', metaTitle: '', metaDescription: '', metaKeywords: '',
   metaImageUrl: '', canonicalUrl: '', enabledLocales: '["fr","en","it","es"]',
+  reviewPopupEnabled: false, reviewPopupDelay: 5,
   showFeatured: true, showWeekSpecial: true,
   featuredTitles: '{"fr":"⭐ Produits en Vedette","en":"⭐ Featured Products","it":"⭐ Prodotti in Evidenza","es":"⭐ Productos Destacados"}',
   weekTitles: '{"fr":"🔥 Produit de la Semaine","en":"🔥 Product of the Week","it":"🔥 Prodotto della Settimana","es":"🔥 Producto de la Semana"}',
@@ -338,6 +339,75 @@ export default function AdminSettingsPage() {
               <input type="url" value={settings[key] || ''} onChange={e => set(key, e.target.value)} className="admin-input" placeholder={placeholder} />
             </div>
           ))}
+        </div>
+
+        {/* Review Popup */}
+        <div className="admin-card space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-white">⭐ Popup Avis Google</h3>
+              <p className="text-xs text-gray-500 mt-0.5">Demande automatiquement un avis aux visiteurs</p>
+            </div>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={!!settings.reviewPopupEnabled}
+                onChange={e => set('reviewPopupEnabled', e.target.checked)}
+                className="accent-amber-500 w-4 h-4"
+              />
+              <span className="text-sm text-white font-medium">Activer</span>
+            </label>
+          </div>
+
+          {settings.reviewPopupEnabled && (
+            <div className="space-y-3 pt-3 border-t border-gray-700">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">Lien Google Avis</label>
+                <input
+                  type="url"
+                  value={settings.googleReviewsUrl || ''}
+                  onChange={e => set('googleReviewsUrl', e.target.value)}
+                  className="admin-input"
+                  placeholder="https://g.page/r/votre-établissement/review"
+                />
+                <p className="text-xs text-gray-600 mt-1">Trouvez votre lien dans Google Business Profile → Demander des avis.</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Délai avant affichage</label>
+                <div className="flex flex-wrap gap-2">
+                  {[3, 5, 10, 20, 30].map(sec => (
+                    <button
+                      key={sec}
+                      type="button"
+                      onClick={() => set('reviewPopupDelay', sec)}
+                      className={`px-3 py-1.5 rounded-lg text-sm font-semibold transition-all ${settings.reviewPopupDelay === sec ? 'bg-amber-500 text-gray-900' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'}`}
+                    >
+                      {sec}s
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-gray-600 mt-1.5">Le popup ne réapparaît pas pendant 7 jours après fermeture.</p>
+              </div>
+
+              {/* Preview */}
+              <div className="mt-3 pt-3 border-t border-gray-700">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Aperçu</p>
+                <div className="bg-white rounded-3xl overflow-hidden max-w-xs mx-auto" style={{ boxShadow: '0 8px 32px rgba(0,0,0,0.2)' }}>
+                  <div className="h-1.5 w-full" style={{ background: settings.primaryColor || '#F59E0B' }} />
+                  <div className="p-4 text-center">
+                    <div className="flex justify-center gap-0.5 mb-2">
+                      {[1,2,3,4,5].map(i => <span key={i} className="text-xl" style={{ color: settings.primaryColor || '#F59E0B' }}>★</span>)}
+                    </div>
+                    <p className="text-sm font-black text-gray-900 mb-0.5">Vous avez aimé ?</p>
+                    <p className="text-xs text-gray-500 mb-3">Laissez-nous un avis Google, ça nous aide beaucoup !</p>
+                    <div className="py-2 rounded-2xl text-white text-xs font-bold" style={{ background: settings.primaryColor || '#F59E0B' }}>
+                      ⭐ Laisser un avis
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

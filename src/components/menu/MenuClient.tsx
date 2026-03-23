@@ -10,6 +10,7 @@ import ProductModal from './ProductModal';
 import ReviewsSection from './ReviewsSection';
 import FAQSection from './FAQSection';
 import MenuFooter from './MenuFooter';
+import GoogleReviewPopup from './GoogleReviewPopup';
 
 interface Translation { locale: string; name: string; description?: string | null }
 interface Product {
@@ -228,6 +229,16 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
 
       {/* ===== FOOTER ===== */}
       <MenuFooter site={site} locale={locale} />
+
+      {/* ===== GOOGLE REVIEW POPUP ===== */}
+      {site?.reviewPopupEnabled && site?.googleReviewsUrl && (
+        <GoogleReviewPopup
+          googleReviewsUrl={site.googleReviewsUrl}
+          delay={site.reviewPopupDelay ?? 5}
+          locale={locale}
+          primaryColor={primaryColor}
+        />
+      )}
 
       {/* ===== PRODUCT MODAL ===== */}
       {selectedProduct && selectedCategory && (
