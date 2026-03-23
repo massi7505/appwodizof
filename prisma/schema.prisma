@@ -37,6 +37,7 @@ model SiteSettings {
   showWeekSpecial  Boolean  @default(true)
   featuredTitles   String?  // JSON {"fr":"...","en":"...","it":"...","es":"..."}
   weekTitles       String?  // JSON {"fr":"...","en":"...","it":"...","es":"..."}
+  canonicalUrl      String?  // Canonical URL for SEO
   defaultCategoryId Int?    // ID of the category shown by default in the menu tabs
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
