@@ -157,7 +157,7 @@ export default function AdminHeroPage() {
     setSaving(true);
     try {
       if (isNewSlide) {
-        const { id: _id, createdAt: _ca, updatedAt: _ua, buttons, bgType, ...slideData } = editingSlide;
+        const { id: _id, createdAt: _ca, updatedAt: _ua, buttons, ...slideData } = editingSlide;
         const res = await fetch('/api/hero', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -176,7 +176,7 @@ export default function AdminHeroPage() {
         }
         showToast('✅ Slide créé');
       } else {
-        const { buttons, bgType, ...slideData } = editingSlide;
+        const { buttons, ...slideData } = editingSlide;
         const res = await fetch(`/api/hero/${editingSlide.id}`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -659,8 +659,8 @@ export default function AdminHeroPage() {
 
               {/* Image */}
               <ImageUploader label="🖼️ Image du slide" value={editingSlide.imageUrl} folder="hero"
-                onChange={url => setEditingSlide((s: any) => ({ ...s, imageUrl: url }))}
-                onRemove={() => setEditingSlide((s: any) => ({ ...s, imageUrl: '' }))} />
+                onChange={url => setEditingSlide((s: any) => ({ ...s, imageUrl: url, bgType: 'image' }))}
+                onRemove={() => setEditingSlide((s: any) => ({ ...s, imageUrl: '', bgType: 'color' }))} />
 
               {/* Visibility */}
               <label className="flex items-center gap-3 cursor-pointer bg-gray-800 rounded-xl px-3 py-2">

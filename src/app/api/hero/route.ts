@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (type === 'slide') {
-      const { id: _id, createdAt: _ca, updatedAt: _ua, buttons: _btns, bgType: _bt, ...slideData } = data;
+      const { id: _id, createdAt: _ca, updatedAt: _ua, buttons: _btns, ...slideData } = data;
       const slide = await p3.heroSlide.create({
         data: { ...slideData, settingsId: 1 },
         include: { buttons: true },

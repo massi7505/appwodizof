@@ -10,7 +10,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     const { id } = await params;
     const numId = parseInt(id);
     const body = await req.json();
-    const { type, id: _id, createdAt: _ca, updatedAt: _ua, sortOrder: _so, bgType: _bt, buttons: _btns, settings: _s, ...updateData } = body;
+    const { type, id: _id, createdAt: _ca, updatedAt: _ua, sortOrder: _so, buttons: _btns, settings: _s, ...updateData } = body;
 
     const p = prisma as any;
     if (type === 'slide') {
