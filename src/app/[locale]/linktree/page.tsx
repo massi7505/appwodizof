@@ -51,7 +51,7 @@ export default async function LinktreePage({ params }: Props) {
   return (
     <div className="min-h-screen" style={bgStyle}>
       <div className="max-w-md mx-auto pb-12">
-        <LinktreeCover settings={settings} />
+        <LinktreeCover settings={settings} site={site} />
         <LinktreeProfile settings={settings} site={site} />
         {settings?.showPromos && promotions.length > 0 && <LinktreePromos promos={promotions} locale={locale} />}
         <LinktreeButtons buttons={buttons} locale={locale} />

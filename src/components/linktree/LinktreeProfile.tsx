@@ -1,7 +1,5 @@
 'use client';
 
-import Image from 'next/image';
-
 interface Props {
   settings: any;
   site: any;
@@ -12,36 +10,25 @@ export default function LinktreeProfile({ settings, site }: Props) {
   const subtitle = settings?.profileSubtitle || site?.siteSlogan || '';
 
   return (
-    <div className="flex flex-col items-center px-6 pt-6 pb-2">
-      {/* Logo/Avatar */}
-      {settings?.profileImageUrl && (
-        <div className="w-20 h-20 rounded-full overflow-hidden border-4 border-white/20 shadow-lg mb-4 -mt-10 relative z-10 bg-gray-800">
-          <Image
-            src={settings.profileImageUrl}
-            alt={name}
-            fill
-            className="object-cover"
-          />
-        </div>
-      )}
-
+    <div className="flex flex-col items-center px-6 pt-16 pb-2">
       {/* Name */}
-      <h1 className="font-display text-2xl font-bold text-white text-center">
+      <h1 className="font-display text-2xl font-bold text-white text-center leading-tight">
         {name}
       </h1>
 
       {/* Subtitle */}
       {subtitle && (
-        <p className="text-gray-400 text-sm mt-1 text-center">{subtitle}</p>
+        <p className="text-white/50 text-sm mt-1 text-center">{subtitle}</p>
       )}
 
       {/* Notice */}
       {settings?.noticeText && (
-        <div className="mt-4 w-full bg-gray-800/80 rounded-2xl p-4 flex gap-3 items-start border border-gray-700">
+        <div className="mt-5 w-full rounded-2xl p-4 flex gap-3 items-start border border-white/10"
+          style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(10px)' }}>
           {settings.noticeIcon && (
-            <span className="text-2xl flex-shrink-0">{settings.noticeIcon}</span>
+            <span className="text-xl flex-shrink-0 mt-0.5">{settings.noticeIcon}</span>
           )}
-          <p className="text-gray-300 text-sm leading-relaxed">{settings.noticeText}</p>
+          <p className="text-white/70 text-sm leading-relaxed">{settings.noticeText}</p>
         </div>
       )}
     </div>

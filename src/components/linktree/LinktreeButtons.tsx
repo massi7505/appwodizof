@@ -5,8 +5,7 @@ import {
   Instagram, Youtube, Facebook, Twitter, Music2, Link2, ExternalLink,
   Heart, Gift, Ticket, Award, Truck, Coffee, Pizza, Salad, ChefHat,
   Bike, Car, Navigation, MessageCircle, Send, BookOpen, Camera,
-  Percent, Tag, Flame, Leaf, Fish, Beef, Egg, Wheat,
-  ChevronRight,
+  Percent, Tag, Flame, Leaf, Fish, Beef, Egg, Wheat, ArrowRight,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -31,13 +30,13 @@ interface Props {
   locale?: string;
 }
 
-const SECTION_META: Record<string, { label: string; emoji: string; description: string }> = {
-  main:      { label: '',           emoji: '',   description: '' },
-  commander: { label: 'Commander',  emoji: '🛒', description: 'Choisissez votre plateforme' },
-  contact:   { label: 'Contact',    emoji: '📞', description: 'Appelez-nous ou trouvez-nous' },
-  discover:  { label: 'Découvrir',  emoji: '✨', description: 'En savoir plus' },
-  social:    { label: 'Réseaux',    emoji: '📲', description: 'Suivez-nous' },
-  info:      { label: 'Infos',      emoji: 'ℹ️', description: 'Informations utiles' },
+const SECTION_META: Record<string, { label: string; icon: string; description: string }> = {
+  main:      { label: '',           icon: '',   description: '' },
+  commander: { label: 'Commander',  icon: '🛒', description: 'Choisissez votre plateforme' },
+  contact:   { label: 'Nous contacter', icon: '📞', description: 'Appelez-nous ou trouvez-nous' },
+  discover:  { label: 'Découvrir',  icon: '✨', description: 'En savoir plus' },
+  social:    { label: 'Réseaux',    icon: '📲', description: 'Suivez-nous' },
+  info:      { label: 'Infos',      icon: 'ℹ️', description: 'Informations utiles' },
 };
 
 const ICON_MAP: Record<string, { Icon: LucideIcon; anim: string }> = {
@@ -109,31 +108,41 @@ function resolveIcon(icon?: string | null, iconUrl?: string | null) {
   return { type: 'emoji' as const, emoji: icon };
 }
 
-function ButtonIconBox({ icon, iconUrl, size = 'lg' }: { icon?: string | null; iconUrl?: string | null; size?: 'sm' | 'lg' }) {
-  const dim = size === 'sm' ? 'w-10 h-10' : 'w-12 h-12';
-  const icSize = size === 'sm' ? 'w-5 h-5' : 'w-6 h-6';
-  const base = `${dim} rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm flex-shrink-0 transition-all duration-300`;
+function IconBox({ icon, iconUrl, textColor, size = 'lg' }: {
+  icon?: string | null; iconUrl?: string | null; textColor: string; size?: 'sm' | 'lg'
+}) {
+  const dim = size === 'sm' ? 'w-10 h-10' : 'w-11 h-11';
+  const icSize = size === 'sm' ? 'w-5 h-5' : 'w-5 h-5';
+  const base = `${dim} rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300`;
+  const bgStyle = { background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)' };
   const resolved = resolveIcon(icon, iconUrl);
 
   if (resolved.type === 'url') return (
-    <div className={`${base} group-hover:scale-110 group-hover:rotate-6`}>
+    <div className={`${base} group-hover:scale-110`} style={bgStyle}>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={resolved.iconUrl} alt="" className={`${icSize} object-contain`} />
     </div>
   );
   if (resolved.type === 'svg') return (
-    <div className={`${base} group-hover:scale-110 group-hover:rotate-6`} dangerouslySetInnerHTML={{ __html: resolved.svg }} />
+    <div className={`${base} group-hover:scale-110`} style={bgStyle}
+      dangerouslySetInnerHTML={{ __html: resolved.svg }} />
   );
   if (resolved.type === 'lucide') {
     const { Icon, anim } = resolved;
-    return <div className={`${base} ${anim}`}><Icon className={icSize} aria-hidden="true" /></div>;
+    return (
+      <div className={`${base} ${anim}`} style={bgStyle}>
+        <Icon className={icSize} style={{ color: textColor }} aria-hidden="true" />
+      </div>
+    );
   }
   if (resolved.type === 'emoji') return (
-    <div className={`${base} group-hover:scale-110 group-hover:rotate-6 text-xl`}>{resolved.emoji}</div>
+    <div className={`${base} group-hover:scale-110 text-lg`} style={bgStyle}>
+      {resolved.emoji}
+    </div>
   );
   return (
-    <div className={`${base} group-hover:scale-110`}>
-      <Link2 className={icSize} aria-hidden="true" />
+    <div className={`${base} group-hover:scale-110`} style={bgStyle}>
+      <Link2 className={icSize} style={{ color: textColor }} aria-hidden="true" />
     </div>
   );
 }
@@ -146,21 +155,46 @@ function getLabel(btn: Button, locale?: string): string {
 }
 
 function btnStyle(btn: Button): React.CSSProperties {
-  if (btn.style === 'outline') return { background: 'transparent', border: `2px solid ${btn.borderColor || btn.bgColor}`, color: btn.textColor };
-  if (btn.style === 'ghost')   return { background: `${btn.bgColor}20`, color: btn.textColor };
-  return { background: btn.bgGradient || btn.bgColor, color: btn.textColor };
+  if (btn.style === 'outline') return {
+    background: 'transparent',
+    border: `1.5px solid ${btn.borderColor || btn.bgColor}`,
+    color: btn.textColor,
+  };
+  if (btn.style === 'ghost') return {
+    background: `${btn.bgColor}22`,
+    color: btn.textColor,
+    border: `1px solid ${btn.bgColor}44`,
+  };
+  return {
+    background: btn.bgGradient || btn.bgColor,
+    color: btn.textColor,
+  };
 }
 
 /* ─── Full-width button ─── */
 function FullBtn({ btn, locale }: { btn: Button; locale?: string }) {
   return (
-    <a href={btn.url} target="_blank" rel="noopener noreferrer"
-      className="linktree-btn group flex items-center w-full rounded-2xl px-4 py-3.5 text-left transition-all duration-200 hover:scale-[1.02] hover:shadow-xl active:scale-[0.98]"
+    <a
+      href={btn.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group relative flex items-center w-full rounded-2xl px-4 py-3.5 transition-all duration-200 hover:scale-[1.02] hover:shadow-2xl active:scale-[0.98] overflow-hidden"
       style={btnStyle(btn)}
     >
-      <ButtonIconBox icon={btn.icon} iconUrl={btn.iconUrl} size="lg" />
-      <span className="flex-1 font-semibold text-sm mx-3 leading-tight">{getLabel(btn, locale)}</span>
-      <ChevronRight className="w-4 h-4 opacity-50 group-hover:translate-x-1 transition-transform flex-shrink-0" />
+      {/* Shine sweep on hover */}
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{ background: 'linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.12) 50%, transparent 60%)' }} />
+
+      <IconBox icon={btn.icon} iconUrl={btn.iconUrl} textColor={btn.textColor} size="lg" />
+
+      <span className="flex-1 font-semibold text-sm mx-3.5 leading-tight">
+        {getLabel(btn, locale)}
+      </span>
+
+      <div className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200 group-hover:translate-x-0.5"
+        style={{ background: 'rgba(255,255,255,0.15)' }}>
+        <ArrowRight className="w-3.5 h-3.5" style={{ color: btn.textColor }} />
+      </div>
     </a>
   );
 }
@@ -168,12 +202,19 @@ function FullBtn({ btn, locale }: { btn: Button; locale?: string }) {
 /* ─── Compact card for grid layout ─── */
 function CompactBtn({ btn, locale }: { btn: Button; locale?: string }) {
   return (
-    <a href={btn.url} target="_blank" rel="noopener noreferrer"
-      className="group flex flex-col items-center justify-center rounded-2xl px-3 py-4 text-center transition-all duration-200 hover:scale-[1.04] hover:shadow-xl active:scale-[0.97] gap-2"
+    <a
+      href={btn.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="group relative flex flex-col items-center justify-center rounded-2xl px-3 py-5 text-center transition-all duration-200 hover:scale-[1.04] hover:shadow-xl active:scale-[0.97] gap-2.5 overflow-hidden"
       style={btnStyle(btn)}
     >
-      <ButtonIconBox icon={btn.icon} iconUrl={btn.iconUrl} size="lg" />
-      <span className="font-bold text-xs leading-tight line-clamp-2">{getLabel(btn, locale)}</span>
+      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
+        style={{ background: 'linear-gradient(135deg, rgba(255,255,255,0.10), transparent)' }} />
+      <IconBox icon={btn.icon} iconUrl={btn.iconUrl} textColor={btn.textColor} size="lg" />
+      <span className="font-bold text-xs leading-tight line-clamp-2 relative z-10">
+        {getLabel(btn, locale)}
+      </span>
     </a>
   );
 }
@@ -187,24 +228,30 @@ export default function LinktreeButtons({ buttons, locale }: Props) {
   }, {});
 
   return (
-    <div className="px-4 mt-5 space-y-4">
+    <div className="px-4 mt-6 space-y-3">
       {Object.entries(sections).map(([section, btns]) => {
         const meta = SECTION_META[section];
-        // Use 2-col grid when section has 3+ buttons AND all have icons
         const useGrid = btns.length >= 3 && section !== 'main';
 
         return (
-          <div key={section} className="rounded-2xl overflow-hidden border border-white/10 bg-white/5 backdrop-blur-sm">
+          <div
+            key={section}
+            className="rounded-3xl overflow-hidden"
+            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.09)', backdropFilter: 'blur(12px)' }}
+          >
             {/* Section header */}
-            {section !== 'main' && meta && (
-              <div className="flex items-center gap-2.5 px-4 py-3 border-b border-white/10"
-                style={{ background: 'rgba(255,255,255,0.07)' }}
+            {section !== 'main' && meta?.label && (
+              <div
+                className="flex items-center gap-2.5 px-4 py-3"
+                style={{ borderBottom: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.04)' }}
               >
-                <span className="text-lg leading-none">{meta.emoji}</span>
+                <span className="text-base leading-none">{meta.icon}</span>
                 <div>
-                  <p className="text-sm font-bold text-white uppercase tracking-wide leading-none">{meta.label}</p>
+                  <p className="text-xs font-black text-white/80 uppercase tracking-widest leading-none">
+                    {meta.label}
+                  </p>
                   {meta.description && (
-                    <p className="text-[11px] text-white/40 mt-0.5 leading-none">{meta.description}</p>
+                    <p className="text-[10px] text-white/35 mt-0.5 leading-none">{meta.description}</p>
                   )}
                 </div>
               </div>

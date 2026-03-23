@@ -38,7 +38,7 @@ const DEFAULT_SETTINGS = {
   bgColor: '#111827', bgImageUrl: '',
   profileName: 'Woodiz Paris 15', profileSubtitle: '',
   profileImageUrl: '', noticeText: '', noticeIcon: '',
-  showHours: true, showFaqs: true, showPromos: true,
+  showHours: true, showFaqs: true, showPromos: true, showNotif: true,
 };
 
 export default function AdminLinktreePage() {
@@ -237,7 +237,7 @@ export default function AdminLinktreePage() {
 
           <div className="admin-card space-y-3">
             <h2 className="font-bold text-white">👁️ Sections visibles</h2>
-            {[{ key: 'showHours', label: '🕐 Horaires' }, { key: 'showPromos', label: '🎯 Promotions' }, { key: 'showFaqs', label: '❓ FAQs' }].map(({ key, label }) => (
+            {[{ key: 'showNotif', label: '🔔 Barre de notification' }, { key: 'showHours', label: '🕐 Horaires' }, { key: 'showPromos', label: '🎯 Promotions' }, { key: 'showFaqs', label: '❓ FAQs' }].map(({ key, label }) => (
               <label key={key} className="flex items-center gap-3 cursor-pointer">
                 <input type="checkbox" checked={!!settings[key]} onChange={e => setSettings((s: any) => ({ ...s, [key]: e.target.checked }))} className="accent-amber-500 w-4 h-4" />
                 <span className="text-sm text-white">{label}</span>
