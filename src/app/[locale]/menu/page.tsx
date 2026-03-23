@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import MenuClient from '@/components/menu/MenuClient';
 import NotificationBarComponent from '@/components/linktree/NotificationBar';
@@ -84,6 +85,10 @@ export default async function MenuPage({ params }: Props) {
   const enabledLocales: string[] = (() => {
     try { return JSON.parse(site?.enabledLocales || '["fr","en","it","es"]'); } catch { return ['fr', 'en', 'it', 'es']; }
   })();
+
+  // Redirect to FR if this locale is disabled
+  if (!enabledLocales.includes(locale)) redirect('/menu');
+
   const allLocales = [['fr', 'FR'], ['en', 'EN'], ['it', 'IT'], ['es', 'ES']] as const;
   const visibleLocales = allLocales.filter(([code]) => enabledLocales.includes(code));
 

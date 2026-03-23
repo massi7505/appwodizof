@@ -12,9 +12,14 @@ interface Props {
   primaryColor: string;
 }
 
-const LOCALES = ['fr', 'en', 'it', 'es'];
+const ALL_LOCALES = ['fr', 'en', 'it', 'es'];
 
 export default function MenuHeader({ site, locale, search, onSearch, L, primaryColor }: Props) {
+  const enabledLocales: string[] = (() => {
+    try { return JSON.parse(site?.enabledLocales || '["fr","en","it","es"]'); } catch { return ALL_LOCALES; }
+  })();
+  const visibleLocales = ALL_LOCALES.filter(l => enabledLocales.includes(l));
+
   return (
     <header className="bg-white border-b border-gray-200 sticky top-0 z-40 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
@@ -60,20 +65,22 @@ export default function MenuHeader({ site, locale, search, onSearch, L, primaryC
         </div>
 
         {/* Language Switcher */}
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {LOCALES.map(l => (
-            <a
-              key={l}
-              href={l === 'fr' ? '/menu' : `/${l}/menu`}
-              className={`text-xs font-bold px-1.5 py-0.5 rounded transition-colors ${
-                locale === l ? 'text-gray-900' : 'text-gray-400 hover:text-gray-700'
-              }`}
-              style={locale === l ? { color: primaryColor } : {}}
-            >
-              {l.toUpperCase()}
-            </a>
-          ))}
-        </div>
+        {visibleLocales.length > 1 && (
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {visibleLocales.map(l => (
+              <a
+                key={l}
+                href={l === 'fr' ? '/menu' : `/${l}/menu`}
+                className={`text-xs font-bold px-1.5 py-0.5 rounded transition-colors ${
+                  locale === l ? 'text-gray-900' : 'text-gray-400 hover:text-gray-700'
+                }`}
+                style={locale === l ? { color: primaryColor } : {}}
+              >
+                {l.toUpperCase()}
+              </a>
+            ))}
+          </div>
+        )}
       </div>
     </header>
   );

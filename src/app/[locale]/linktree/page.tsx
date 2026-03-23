@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import LinktreeCover from '@/components/linktree/LinktreeCover';
 import LinktreeProfile from '@/components/linktree/LinktreeProfile';
@@ -43,6 +44,12 @@ export default async function LinktreePage({ params }: Props) {
   const faqsList = faqs.status === 'fulfilled' ? faqs.value : [];
   const site = siteSettings.status === 'fulfilled' ? siteSettings.value : null;
   const footer = footerData.status === 'fulfilled' ? footerData.value : null;
+
+  // Redirect to FR if this locale is disabled
+  const enabledLocales: string[] = (() => {
+    try { return JSON.parse(site?.enabledLocales || '["fr","en","it","es"]'); } catch { return ['fr','en','it','es']; }
+  })();
+  if (!enabledLocales.includes(locale)) redirect('/linktree');
 
   const bgStyle = settings?.bgImageUrl
     ? { backgroundImage: `url(${settings.bgImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
