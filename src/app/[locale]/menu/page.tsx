@@ -24,7 +24,7 @@ function serializeCategories(categories: any[]) {
 function serializePromos(promos: any[]) {
   return promos.map(p => ({
     ...p,
-    promoPrice: parseFloat(p.promoPrice?.toString() ?? '0'),
+    promoPrice: p.promoPrice ? parseFloat(p.promoPrice.toString()) : null,
     originalPrice: p.originalPrice ? parseFloat(p.originalPrice.toString()) : null,
     createdAt: p.createdAt?.toISOString() ?? null,
     updatedAt: p.updatedAt?.toISOString() ?? null,
