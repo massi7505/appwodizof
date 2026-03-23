@@ -1,0 +1,378 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import ImageUploader from '@/components/admin/ImageUploader';
+import ColorPicker from '@/components/admin/ColorPicker';
+import { ChevronSortUpIcon, ChevronSortDownIcon, EditIcon, TrashIcon, CloseIcon } from '@/components/ui/icons';
+
+const BUTTON_STYLES = ['filled', 'outline', 'ghost'];
+const STYLE_LABELS: Record<string, string> = { filled: 'Plein', outline: 'Contour', ghost: 'Transparent' };
+
+const GRADIENT_PRESETS = [
+  { label: 'Feu', value: 'linear-gradient(135deg, #F59E0B, #EF4444)' },
+  { label: 'Coucher', value: 'linear-gradient(135deg, #F97316, #EC4899)' },
+  { label: 'Océan', value: 'linear-gradient(135deg, #06B6D4, #3B82F6)' },
+  { label: 'Forêt', value: 'linear-gradient(135deg, #22C55E, #14B8A6)' },
+  { label: 'Nuit', value: 'linear-gradient(135deg, #6366F1, #EC4899)' },
+  { label: 'Or', value: 'linear-gradient(135deg, #F59E0B, #EAB308)' },
+];
+
+const ALL_LOCALES = [
+  { code: 'fr', label: '🇫🇷 FR' },
+  { code: 'en', label: '🇬🇧 EN' },
+  { code: 'it', label: '🇮🇹 IT' },
+  { code: 'es', label: '🇪🇸 ES' },
+];
+
+const DEFAULT_BUTTON = {
+  label: '', url: '', icon: '', iconUrl: '',
+  bgColor: '#F59E0B', bgGradient: '', bgType: 'color',
+  textColor: '#FFFFFF', borderColor: '',
+  style: 'filled', isVisible: true, section: 'main',
+  labelTranslations: '{}',
+};
+
+const DEFAULT_SETTINGS = {
+  coverType: 'image', coverColor: '#111827',
+  coverImageUrl: '', coverVideoUrl: '',
+  bgColor: '#111827', bgImageUrl: '',
+  profileName: 'Woodiz Paris 15', profileSubtitle: '',
+  profileImageUrl: '', noticeText: '', noticeIcon: '',
+  showHours: true, showFaqs: true, showPromos: true,
+};
+
+export default function AdminLinktreePage() {
+  const [buttons, setButtons] = useState<any[]>([]);
+  const [settings, setSettings] = useState<any>(DEFAULT_SETTINGS);
+  const [editing, setEditing] = useState<any | null>(null);
+  const [isNew, setIsNew] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [savingSettings, setSavingSettings] = useState(false);
+  const [toast, setToast] = useState('');
+  const [tab, setTab] = useState<'buttons' | 'settings'>('buttons');
+
+  function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2500); }
+
+  async function load() {
+    const res = await fetch('/api/linktree?visible=false');
+    const data = await res.json();
+    setButtons(data.buttons || []);
+    if (data.settings) setSettings({ ...DEFAULT_SETTINGS, ...data.settings });
+  }
+  useEffect(() => { load(); }, []);
+
+  async function saveButton() {
+    if (!editing) return;
+    setSaving(true);
+    try {
+      if (isNew) {
+        const res = await fetch('/api/linktree', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editing) });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const b = await res.json();
+        setButtons(bs => [...bs, b]);
+      } else {
+        const res = await fetch(`/api/linktree/${editing.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editing) });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const b = await res.json();
+        setButtons(bs => bs.map(x => x.id === b.id ? b : x));
+      }
+      setEditing(null);
+      showToast('✅ Bouton sauvegardé');
+    } catch (e) { showToast(`❌ Erreur: ${e instanceof Error ? e.message : 'inconnue'}`); }
+    setSaving(false);
+  }
+
+  async function deleteButton(id: number, label: string) {
+    if (!confirm(`Supprimer le bouton "${label}" ?`)) return;
+    await fetch(`/api/linktree/${id}`, { method: 'DELETE' });
+    setButtons(bs => bs.filter(b => b.id !== id));
+    showToast('🗑️ Bouton supprimé');
+  }
+
+  async function saveSettings() {
+    setSavingSettings(true);
+    try {
+      const res = await fetch('/api/linktree', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'settings', ...settings }) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      showToast('✅ Paramètres sauvegardés');
+    } catch (e) { showToast(`❌ Erreur: ${e instanceof Error ? e.message : 'inconnue'}`); }
+    setSavingSettings(false);
+  }
+
+  async function move(i: number, dir: -1 | 1) {
+    const arr = [...buttons];
+    const j = i + dir;
+    if (j < 0 || j >= arr.length) return;
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    const items = arr.map((b, idx) => ({ id: b.id, sortOrder: idx }));
+    await fetch('/api/reorder', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ type: 'button', items }) });
+    load();
+  }
+
+  return (
+    <div className="p-6 max-w-3xl">
+      {toast && <div className="fixed top-4 right-4 z-50 bg-gray-800 text-white px-4 py-3 rounded-xl shadow-lg text-sm border border-gray-700">{toast}</div>}
+
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-black text-white">🔗 Linktree</h1>
+          <p className="text-gray-500 text-sm mt-0.5">Gérer les boutons et paramètres de la page linktree</p>
+        </div>
+        <a href="/linktree" target="_blank" rel="noopener noreferrer"
+          className="text-xs px-3 py-2 bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors font-mono">
+          👁️ Aperçu
+        </a>
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 mb-6">
+        {(['buttons', 'settings'] as const).map(t => (
+          <button key={t} onClick={() => setTab(t)}
+            className={`px-4 py-2 rounded-xl text-sm font-semibold transition-colors ${tab === t ? 'bg-amber-500/20 text-amber-400' : 'text-gray-400 hover:text-white hover:bg-gray-800'}`}>
+            {t === 'buttons' ? '🔘 Boutons' : '⚙️ Paramètres'}
+          </button>
+        ))}
+      </div>
+
+      {tab === 'buttons' && (
+        <>
+          <div className="flex justify-end mb-4">
+            <button onClick={() => { setEditing({ ...DEFAULT_BUTTON }); setIsNew(true); }} className="admin-btn-primary">
+              + Ajouter un bouton
+            </button>
+          </div>
+          <div className="space-y-2">
+            {buttons.length === 0 && (
+              <div className="admin-card text-center text-gray-500 py-12">Aucun bouton. Ajoutez des liens pour votre linktree.</div>
+            )}
+            {buttons.map((btn, i) => (
+              <div key={btn.id} className={`flex items-center gap-3 p-4 rounded-xl border transition-all ${btn.isVisible ? 'border-gray-700 bg-gray-800' : 'border-gray-800 bg-gray-900 opacity-60'}`}>
+                <div className="flex flex-col gap-0.5">
+                  <button onClick={() => move(i, -1)} className="text-gray-600 hover:text-gray-300 p-0.5">
+                    <ChevronSortUpIcon />
+                  </button>
+                  <button onClick={() => move(i, 1)} className="text-gray-600 hover:text-gray-300 p-0.5">
+                    <ChevronSortDownIcon />
+                  </button>
+                </div>
+                <div className="w-8 h-8 rounded-lg flex-shrink-0" style={{ background: btn.bgGradient || btn.bgColor }} />
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-semibold text-white truncate">{btn.label || '—'}</p>
+                  <p className="text-xs text-gray-500 truncate">{btn.url}</p>
+                </div>
+                <span className="text-xs text-gray-500 hidden sm:block">{btn.section}</span>
+                <div className="flex items-center gap-1">
+                  <button onClick={() => { setEditing({ ...btn }); setIsNew(false); }}
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors">
+                    <EditIcon />
+                  </button>
+                  <button onClick={() => deleteButton(btn.id, btn.label)}
+                    className="p-1.5 rounded-lg text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-colors">
+                    <TrashIcon />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {tab === 'settings' && (
+        <div className="space-y-6">
+          <div className="admin-card space-y-4">
+            <h2 className="font-bold text-white">🖼️ Couverture</h2>
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-2">Type de couverture</label>
+              <div className="flex gap-2">
+                {(['image', 'video', 'color'] as const).map(t => (
+                  <button key={t} onClick={() => setSettings((s: any) => ({ ...s, coverType: t }))}
+                    className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${settings.coverType === t ? 'bg-amber-500/20 text-amber-400' : 'bg-gray-700 text-gray-400 hover:text-white'}`}>
+                    {t === 'image' ? 'Image' : t === 'video' ? 'Vidéo' : 'Couleur'}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {settings.coverType === 'image' && (
+              <ImageUploader label="Image de couverture" value={settings.coverImageUrl} folder="linktree"
+                onChange={url => setSettings((s: any) => ({ ...s, coverImageUrl: url }))}
+                onRemove={() => setSettings((s: any) => ({ ...s, coverImageUrl: '' }))} />
+            )}
+            {settings.coverType === 'video' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">URL de la vidéo</label>
+                <input type="text" value={settings.coverVideoUrl || ''} onChange={e => setSettings((s: any) => ({ ...s, coverVideoUrl: e.target.value }))} className="admin-input" placeholder="https://..." />
+              </div>
+            )}
+            {settings.coverType === 'color' && (
+              <ColorPicker label="Couleur de couverture" value={settings.coverColor} onChange={c => setSettings((s: any) => ({ ...s, coverColor: c }))} />
+            )}
+          </div>
+
+          <div className="admin-card space-y-4">
+            <h2 className="font-bold text-white">🎨 Arrière-plan</h2>
+            <ColorPicker label="Couleur de fond" value={settings.bgColor} onChange={c => setSettings((s: any) => ({ ...s, bgColor: c }))} />
+            <ImageUploader label="Image de fond (optionnel)" value={settings.bgImageUrl} folder="linktree"
+              onChange={url => setSettings((s: any) => ({ ...s, bgImageUrl: url }))}
+              onRemove={() => setSettings((s: any) => ({ ...s, bgImageUrl: '' }))} />
+          </div>
+
+          <div className="admin-card space-y-4">
+            <h2 className="font-bold text-white">👤 Profil</h2>
+            <ImageUploader label="Photo de profil" value={settings.profileImageUrl} folder="linktree" aspectRatio="aspect-square"
+              onChange={url => setSettings((s: any) => ({ ...s, profileImageUrl: url }))}
+              onRemove={() => setSettings((s: any) => ({ ...s, profileImageUrl: '' }))} />
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1.5">Nom</label>
+              <input type="text" value={settings.profileName || ''} onChange={e => setSettings((s: any) => ({ ...s, profileName: e.target.value }))} className="admin-input" placeholder="Woodiz Paris 15" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1.5">Sous-titre</label>
+              <input type="text" value={settings.profileSubtitle || ''} onChange={e => setSettings((s: any) => ({ ...s, profileSubtitle: e.target.value }))} className="admin-input" placeholder="Pizzeria artisanale..." />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-400 mb-1.5">Notice / Annonce</label>
+              <input type="text" value={settings.noticeText || ''} onChange={e => setSettings((s: any) => ({ ...s, noticeText: e.target.value }))} className="admin-input" placeholder="Fermé le 25 décembre..." />
+            </div>
+          </div>
+
+          <div className="admin-card space-y-3">
+            <h2 className="font-bold text-white">👁️ Sections visibles</h2>
+            {[{ key: 'showHours', label: '🕐 Horaires' }, { key: 'showPromos', label: '🎯 Promotions' }, { key: 'showFaqs', label: '❓ FAQs' }].map(({ key, label }) => (
+              <label key={key} className="flex items-center gap-3 cursor-pointer">
+                <input type="checkbox" checked={!!settings[key]} onChange={e => setSettings((s: any) => ({ ...s, [key]: e.target.checked }))} className="accent-amber-500 w-4 h-4" />
+                <span className="text-sm text-white">{label}</span>
+              </label>
+            ))}
+          </div>
+
+          <button onClick={saveSettings} disabled={savingSettings} className="admin-btn-primary w-full py-3 disabled:opacity-50">
+            {savingSettings ? 'Sauvegarde...' : '💾 Sauvegarder les paramètres'}
+          </button>
+        </div>
+      )}
+
+      {/* Button Modal */}
+      {editing && (
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-gray-900 rounded-2xl border border-gray-700 w-full max-w-md max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between p-5 border-b border-gray-700">
+              <h2 className="font-bold text-white">{isNew ? 'Nouveau bouton' : 'Modifier le bouton'}</h2>
+              <button onClick={() => setEditing(null)} className="text-gray-400 hover:text-white">
+                <CloseIcon />
+              </button>
+            </div>
+            <div className="p-5 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">Label *</label>
+                <input type="text" value={editing.label || ''} onChange={e => setEditing((x: any) => ({ ...x, label: e.target.value }))} className="admin-input" placeholder="Commander en ligne" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">URL *</label>
+                <input type="text" value={editing.url || ''} onChange={e => setEditing((x: any) => ({ ...x, url: e.target.value }))} className="admin-input" placeholder="https://..." />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">Section / Groupe</label>
+                <input type="text" value={editing.section || 'main'} onChange={e => setEditing((x: any) => ({ ...x, section: e.target.value }))} className="admin-input" placeholder="main" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Style</label>
+                <div className="flex gap-2">
+                  {BUTTON_STYLES.map(s => (
+                    <button key={s} type="button" onClick={() => setEditing((x: any) => ({ ...x, style: s }))}
+                      className={`flex-1 py-1.5 rounded-lg text-sm font-medium transition-colors ${editing.style === s ? 'bg-amber-500/20 text-amber-400' : 'bg-gray-700 text-gray-400 hover:text-white'}`}>
+                      {STYLE_LABELS[s]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {/* Background type */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Fond du bouton</label>
+                <div className="flex gap-2 mb-3">
+                  {([['color', '🎨 Couleur'], ['gradient', '🌈 Dégradé']] as const).map(([t, label]) => (
+                    <button key={t} type="button" onClick={() => setEditing((x: any) => ({ ...x, bgType: t }))}
+                      className={`flex-1 py-1.5 rounded-lg text-sm font-semibold transition-colors ${(editing.bgType || 'color') === t ? 'bg-amber-500/20 text-amber-400' : 'bg-gray-700 text-gray-400 hover:text-white'}`}>
+                      {label}
+                    </button>
+                  ))}
+                </div>
+                {(!editing.bgType || editing.bgType === 'color') && (
+                  <ColorPicker label="Couleur de fond" value={editing.bgColor} onChange={c => setEditing((x: any) => ({ ...x, bgColor: c }))} />
+                )}
+                {editing.bgType === 'gradient' && (
+                  <div className="space-y-3">
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-2">Dégradés prédéfinis</label>
+                      <div className="grid grid-cols-3 gap-2">
+                        {GRADIENT_PRESETS.map(p => (
+                          <button key={p.label} type="button"
+                            onClick={() => setEditing((x: any) => ({ ...x, bgGradient: p.value }))}
+                            className={`relative h-10 rounded-xl transition-all ${editing.bgGradient === p.value ? 'ring-2 ring-white ring-offset-1 ring-offset-gray-900' : 'opacity-80 hover:opacity-100'}`}
+                            style={{ background: p.value }}
+                            title={p.label}
+                          >
+                            <span className="absolute inset-0 flex items-center justify-center text-white text-xs font-semibold drop-shadow">{p.label}</span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-500 mb-1.5">CSS personnalisé</label>
+                      <input type="text" value={editing.bgGradient || ''} onChange={e => setEditing((x: any) => ({ ...x, bgGradient: e.target.value }))}
+                        className="admin-input font-mono text-xs" placeholder="linear-gradient(135deg, #F59E0B, #EF4444)" />
+                      {editing.bgGradient && (
+                        <div className="mt-2 h-8 rounded-xl w-full" style={{ background: editing.bgGradient }} />
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+              <ColorPicker label="Couleur texte" value={editing.textColor} onChange={c => setEditing((x: any) => ({ ...x, textColor: c }))} />
+
+              {/* Translations */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">🌍 Traductions du label</label>
+                <div className="space-y-2">
+                  {ALL_LOCALES.map(({ code, label }) => {
+                    let translations: Record<string, string> = {};
+                    try { translations = JSON.parse(editing.labelTranslations || '{}'); } catch { /* noop */ }
+                    return (
+                      <div key={code} className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 w-10 flex-shrink-0">{label}</span>
+                        <input
+                          type="text"
+                          value={translations[code] || ''}
+                          onChange={e => {
+                            let t: Record<string, string> = {};
+                            try { t = JSON.parse(editing.labelTranslations || '{}'); } catch { /* noop */ }
+                            t[code] = e.target.value;
+                            setEditing((x: any) => ({ ...x, labelTranslations: JSON.stringify(t) }));
+                          }}
+                          className="admin-input text-sm py-1.5"
+                          placeholder={code === 'fr' ? (editing.label || 'Label par défaut') : `Traduction ${code.toUpperCase()}...`}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+                <p className="text-xs text-gray-600 mt-1.5">Si vide, utilise le label par défaut ci-dessus.</p>
+              </div>
+
+              <ImageUploader label="Icône (optionnel)" value={editing.iconUrl} folder="linktree" aspectRatio="aspect-video"
+                onChange={url => setEditing((x: any) => ({ ...x, iconUrl: url }))}
+                onRemove={() => setEditing((x: any) => ({ ...x, iconUrl: '' }))} />
+              <label className="flex items-center gap-3 cursor-pointer bg-gray-800 rounded-xl px-3 py-2">
+                <input type="checkbox" checked={!!editing.isVisible} onChange={e => setEditing((x: any) => ({ ...x, isVisible: e.target.checked }))} className="accent-amber-500 w-4 h-4" />
+                <span className="text-sm text-white">👁️ Visible</span>
+              </label>
+            </div>
+            <div className="flex gap-2 p-5 pt-0">
+              <button onClick={() => setEditing(null)} className="flex-1 admin-btn-ghost">Annuler</button>
+              <button onClick={saveButton} disabled={saving} className="flex-1 admin-btn-primary disabled:opacity-50">{saving ? '...' : isNew ? 'Créer' : 'Sauvegarder'}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
