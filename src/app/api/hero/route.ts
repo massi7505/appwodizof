@@ -51,6 +51,14 @@ export async function POST(req: NextRequest) {
     }
 
     const p3 = prisma as any;
+
+    // Ensure hero_settings row id=1 exists before creating child records
+    await p3.heroSettings.upsert({
+      where: { id: 1 },
+      update: {},
+      create: { id: 1 },
+    });
+
     if (type === 'slide') {
       const { id: _id, createdAt: _ca, updatedAt: _ua, buttons: _btns, bgType: _bt, ...slideData } = data;
       const slide = await p3.heroSlide.create({
