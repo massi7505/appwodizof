@@ -3,6 +3,7 @@ import { prisma } from '@/lib/db';
 import MenuClient from '@/components/menu/MenuClient';
 import NotificationBarComponent from '@/components/linktree/NotificationBar';
 import VisitTracker from '@/components/VisitTracker';
+import HeroSection from '@/components/linktree/HeroSection';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,7 +57,7 @@ function serializeSite(site: any) {
 export default async function MenuPage({ params }: Props) {
   const { locale } = await params;
 
-  const [categoriesRes, promosRes, reviewsRes, faqsRes, notifRes, siteRes] = await Promise.allSettled([
+  const [categoriesRes, promosRes, reviewsRes, faqsRes, notifRes, siteRes, heroResult] = await Promise.allSettled([
     prisma.menuCategory.findMany({
       where: { isVisible: true },
       orderBy: { sortOrder: 'asc' },
@@ -82,6 +83,19 @@ export default async function MenuPage({ params }: Props) {
     }),
     prisma.notificationBar.findFirst({ where: { id: 1 }, include: { translations: true } }),
     prisma.siteSettings.findFirst(),
+    (async () => {
+      try {
+        const p = prisma as any;
+        if (!p.heroSettings) return { settings: null, slides: [], featureCards: [] };
+        const heroSettings = await p.heroSettings.findFirst();
+        if (!heroSettings?.isVisible) return { settings: heroSettings, slides: [], featureCards: [] };
+        const [slides, featureCards] = await Promise.all([
+          p.heroSlide.findMany({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' }, include: { buttons: { orderBy: { sortOrder: 'asc' } } } }),
+          p.heroFeatureCard.findMany({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' } }),
+        ]);
+        return { settings: heroSettings, slides: slides || [], featureCards: featureCards || [] };
+      } catch { return { settings: null, slides: [], featureCards: [] }; }
+    })(),
   ]);
 
   const rawCategories = categoriesRes.status === 'fulfilled' ? categoriesRes.value : [];
@@ -91,6 +105,7 @@ export default async function MenuPage({ params }: Props) {
   const faqs = faqsRes.status === 'fulfilled' ? faqsRes.value : [];
   const notifBar = notifRes.status === 'fulfilled' ? notifRes.value : null;
   const site = serializeSite(siteRes.status === 'fulfilled' ? siteRes.value : null);
+  const heroData = heroResult.status === 'fulfilled' ? heroResult.value : null;
 
   const enabledLocales: string[] = (() => {
     try { return JSON.parse(site?.enabledLocales || '["fr","en","it","es"]'); } catch { return ['fr', 'en', 'it', 'es']; }
@@ -109,6 +124,14 @@ export default async function MenuPage({ params }: Props) {
         <div className="sticky top-0 z-50">
           <NotificationBarComponent bar={notifBar} locale={locale} />
         </div>
+      )}
+      {heroData?.settings?.isVisible && heroData.slides.length > 0 && (
+        <HeroSection
+          settings={heroData.settings as any}
+          slides={heroData.slides as any}
+          featureCards={heroData.featureCards as any}
+          locale={locale}
+        />
       )}
       <MenuClient
         categories={categories}
