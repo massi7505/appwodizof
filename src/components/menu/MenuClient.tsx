@@ -123,7 +123,8 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
 
       {/* ===== PROMO SLIDER ===== */}
       {promos.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 pt-4">
+        <div className="max-w-7xl mx-auto px-4 pt-6 overflow-hidden">
+          <h2 className="text-lg font-bold text-gray-900 mb-3">{L.promos}</h2>
           <PromoSlider promos={promos} locale={locale} primaryColor={primaryColor} />
         </div>
       )}

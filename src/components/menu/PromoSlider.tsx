@@ -63,7 +63,7 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
       {/* Scrollable track */}
       <div
         ref={ref}
-        className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4"
+        className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide"
         style={{ scrollSnapType: 'x mandatory' }}
       >
         {promos.map(promo => {
@@ -73,7 +73,7 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
             return (
               <div
                 key={promo.id}
-                className="flex-shrink-0 w-80 sm:w-96 rounded-2xl overflow-hidden"
+                className="flex-shrink-0 w-72 sm:w-80 rounded-2xl overflow-hidden"
                 style={{ aspectRatio: '16/7', scrollSnapAlign: 'start' }}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -94,7 +94,7 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
           return (
             <div
               key={promo.id}
-              className="flex-shrink-0 w-80 sm:w-96 rounded-2xl overflow-hidden relative"
+              className="flex-shrink-0 w-72 sm:w-80 rounded-2xl overflow-hidden relative"
               style={{ ...bgStyle, minHeight: '130px', scrollSnapAlign: 'start' }}
             >
               {promo.bgType === 'image' && promo.bgImageUrl && (
