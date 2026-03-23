@@ -43,7 +43,7 @@ export default function CategoryTabs({ categories, active, onSelect, locale, pri
             {ALL_LABELS[locale] || ALL_LABELS.fr}
           </div>
           <span
-            className="text-[11px] font-semibold text-center leading-tight max-w-[60px] truncate"
+            className="text-[11px] font-semibold text-center leading-tight max-w-[70px] break-words"
             style={{ color: active === null ? primaryColor : '#6B7280' }}
           >
             {ALL_LABELS[locale] || ALL_LABELS.fr}
@@ -84,7 +84,7 @@ export default function CategoryTabs({ categories, active, onSelect, locale, pri
                 )}
               </div>
               <span
-                className="text-[11px] font-semibold text-center leading-tight max-w-[60px] truncate"
+                className="text-[11px] font-semibold text-center leading-tight max-w-[70px] break-words"
                 style={{ color: isActive ? primaryColor : '#374151' }}
               >
                 {name}
