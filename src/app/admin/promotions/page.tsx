@@ -111,9 +111,9 @@ export default function AdminPromotionsPage() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-bold text-white truncate">{t?.title || '—'}</p>
                 <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xs text-amber-400 font-bold">{parseFloat(promo.promoPrice).toFixed(2)}€</span>
+                  {promo.promoPrice && <span className="text-xs text-amber-400 font-bold">{parseFloat(promo.promoPrice).toFixed(2)}€</span>}
                   {promo.originalPrice && <span className="text-xs text-gray-500 line-through">{parseFloat(promo.originalPrice).toFixed(2)}€</span>}
-                  <span className="text-xs text-gray-500">{TYPE_LABELS[promo.type]}</span>
+                  {promo.photoOnly ? <span className="text-xs text-blue-400">🖼️ Photo</span> : <span className="text-xs text-gray-500">{TYPE_LABELS[promo.type]}</span>}
                 </div>
               </div>
               <div className="flex items-center gap-1">
@@ -314,7 +314,7 @@ export default function AdminPromotionsPage() {
             </div>
             <div className="flex gap-2 p-5 pt-0">
               <button onClick={() => setEditing(null)} className="flex-1 admin-btn-ghost">Annuler</button>
-              <button onClick={save} disabled={saving || (!editing.photoOnly && !editing.promoPrice)} className="flex-1 admin-btn-primary disabled:opacity-50">{saving ? 'Sauvegarde...' : isNew ? 'Créer' : 'Sauvegarder'}</button>
+              <button onClick={save} disabled={saving} className="flex-1 admin-btn-primary disabled:opacity-50">{saving ? 'Sauvegarde...' : isNew ? 'Créer' : 'Sauvegarder'}</button>
             </div>
           </div>
         </div>
