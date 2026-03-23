@@ -90,7 +90,7 @@ export default function ProductCard({ product, locale, onClick, compact = false,
   return (
     <button
       onClick={onClick}
-      className="menu-card w-full text-left group"
+      className="menu-card w-full text-left group h-full flex flex-col"
       disabled={product.isOutOfStock}
     >
       {/* Image */}
@@ -139,7 +139,7 @@ export default function ProductCard({ product, locale, onClick, compact = false,
       </div>
 
       {/* Content */}
-      <div className="p-3">
+      <div className="p-3 flex-1 flex flex-col justify-between">
         <h4 className="font-bold text-gray-900 text-sm leading-tight line-clamp-1">{t?.name}</h4>
         {t?.description && (
           <p className="text-xs text-gray-500 mt-0.5 line-clamp-2 leading-snug">{t.description}</p>

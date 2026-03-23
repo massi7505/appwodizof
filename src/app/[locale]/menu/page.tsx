@@ -8,17 +8,29 @@ export const dynamic = 'force-dynamic';
 
 type Props = { params: Promise<{ locale: string }> };
 
-function serializeCategories(categories: any[]) {
+function serializeCategories(categories: any[], locale: string) {
   return categories.map(cat => ({
     ...cat,
     createdAt: cat.createdAt?.toISOString() ?? null,
     updatedAt: cat.updatedAt?.toISOString() ?? null,
+    // Sort category translations: current locale first, then fr
+    translations: [...(cat.translations || [])].sort((a: any, b: any) => {
+      if (a.locale === locale) return -1;
+      if (b.locale === locale) return 1;
+      return 0;
+    }),
     products: cat.products.map((p: any) => ({
       ...p,
       price: parseFloat(p.price?.toString() ?? '0'),
       comparePrice: p.comparePrice ? parseFloat(p.comparePrice.toString()) : null,
       createdAt: p.createdAt?.toISOString() ?? null,
       updatedAt: p.updatedAt?.toISOString() ?? null,
+      // Sort product translations: current locale first, then fr
+      translations: [...(p.translations || [])].sort((a: any, b: any) => {
+        if (a.locale === locale) return -1;
+        if (b.locale === locale) return 1;
+        return 0;
+      }),
     })),
   }));
 }
@@ -61,11 +73,11 @@ export default async function MenuPage({ params }: Props) {
       where: { isVisible: true },
       orderBy: { sortOrder: 'asc' },
       include: {
-        translations: { where: { locale } },
+        translations: { where: { locale: { in: [locale, 'fr'] } } },
         products: {
           where: { isVisible: true },
           orderBy: { sortOrder: 'asc' },
-          include: { translations: { where: { locale } } },
+          include: { translations: { where: { locale: { in: [locale, 'fr'] } } } },
         },
       },
     }),
@@ -98,7 +110,7 @@ export default async function MenuPage({ params }: Props) {
   ]);
 
   const rawCategories = categoriesRes.status === 'fulfilled' ? categoriesRes.value : [];
-  const categories = serializeCategories(rawCategories.filter(c => c.products.length > 0));
+  const categories = serializeCategories(rawCategories.filter(c => c.products.length > 0), locale);
   const promos = serializePromos(promosRes.status === 'fulfilled' ? promosRes.value : []);
   const reviews = serializeReviews(reviewsRes.status === 'fulfilled' ? reviewsRes.value : []);
   const faqs = faqsRes.status === 'fulfilled' ? faqsRes.value : [];
