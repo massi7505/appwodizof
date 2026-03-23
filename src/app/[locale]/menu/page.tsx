@@ -92,15 +92,17 @@ export default async function MenuPage({ params }: Props) {
     (async () => {
       try {
         const p = prisma as any;
-        if (!p.heroSettings) return { settings: null, slides: [], featureCards: [] };
-        const heroSettings = await p.heroSettings.findFirst();
-        if (!heroSettings?.isVisible) return { settings: heroSettings, slides: [], featureCards: [] };
-        const [slides, featureCards] = await Promise.all([
+        const [heroSettings, slides, featureCards] = await Promise.all([
+          p.heroSettings.findFirst(),
           p.heroSlide.findMany({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' }, include: { buttons: { orderBy: { sortOrder: 'asc' } } } }),
           p.heroFeatureCard.findMany({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' } }),
         ]);
-        return { settings: heroSettings, slides: slides || [], featureCards: featureCards || [] };
-      } catch { return { settings: null, slides: [], featureCards: [] }; }
+        const settings = heroSettings ?? { isVisible: true, autoplay: true, autoplayDelay: 5000, showDots: true, showArrows: true, showFeatureCards: true, accentColor: '#F59E0B' };
+        return { settings, slides: slides || [], featureCards: featureCards || [] };
+      } catch (e) {
+        console.error('[hero fetch]', e);
+        return { settings: null, slides: [], featureCards: [] };
+      }
     })(),
   ]);
 
