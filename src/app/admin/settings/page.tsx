@@ -327,6 +327,7 @@ export default function AdminSettingsPage() {
 
       {/* ===== SOCIAL / LINKS ===== */}
       {tab === 'social' && (
+        <div className="space-y-4">
         <div className="admin-card space-y-4">
           <h3 className="font-bold text-white">Réseaux & Liens utiles</h3>
           {[
@@ -408,6 +409,7 @@ export default function AdminSettingsPage() {
               </div>
             </div>
           )}
+        </div>
         </div>
       )}
 
