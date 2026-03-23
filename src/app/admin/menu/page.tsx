@@ -65,6 +65,7 @@ export default function AdminMenuPage() {
   const [importJson, setImportJson] = useState('');
   const [importing, setImporting] = useState(false);
   const [toast, setToast] = useState('');
+  const [defaultCategoryId, setDefaultCategoryId] = useState<number | null>(null);
 
   const isNewCat = !editingCat?.id;
   const isNewProd = !editingProd?.id;
@@ -72,11 +73,27 @@ export default function AdminMenuPage() {
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2500); }
 
   async function load() {
-    const res = await fetch('/api/menu?visible=false');
-    const data = await res.json();
+    const [menuRes, settingsRes] = await Promise.all([
+      fetch('/api/menu?visible=false'),
+      fetch('/api/settings'),
+    ]);
+    const data = await menuRes.json();
     setCategories(Array.isArray(data) ? data : []);
+    const settings = await settingsRes.json();
+    setDefaultCategoryId(settings?.defaultCategoryId || null);
   }
   useEffect(() => { load(); }, []);
+
+  async function setDefaultCategory(catId: number) {
+    const newId = defaultCategoryId === catId ? null : catId;
+    await fetch('/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ defaultCategoryId: newId }),
+    });
+    setDefaultCategoryId(newId);
+    showToast(newId ? 'Catégorie par défaut définie ✓' : 'Catégorie par défaut retirée');
+  }
 
   const allProducts = useMemo(() =>
     categories.flatMap(c => (c.products || []).map((p: any) => ({ ...p, _category: c }))),
@@ -354,6 +371,16 @@ export default function AdminMenuPage() {
                     <ChevronDownIcon className={`w-4 h-4 ml-auto flex-shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
                   </button>
                   <div className="flex items-center gap-1 flex-shrink-0">
+                    <button
+                      title={defaultCategoryId === cat.id ? 'Retirer comme catégorie par défaut' : 'Définir comme catégorie affichée en premier'}
+                      onClick={() => setDefaultCategory(cat.id)}
+                      className="p-1.5 rounded-lg transition-colors"
+                      style={{ color: defaultCategoryId === cat.id ? '#F59E0B' : 'var(--admin-text-muted)' }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill={defaultCategoryId === cat.id ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+                      </svg>
+                    </button>
                     <IconBtn title="Ajouter un produit" onClick={() => { openNewProd(cat.id); setOpenCatId(cat.id); }}>
                       <PlusIcon />
                     </IconBtn>

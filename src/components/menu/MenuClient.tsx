@@ -43,7 +43,10 @@ const LABELS: Record<string, Record<string, string>> = {
 
 export default function MenuClient({ categories, promos, reviews, faqs, site, locale }: Props) {
   const [search, setSearch] = useState('');
-  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
+  const [activeCategoryId, setActiveCategoryId] = useState<number | null>(() => {
+    if (site?.defaultCategoryId) return site.defaultCategoryId;
+    return categories[0]?.id ?? null;
+  });
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedCategory, setSelectedCategoryForModal] = useState<Category | null>(null);
 
@@ -88,6 +91,10 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
     }
     return categories;
   }, [categories, search, activeCategoryId]);
+
+  const handleCategorySelect = (id: number) => {
+    setActiveCategoryId(id);
+  };
 
   const handleProductClick = useCallback((product: Product, category: Category) => {
     setSelectedProduct(product);
@@ -159,16 +166,13 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
           <CategoryTabs
             categories={categories}
             active={activeCategoryId}
-            onSelect={setActiveCategoryId}
+            onSelect={handleCategorySelect}
             locale={locale}
             primaryColor={primaryColor}
           />
         </div>
 
         {/* ===== MAIN MENU SECTION ===== */}
-        {!search && !activeCategoryId && (
-          <h2 className="text-lg font-bold text-gray-900 mt-4 mb-2">{L.menu}</h2>
-        )}
 
         {search && (
           <p className="text-sm text-gray-500 mt-4 mb-3">
