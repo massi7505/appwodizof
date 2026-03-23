@@ -159,11 +159,11 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
         className="relative w-full rounded-3xl overflow-hidden transition-colors duration-500"
         style={slideBg(slide)}
       >
-        {/* Background image */}
-        {slide.bgType === 'image' && slide.imageUrl && (
+        {/* Background image — always full cover when imageUrl exists */}
+        {slide.imageUrl && (
           <div className="absolute inset-0">
-            <Image src={slide.imageUrl} alt="" fill className="object-cover opacity-30" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+            <Image src={slide.imageUrl} alt="" fill className="object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/20" />
           </div>
         )}
 
@@ -223,29 +223,14 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
             )}
           </div>
 
-          {/* ── Right content ── */}
-          <div className="relative hidden md:flex flex-col items-end justify-between p-8 min-w-[280px]">
-            {/* Food image */}
-            {slide.imageUrl && (
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
-                <div className="relative w-48 h-48 md:w-56 md:h-56">
-                  <div className="absolute inset-0 rounded-full opacity-30 blur-2xl"
-                    style={{ background: settings.accentColor }} />
-                  <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-white/10"
-                    style={{ background: `${settings.accentColor}25` }}>
-                    <Image src={slide.imageUrl} alt={title} fill className="object-cover" />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Side text */}
-            {sideText && (
-              <p className="text-white/50 text-xs italic text-right max-w-[160px] leading-relaxed self-end">
+          {/* ── Right content (side text only) ── */}
+          {sideText && (
+            <div className="hidden md:flex items-end justify-end p-8 min-w-[200px]">
+              <p className="text-white/60 text-xs italic text-right max-w-[160px] leading-relaxed">
                 {sideText}
               </p>
-            )}
-          </div>
+            </div>
+          )}
         </div>
 
         {/* ── Slider Controls ── */}
