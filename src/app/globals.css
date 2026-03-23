@@ -368,3 +368,85 @@ body {
 .icon-hover-wiggle:hover     { animation: icon-wiggle 0.4s ease-in-out; }
 .icon-hover-slide-right:hover { animation: icon-slide-right 0.45s ease-in-out; }
 .icon-hover-slide-up:hover   { animation: icon-slide-up 0.4s ease-in-out; }
+
+/* ===== ADMIN DASHBOARD — KPI CARDS ===== */
+.admin-kpi-card {
+  @apply block rounded-2xl p-4 transition-all duration-200 no-underline;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow);
+}
+.admin-kpi-card:hover {
+  box-shadow: var(--admin-shadow-hover);
+  transform: translateY(-2px);
+}
+
+.kpi-icon-box {
+  @apply w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0;
+}
+.kpi-value {
+  color: var(--admin-text);
+}
+.kpi-label {
+  color: var(--admin-text-muted);
+}
+.kpi-arrow {
+  color: var(--admin-text-muted);
+}
+
+/* KPI colour variants */
+.kpi-blue   .kpi-icon-box { background: #EFF6FF; }
+.kpi-blue   .kpi-value    { color: #1D4ED8; }
+.kpi-blue:hover           { border-color: #BFDBFE; }
+
+.kpi-amber  .kpi-icon-box { background: #FFFBEB; }
+.kpi-amber  .kpi-value    { color: #D97706; }
+.kpi-amber:hover          { border-color: #FDE68A; }
+
+.kpi-red    .kpi-icon-box { background: #FEF2F2; }
+.kpi-red    .kpi-value    { color: #DC2626; }
+.kpi-red:hover            { border-color: #FECACA; }
+
+.kpi-yellow .kpi-icon-box { background: #FEFCE8; }
+.kpi-yellow .kpi-value    { color: #CA8A04; }
+.kpi-yellow:hover         { border-color: #FEF08A; }
+
+.kpi-purple .kpi-icon-box { background: #F5F3FF; }
+.kpi-purple .kpi-value    { color: #7C3AED; }
+.kpi-purple:hover         { border-color: #DDD6FE; }
+
+.kpi-green  .kpi-icon-box { background: #F0FDF4; }
+.kpi-green  .kpi-value    { color: #16A34A; }
+.kpi-green:hover          { border-color: #BBF7D0; }
+
+/* ===== ADMIN DASHBOARD — QUICK LINKS ===== */
+.admin-quick-link {
+  @apply flex items-center gap-3 p-3 rounded-xl transition-all duration-150 no-underline;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  box-shadow: var(--admin-shadow);
+}
+.admin-quick-link:hover {
+  background: var(--admin-surface-2);
+  border-color: var(--admin-border-light);
+  box-shadow: var(--admin-shadow-md);
+  transform: translateY(-1px);
+}
+
+.admin-quick-icon {
+  @apply w-9 h-9 rounded-xl flex items-center justify-center text-lg flex-shrink-0;
+  background: #FFFBEB;
+}
+
+/* ===== ADMIN DASHBOARD — SITE CHIPS ===== */
+.admin-site-chip {
+  @apply inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium transition-all duration-150 no-underline;
+  background: var(--admin-surface-2);
+  border: 1px solid var(--admin-border);
+  color: var(--admin-text-muted);
+}
+.admin-site-chip:hover {
+  background: #FFFBEB;
+  border-color: #FDE68A;
+  color: #D97706;
+}
