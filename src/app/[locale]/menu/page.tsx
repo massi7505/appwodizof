@@ -8,29 +8,24 @@ export const dynamic = 'force-dynamic';
 
 type Props = { params: Promise<{ locale: string }> };
 
+function pickBestTranslation(translations: any[], locale: string) {
+  const priority = (loc: string) => loc === locale ? 0 : loc === 'fr' ? 1 : loc === 'en' ? 2 : loc === 'it' ? 3 : loc === 'es' ? 4 : 5;
+  return [...translations].sort((a, b) => priority(a.locale) - priority(b.locale));
+}
+
 function serializeCategories(categories: any[], locale: string) {
   return categories.map(cat => ({
     ...cat,
     createdAt: cat.createdAt?.toISOString() ?? null,
     updatedAt: cat.updatedAt?.toISOString() ?? null,
-    // Sort category translations: current locale first, then fr
-    translations: [...(cat.translations || [])].sort((a: any, b: any) => {
-      if (a.locale === locale) return -1;
-      if (b.locale === locale) return 1;
-      return 0;
-    }),
+    translations: pickBestTranslation(cat.translations || [], locale),
     products: cat.products.map((p: any) => ({
       ...p,
       price: parseFloat(p.price?.toString() ?? '0'),
       comparePrice: p.comparePrice ? parseFloat(p.comparePrice.toString()) : null,
       createdAt: p.createdAt?.toISOString() ?? null,
       updatedAt: p.updatedAt?.toISOString() ?? null,
-      // Sort product translations: current locale first, then fr
-      translations: [...(p.translations || [])].sort((a: any, b: any) => {
-        if (a.locale === locale) return -1;
-        if (b.locale === locale) return 1;
-        return 0;
-      }),
+      translations: pickBestTranslation(p.translations || [], locale),
     })),
   }));
 }
@@ -73,11 +68,11 @@ export default async function MenuPage({ params }: Props) {
       where: { isVisible: true },
       orderBy: { sortOrder: 'asc' },
       include: {
-        translations: { where: { locale: { in: [locale, 'fr'] } } },
+        translations: true,
         products: {
           where: { isVisible: true },
           orderBy: { sortOrder: 'asc' },
-          include: { translations: { where: { locale: { in: [locale, 'fr'] } } } },
+          include: { translations: true },
         },
       },
     }),
