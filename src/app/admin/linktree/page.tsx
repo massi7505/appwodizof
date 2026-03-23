@@ -4,6 +4,61 @@ import { useState, useEffect } from 'react';
 import ImageUploader from '@/components/admin/ImageUploader';
 import ColorPicker from '@/components/admin/ColorPicker';
 import { ChevronSortUpIcon, ChevronSortDownIcon, EditIcon, TrashIcon, CloseIcon } from '@/components/ui/icons';
+import {
+  ShoppingCart, ShoppingBag, UtensilsCrossed, MapPin, Phone, Star, Clock, Globe,
+  Instagram, Youtube, Facebook, Twitter, Music2, ExternalLink,
+  Heart, Gift, Ticket, Award, Truck, Coffee, Pizza, Salad, ChefHat,
+  Bike, Car, Navigation, MessageCircle, Send, BookOpen, Camera,
+  Percent, Tag, Flame, Leaf, Fish, Beef, Egg, Wheat,
+  Sparkles, Share2, Info, Zap, Home,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+
+const ICON_OPTIONS: { key: string; Icon: LucideIcon; label: string }[] = [
+  { key: 'shopping-cart',  Icon: ShoppingCart,    label: 'Panier' },
+  { key: 'shopping-bag',   Icon: ShoppingBag,     label: 'Sac' },
+  { key: 'delivery',       Icon: Truck,           label: 'Livraison' },
+  { key: 'bike',           Icon: Bike,            label: 'Vélo' },
+  { key: 'car',            Icon: Car,             label: 'Voiture' },
+  { key: 'food',           Icon: UtensilsCrossed, label: 'Repas' },
+  { key: 'menu',           Icon: BookOpen,        label: 'Menu' },
+  { key: 'pizza',          Icon: Pizza,           label: 'Pizza' },
+  { key: 'coffee',         Icon: Coffee,          label: 'Café' },
+  { key: 'salad',          Icon: Salad,           label: 'Salade' },
+  { key: 'chef',           Icon: ChefHat,         label: 'Chef' },
+  { key: 'fish',           Icon: Fish,            label: 'Poisson' },
+  { key: 'beef',           Icon: Beef,            label: 'Viande' },
+  { key: 'egg',            Icon: Egg,             label: 'Œuf' },
+  { key: 'wheat',          Icon: Wheat,           label: 'Blé' },
+  { key: 'leaf',           Icon: Leaf,            label: 'Végé' },
+  { key: 'flame',          Icon: Flame,           label: 'Épicé' },
+  { key: 'zap',            Icon: Zap,             label: 'Flash' },
+  { key: 'map-pin',        Icon: MapPin,          label: 'Lieu' },
+  { key: 'navigation',     Icon: Navigation,      label: 'GPS' },
+  { key: 'phone',          Icon: Phone,           label: 'Tél' },
+  { key: 'message',        Icon: MessageCircle,   label: 'Message' },
+  { key: 'telegram',       Icon: Send,            label: 'Telegram' },
+  { key: 'instagram',      Icon: Instagram,       label: 'Instagram' },
+  { key: 'facebook',       Icon: Facebook,        label: 'Facebook' },
+  { key: 'twitter',        Icon: Twitter,         label: 'Twitter' },
+  { key: 'youtube',        Icon: Youtube,         label: 'YouTube' },
+  { key: 'tiktok',         Icon: Music2,          label: 'TikTok' },
+  { key: 'camera',         Icon: Camera,          label: 'Photo' },
+  { key: 'globe',          Icon: Globe,           label: 'Web' },
+  { key: 'link',           Icon: ExternalLink,    label: 'Lien' },
+  { key: 'star',           Icon: Star,            label: 'Étoile' },
+  { key: 'heart',          Icon: Heart,           label: 'Cœur' },
+  { key: 'gift',           Icon: Gift,            label: 'Cadeau' },
+  { key: 'ticket',         Icon: Ticket,          label: 'Ticket' },
+  { key: 'percent',        Icon: Percent,         label: 'Promo' },
+  { key: 'tag',            Icon: Tag,             label: 'Tag' },
+  { key: 'award',          Icon: Award,           label: 'Prix' },
+  { key: 'clock',          Icon: Clock,           label: 'Horaires' },
+  { key: 'home',           Icon: Home,            label: 'Accueil' },
+  { key: 'sparkles',       Icon: Sparkles,        label: 'Éclat' },
+  { key: 'share',          Icon: Share2,          label: 'Partage' },
+  { key: 'info',           Icon: Info,            label: 'Info' },
+];
 
 const BUTTON_STYLES = ['filled', 'outline', 'ghost'];
 const STYLE_LABELS: Record<string, string> = { filled: 'Plein', outline: 'Contour', ghost: 'Transparent' };
@@ -272,7 +327,14 @@ export default function AdminLinktreePage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-1.5">Section / Groupe</label>
-                <input type="text" value={editing.section || 'main'} onChange={e => setEditing((x: any) => ({ ...x, section: e.target.value }))} className="admin-input" placeholder="main" />
+                <select value={editing.section || 'main'} onChange={e => setEditing((x: any) => ({ ...x, section: e.target.value }))} className="admin-input">
+                  <option value="main">🔗 Principal (main)</option>
+                  <option value="commander">🛒 Commander</option>
+                  <option value="contact">📞 Nous contacter</option>
+                  <option value="discover">✨ Découvrir</option>
+                  <option value="social">📱 Réseaux sociaux</option>
+                  <option value="info">ℹ️ Informations</option>
+                </select>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-400 mb-2">Style</label>
@@ -358,7 +420,39 @@ export default function AdminLinktreePage() {
                 <p className="text-xs text-gray-600 mt-1.5">Si vide, utilise le label par défaut ci-dessus.</p>
               </div>
 
-              <ImageUploader label="Icône (optionnel)" value={editing.iconUrl} folder="linktree" aspectRatio="aspect-video"
+              {/* Icon picker */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">🎨 Icône</label>
+                <div className="grid grid-cols-6 gap-1.5 p-3 bg-gray-800 rounded-xl max-h-52 overflow-y-auto">
+                  {/* None option */}
+                  <button
+                    type="button"
+                    title="Aucune icône"
+                    onClick={() => setEditing((x: any) => ({ ...x, icon: '' }))}
+                    className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all text-xs ${!editing.icon ? 'bg-amber-500/30 ring-2 ring-amber-400 text-amber-300' : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white'}`}
+                  >
+                    <span className="text-base leading-none">∅</span>
+                    <span className="text-[9px] leading-none text-center truncate w-full">Aucune</span>
+                  </button>
+                  {ICON_OPTIONS.map(({ key, Icon, label }) => (
+                    <button
+                      key={key}
+                      type="button"
+                      title={label}
+                      onClick={() => setEditing((x: any) => ({ ...x, icon: key }))}
+                      className={`flex flex-col items-center justify-center gap-1 p-2 rounded-xl transition-all ${editing.icon === key ? 'bg-amber-500/30 ring-2 ring-amber-400 text-amber-300' : 'bg-gray-700 text-gray-400 hover:bg-gray-600 hover:text-white'}`}
+                    >
+                      <Icon className="w-4 h-4 flex-shrink-0" />
+                      <span className="text-[9px] leading-none text-center truncate w-full">{label}</span>
+                    </button>
+                  ))}
+                </div>
+                {editing.icon && (
+                  <p className="text-xs text-gray-500 mt-1.5">Icône sélectionnée : <span className="text-amber-400 font-mono">{editing.icon}</span></p>
+                )}
+              </div>
+
+              <ImageUploader label="Image icône personnalisée (optionnel)" value={editing.iconUrl} folder="linktree" aspectRatio="aspect-video"
                 onChange={url => setEditing((x: any) => ({ ...x, iconUrl: url }))}
                 onRemove={() => setEditing((x: any) => ({ ...x, iconUrl: '' }))} />
               <label className="flex items-center gap-3 cursor-pointer bg-gray-800 rounded-xl px-3 py-2">
