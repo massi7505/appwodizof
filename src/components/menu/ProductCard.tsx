@@ -50,7 +50,11 @@ const OUT_OF_STOCK: Record<string, string> = {
 
 export default function ProductCard({ product, locale, onClick, compact = false, primaryColor }: Props) {
   const t = product.translations[0];
-  const badges = product.badges ? JSON.parse(product.badges) : [];
+  // FIX[BUG]: JSON.parse(product.badges) sans try/catch → crash si la valeur DB est un JSON invalide ou corrompu
+  const badges: string[] = (() => {
+    if (!product.badges) return [];
+    try { return JSON.parse(product.badges); } catch { return []; }
+  })();
   const firstBadge = badges[0];
   const badgeStyle = firstBadge ? BADGE_STYLES[firstBadge] : null;
 
@@ -86,6 +90,12 @@ export default function ProductCard({ product, locale, onClick, compact = false,
       </button>
     );
   }
+
+  // FIX[BUG]: JSON.parse(product.allergens) sans try/catch → crash si la valeur DB est un JSON invalide ou corrompu
+  const allergens: string[] = (() => {
+    if (!product.allergens) return [];
+    try { return JSON.parse(product.allergens); } catch { return []; }
+  })();
 
   return (
     <button
@@ -146,9 +156,9 @@ export default function ProductCard({ product, locale, onClick, compact = false,
         )}
 
         {/* Allergens */}
-        {product.allergens && (
+        {allergens.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
-            {(JSON.parse(product.allergens) as string[]).map(a => (
+            {allergens.map(a => (
               <span key={a} className="bg-orange-50 border border-orange-200 text-orange-700 text-[10px] rounded-lg px-2 py-0.5 flex items-center gap-1">
                 <span>{ALLERGEN_ICONS[a] || '⚠️'}</span>
                 <span>{(ALLERGEN_LABELS[locale] || ALLERGEN_LABELS.fr)[a] || a}</span>
