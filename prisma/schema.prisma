@@ -327,6 +327,54 @@ model AdminUser {
   @@map("admin_users")
 }
 
+// ===================== STORY PAGE =====================
+model StoryPage {
+  id               Int            @id
+  isVisible        Boolean        @default(true)
+  seoTitleJson     String?
+  seoDescJson      String?
+  seoImageUrl      String?
+  heroTitleJson    String?
+  heroSubtitleJson String?
+  heroImageUrl     String?
+  heroVideoUrl     String?
+  heroColor        String         @default("#111827")
+  sections         StorySection[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  @@map("story_page")
+}
+
+model StorySection {
+  id          Int       @id @default(autoincrement())
+  pageId      Int       @default(1)
+  type        String    @default("text-image")
+  titleJson   String?
+  textJson    String?
+  imageUrl    String?
+  bgColor     String    @default("#ffffff")
+  textColor   String    @default("#111827")
+  accentColor String    @default("#f59e0b")
+  isVisible   Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  itemsJson   String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  page        StoryPage @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  @@map("story_sections")
+}
+
+model LegalPage {
+  id          Int      @id @default(autoincrement())
+  slug        String   @unique
+  titleJson   String?
+  contentJson String?  @db.LongText
+  isVisible   Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  @@map("legal_pages")
+}
+
 // ===================== HERO SECTION =====================
 model HeroSettings {
   id               Int     @id @default(1)

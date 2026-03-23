@@ -9,7 +9,7 @@ import {
   ClockIcon, BellIcon, GearIcon, ExternalLinkIcon, LogoutIcon,
   SidebarCollapseIcon, SidebarExpandIcon, ChartIcon,
 } from '@/components/ui/icons';
-import { Layers } from 'lucide-react';
+import { Layers, FileText, Scale } from 'lucide-react';
 
 const NAV_GROUPS = [
   {
@@ -22,6 +22,7 @@ const NAV_GROUPS = [
       { href: '/admin/promotions', label: 'Promotions', icon: <TagIcon /> },
       { href: '/admin/reviews', label: 'Avis clients', icon: <StarIcon /> },
       { href: '/admin/faqs', label: 'FAQs', icon: <QuestionIcon /> },
+      { href: '/admin/notre-histoire', label: 'Notre Histoire', icon: <FileText className="w-[18px] h-[18px]" /> },
     ],
   },
   {
@@ -36,6 +37,7 @@ const NAV_GROUPS = [
       { href: '/admin/hours', label: 'Horaires', icon: <ClockIcon /> },
       { href: '/admin/notification', label: 'Notification', icon: <BellIcon /> },
       { href: '/admin/settings', label: 'Paramètres', icon: <GearIcon /> },
+      { href: '/admin/legal', label: 'Pages légales', icon: <Scale className="w-[18px] h-[18px]" /> },
     ],
   },
 ];

@@ -28,6 +28,10 @@ export async function POST(req: NextRequest) {
           return prisma.heroSlide.update({ where: { id }, data: { sortOrder } });
         case 'heroCard':
           return prisma.heroFeatureCard.update({ where: { id }, data: { sortOrder } });
+        case 'storySection': {
+          const p = prisma as any;
+          return p.storySection.update({ where: { id }, data: { sortOrder } });
+        }
         default:
           return null;
       }

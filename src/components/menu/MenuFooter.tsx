@@ -67,6 +67,23 @@ export default function MenuFooter({ site, locale }: Props) {
           © {year} {name}. Tous droits réservés. · Développé par{' '}
           <a href="/" className="text-amber-500 hover:text-amber-400">AdsBooster</a>
         </div>
+
+        {/* Health message */}
+        <div className="border-t border-gray-800 mt-4 pt-4 text-center">
+          <p className="text-xs text-gray-600 mb-3">
+            Pour votre santé, évitez de grignoter entre les repas.{' '}
+            <a href="https://www.mangerbouger.fr" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-gray-400 underline">
+              www.mangerbouger.fr
+            </a>
+          </p>
+          <div className="flex flex-wrap justify-center gap-4 text-xs text-gray-600">
+            <a href="/legal/politique-cookies" className="hover:text-gray-400 transition-colors">Politique de cookies</a>
+            <a href="/legal/politique-confidentialite" className="hover:text-gray-400 transition-colors">Politique de confidentialité</a>
+            <a href="/legal/mentions-legales" className="hover:text-gray-400 transition-colors">Mentions légales</a>
+            <a href="/legal/allergenes" className="hover:text-gray-400 transition-colors">Tableau des allergènes</a>
+            <a href="/notre-histoire" className="hover:text-gray-400 transition-colors">Notre Histoire</a>
+          </div>
+        </div>
       </div>
     </footer>
   );
