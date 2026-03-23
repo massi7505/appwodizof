@@ -43,6 +43,24 @@ export default function MenuHeader({ site, locale, search, onSearch, L, primaryC
           </div>
         </div>
 
+        {/* Language Switcher — before search */}
+        {visibleLocales.length > 1 && (
+          <div className="flex items-center gap-1 flex-shrink-0">
+            {visibleLocales.map(l => (
+              <a
+                key={l}
+                href={l === 'fr' ? '/menu' : `/${l}/menu`}
+                className={`text-xs font-bold px-1.5 py-0.5 rounded transition-colors ${
+                  locale === l ? 'text-gray-900' : 'text-gray-400 hover:text-gray-700'
+                }`}
+                style={locale === l ? { color: primaryColor } : {}}
+              >
+                {l.toUpperCase()}
+              </a>
+            ))}
+          </div>
+        )}
+
         {/* Search */}
         <div className="flex-1 relative">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -64,23 +82,6 @@ export default function MenuHeader({ site, locale, search, onSearch, L, primaryC
           )}
         </div>
 
-        {/* Language Switcher */}
-        {visibleLocales.length > 1 && (
-          <div className="flex items-center gap-1 flex-shrink-0">
-            {visibleLocales.map(l => (
-              <a
-                key={l}
-                href={l === 'fr' ? '/menu' : `/${l}/menu`}
-                className={`text-xs font-bold px-1.5 py-0.5 rounded transition-colors ${
-                  locale === l ? 'text-gray-900' : 'text-gray-400 hover:text-gray-700'
-                }`}
-                style={locale === l ? { color: primaryColor } : {}}
-              >
-                {l.toUpperCase()}
-              </a>
-            ))}
-          </div>
-        )}
       </div>
     </header>
   );

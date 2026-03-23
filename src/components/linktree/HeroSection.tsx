@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import {
-  ArrowRight, ChevronLeft, ChevronRight, Star, Check,
+  ArrowRight, ChevronLeft, ChevronRight, Check,
   Truck, Salad, Percent, Tag, Gift, ShoppingCart, ShoppingBag,
   UtensilsCrossed, MapPin, Phone, Clock, Globe, Instagram,
   Bike, Pizza, Coffee, Flame, Leaf, Zap, Award, Sparkles,
@@ -120,32 +120,6 @@ function slideBg(slide: Slide): React.CSSProperties {
   return { backgroundColor: slide.bgColor };
 }
 
-// ── Avatar Stack (rating display) ────────────────────────
-const AVATAR_COLORS = ['#F59E0B', '#EF4444', '#10B981'];
-function AvatarStack() {
-  return (
-    <div className="flex -space-x-2">
-      {AVATAR_COLORS.map((color, i) => (
-        <div key={i} className="w-7 h-7 rounded-full border-2 border-white/20 flex items-center justify-center text-white font-black text-[10px]"
-          style={{ background: color, zIndex: 3 - i }}>
-          {['A', 'B', 'C'][i]}
-        </div>
-      ))}
-    </div>
-  );
-}
-
-// ── Star Rating ───────────────────────────────────────────
-function StarRow({ count = 5, color }: { count?: number; color: string }) {
-  return (
-    <div className="flex gap-0.5">
-      {Array.from({ length: count }).map((_, i) => (
-        <Star key={i} className="w-3 h-3 fill-current" style={{ color }} />
-      ))}
-    </div>
-  );
-}
-
 // ── Main Component ────────────────────────────────────────
 export default function HeroSection({ settings, slides, featureCards, locale }: Props) {
   const [current, setCurrent] = useState(0);
@@ -174,7 +148,6 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
   const title = t(slide.titleJson, locale);
   const subtitle = t(slide.subtitleJson, locale);
   const sideText = t(slide.sideTextJson, locale);
-  const ratingText = t(settings.ratingTextJson, locale, 'Rating');
 
   let badges: { fr?: string; en?: string; it?: string; es?: string }[] = [];
   try { if (slide.badgesJson) badges = JSON.parse(slide.badgesJson); } catch { /* noop */ }
@@ -199,18 +172,6 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
           <div className="flex-1 p-5 md:p-8 flex flex-col justify-between">
             {/* Top: rating on mobile hides, shown separately on desktop */}
             <div>
-              {/* Rating - visible on mobile too at top */}
-              {settings.showRating && (
-                <div className="flex items-center gap-2 mb-4 md:hidden">
-                  <AvatarStack />
-                  <div>
-                    <p className="text-white font-black text-sm leading-none">{settings.ratingCount}</p>
-                    <StarRow color={settings.accentColor} />
-                  </div>
-                  <span className="text-white/60 text-xs ml-1">{ratingText}</span>
-                </div>
-              )}
-
               {/* Title */}
               <h2 className="text-white font-black text-2xl md:text-4xl leading-tight mb-3 max-w-xs md:max-w-sm">
                 {title}
@@ -264,20 +225,8 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
 
           {/* ── Right content ── */}
           <div className="relative hidden md:flex flex-col items-end justify-between p-8 min-w-[280px]">
-            {/* Rating */}
-            {settings.showRating && (
-              <div className="flex items-center gap-2 self-end">
-                <AvatarStack />
-                <div className="text-right">
-                  <p className="text-white font-black text-sm leading-none">{settings.ratingCount}</p>
-                  <StarRow color={settings.accentColor} />
-                </div>
-                <span className="text-white/60 text-xs">{ratingText}</span>
-              </div>
-            )}
-
             {/* Food image */}
-            {slide.imageUrl && slide.bgType !== 'image' && (
+            {slide.imageUrl && (
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
                 <div className="relative w-48 h-48 md:w-56 md:h-56">
                   <div className="absolute inset-0 rounded-full opacity-30 blur-2xl"

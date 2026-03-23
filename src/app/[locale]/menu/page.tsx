@@ -133,21 +133,6 @@ export default async function MenuPage({ params }: Props) {
         locale={locale}
         heroData={heroData as any}
       />
-      {visibleLocales.length > 1 && (
-        <div className="fixed top-3 right-3 z-40">
-          <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md rounded-full px-2 py-1 border border-white/10">
-            {visibleLocales.map(([code, label]) => (
-              <a
-                key={code}
-                href={code === 'fr' ? '/menu' : `/${code}/menu`}
-                className={`px-2 py-0.5 rounded-full text-xs font-semibold transition-all ${code === locale ? 'bg-white text-gray-900' : 'text-white/70 hover:text-white'}`}
-              >
-                {label}
-              </a>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
