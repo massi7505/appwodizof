@@ -179,40 +179,112 @@ export default function AdminSettingsPage() {
         <div className="space-y-5">
           {/* Preset themes */}
           <div className="admin-card space-y-4">
-            <h3 className="font-bold text-white">Thèmes prédéfinis</h3>
-            <p className="text-xs text-gray-500">Cliquez sur un thème pour l'appliquer en un clic, puis personnalisez.</p>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-white">Thèmes prédéfinis</h3>
+                <p className="text-xs text-gray-500 mt-0.5">Un clic pour appliquer, puis ajustez librement.</p>
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-3">
               {[
-                { name: '🔥 Woodiz (défaut)', primary: '#F59E0B', secondary: '#1F2937', accent: '#EF4444', bg: '#111827', text: '#FFFFFF' },
-                { name: '🌊 Ocean Blue', primary: '#3B82F6', secondary: '#1E3A5F', accent: '#06B6D4', bg: '#0F172A', text: '#F0F9FF' },
-                { name: '🌿 Forest Green', primary: '#10B981', secondary: '#1A2E1A', accent: '#84CC16', bg: '#0D1F0D', text: '#ECFDF5' },
-                { name: '🍇 Purple Luxury', primary: '#8B5CF6', secondary: '#1E1B4B', accent: '#EC4899', bg: '#0D0B26', text: '#F5F3FF' },
-                { name: '🌸 Rose Gold', primary: '#F43F5E', secondary: '#2D1B1B', accent: '#FB923C', bg: '#1C0A0A', text: '#FFF1F2' },
-                { name: '🌙 Midnight', primary: '#6366F1', secondary: '#18181B', accent: '#A78BFA', bg: '#09090B', text: '#FAFAFA' },
-                { name: '☀️ Soleil', primary: '#F59E0B', secondary: '#FEFCE8', accent: '#EF4444', bg: '#FFFBEB', text: '#1C1917' },
-                { name: '🤍 Blanc Épuré', primary: '#18181B', secondary: '#F4F4F5', accent: '#3B82F6', bg: '#FFFFFF', text: '#09090B' },
-              ].map((theme) => (
-                <button
-                  key={theme.name}
-                  type="button"
-                  onClick={() => {
-                    set('primaryColor', theme.primary);
-                    set('secondaryColor', theme.secondary);
-                    set('accentColor', theme.accent);
-                    set('backgroundColor', theme.bg);
-                    set('textColor', theme.text);
-                  }}
-                  className="p-3 rounded-xl border border-gray-700 hover:border-gray-500 transition-all text-left group"
-                  style={{ background: theme.bg }}
-                >
-                  <div className="flex gap-1.5 mb-2">
-                    {[theme.primary, theme.accent, theme.secondary].map((c, i) => (
-                      <div key={i} className="w-5 h-5 rounded-full border border-white/10" style={{ backgroundColor: c }} />
-                    ))}
-                  </div>
-                  <p className="text-xs font-semibold" style={{ color: contrastColor(theme.bg) }}>{theme.name}</p>
-                </button>
-              ))}
+                {
+                  name: 'Woodiz Flame', tag: 'Défaut',
+                  primary: '#F59E0B', accent: '#EF4444', bg: '#0C0A09', text: '#FAFAF9',
+                  gradient: 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)',
+                },
+                {
+                  name: 'Nuit Profonde', tag: 'Dark',
+                  primary: '#6366F1', accent: '#A78BFA', bg: '#030712', text: '#F9FAFB',
+                  gradient: 'linear-gradient(135deg, #6366F1 0%, #A78BFA 100%)',
+                },
+                {
+                  name: 'Océan Luxe', tag: 'Blue',
+                  primary: '#0EA5E9', accent: '#38BDF8', bg: '#020617', text: '#F0F9FF',
+                  gradient: 'linear-gradient(135deg, #0EA5E9 0%, #6366F1 100%)',
+                },
+                {
+                  name: 'Émeraude', tag: 'Green',
+                  primary: '#10B981', accent: '#34D399', bg: '#022C22', text: '#ECFDF5',
+                  gradient: 'linear-gradient(135deg, #10B981 0%, #0EA5E9 100%)',
+                },
+                {
+                  name: 'Rose Velvet', tag: 'Pink',
+                  primary: '#EC4899', accent: '#F43F5E', bg: '#1A0010', text: '#FDF2F8',
+                  gradient: 'linear-gradient(135deg, #EC4899 0%, #F43F5E 100%)',
+                },
+                {
+                  name: 'Aurora', tag: 'Aurora',
+                  primary: '#8B5CF6', accent: '#EC4899', bg: '#0D0814', text: '#FAF5FF',
+                  gradient: 'linear-gradient(135deg, #8B5CF6 0%, #EC4899 50%, #F59E0B 100%)',
+                },
+                {
+                  name: 'Solaire', tag: 'Light',
+                  primary: '#D97706', accent: '#EF4444', bg: '#FFFBEB', text: '#1C1917',
+                  gradient: 'linear-gradient(135deg, #F59E0B 0%, #EF4444 100%)',
+                },
+                {
+                  name: 'Monochrome', tag: 'Minimal',
+                  primary: '#18181B', accent: '#3B82F6', bg: '#FFFFFF', text: '#09090B',
+                  gradient: 'linear-gradient(135deg, #27272A 0%, #52525B 100%)',
+                },
+                {
+                  name: 'Charbon Rouge', tag: 'Bold',
+                  primary: '#EF4444', accent: '#F97316', bg: '#0A0A0A', text: '#FAFAFA',
+                  gradient: 'linear-gradient(135deg, #EF4444 0%, #F97316 100%)',
+                },
+                {
+                  name: 'Glacier', tag: 'Ice',
+                  primary: '#22D3EE', accent: '#818CF8', bg: '#0B1120', text: '#E0F2FE',
+                  gradient: 'linear-gradient(135deg, #22D3EE 0%, #818CF8 100%)',
+                },
+              ].map((theme) => {
+                const isActive =
+                  settings.primaryColor === theme.primary &&
+                  settings.backgroundColor === theme.bg;
+                return (
+                  <button
+                    key={theme.name}
+                    type="button"
+                    onClick={() => {
+                      set('primaryColor', theme.primary);
+                      set('secondaryColor', theme.bg === '#FFFFFF' || theme.bg === '#FFFBEB' ? '#F4F4F5' : '#1F2937');
+                      set('accentColor', theme.accent);
+                      set('backgroundColor', theme.bg);
+                      set('textColor', theme.text);
+                    }}
+                    className={`relative overflow-hidden rounded-2xl border-2 transition-all text-left group ${isActive ? 'border-white/60 scale-[1.02]' : 'border-transparent hover:border-white/20'}`}
+                    style={{ background: theme.bg }}
+                  >
+                    {/* Gradient band */}
+                    <div className="h-10 w-full" style={{ background: theme.gradient }} />
+
+                    {/* Content */}
+                    <div className="px-3 py-2.5">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <p className="text-xs font-black leading-none" style={{ color: theme.text }}>{theme.name}</p>
+                        <span
+                          className="text-[9px] font-bold px-1.5 py-0.5 rounded-full"
+                          style={{ background: theme.primary + '30', color: theme.primary }}
+                        >{theme.tag}</span>
+                      </div>
+                      <div className="flex gap-1">
+                        {[theme.primary, theme.accent, theme.bg === '#FFFFFF' || theme.bg === '#FFFBEB' ? '#E4E4E7' : '#374151'].map((c, i) => (
+                          <div key={i} className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: c }} />
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Active checkmark */}
+                    {isActive && (
+                      <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-white flex items-center justify-center">
+                        <svg width="10" height="10" viewBox="0 0 12 12" fill="none">
+                          <path d="M2 6l3 3 5-5" stroke="#000" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
