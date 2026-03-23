@@ -33,7 +33,8 @@ export default function AdminFAQsPage() {
       if (isNew) {
         const res = await fetch('/api/faqs', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editing) });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        setFaqs(f => [...f, await res.json()]);
+        const created = await res.json();
+        setFaqs(f => [...f, created]);
       } else {
         const res = await fetch(`/api/faqs/${editing.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editing) });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
