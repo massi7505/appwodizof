@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('[track-visit POST]', error);
-    return NextResponse.json({ error: 'Failed' }, { status: 500 });
+    // Non-critical — silently skip tracking if DB is unavailable
+    return NextResponse.json({ skipped: true });
   }
 }
