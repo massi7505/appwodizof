@@ -12,30 +12,27 @@ interface Props {
   primaryColor: string;
 }
 
-const ALLERGEN_ICONS: Record<string, string> = {
-  gluten: '🌾', lactose: '🥛', eggs: '🥚', fish: '🐟', shellfish: '🦞',
-  peanuts: '🥜', nuts: '🌰', celery: '🥬', mustard: '🌿', sesame: '🌱',
-  sulfites: '🍷', lupin: '🌸', molluscs: '🦪', soya: '🫘',
-};
-
 const ALLERGEN_LABELS: Record<string, Record<string, string>> = {
-  fr: { gluten: 'Gluten', lactose: 'Lactose', eggs: 'Œufs', fish: 'Poisson', shellfish: 'Crustacés', peanuts: 'Arachides', nuts: 'Fruits à coque', celery: 'Céleri', mustard: 'Moutarde', sesame: 'Sésame', sulfites: 'Sulfites', lupin: 'Lupin', molluscs: 'Mollusques', soya: 'Soja' },
-  en: { gluten: 'Gluten', lactose: 'Lactose', eggs: 'Eggs', fish: 'Fish', shellfish: 'Shellfish', peanuts: 'Peanuts', nuts: 'Tree Nuts', celery: 'Celery', mustard: 'Mustard', sesame: 'Sesame', sulfites: 'Sulfites', lupin: 'Lupin', molluscs: 'Molluscs', soya: 'Soya' },
-  it: { gluten: 'Glutine', lactose: 'Lattosio', eggs: 'Uova', fish: 'Pesce', shellfish: 'Crostacei', peanuts: 'Arachidi', nuts: 'Frutta a guscio', celery: 'Sedano', mustard: 'Senape', sesame: 'Sesamo', sulfites: 'Solfiti', lupin: 'Lupini', molluscs: 'Molluschi', soya: 'Soia' },
-  es: { gluten: 'Gluten', lactose: 'Lactosa', eggs: 'Huevos', fish: 'Pescado', shellfish: 'Mariscos', peanuts: 'Cacahuetes', nuts: 'Frutos secos', celery: 'Apio', mustard: 'Mostaza', sesame: 'Sésamo', sulfites: 'Sulfitos', lupin: 'Altramuz', molluscs: 'Moluscos', soya: 'Soja' },
+  fr: { gluten: 'Gluten', lactose: 'Lactose', eggs: 'Œufs', fish: 'Poisson', shellfish: 'Crustacés', peanuts: 'Arachides', nuts: 'Fruits à coque', celery: 'Céleri', mustard: 'Moutarde', sesame: 'Sésame', sulfites: 'Sulfites', lupin: 'Lupin', molluscs: 'Mollusques', soya: 'Soja', soy: 'Soja' },
+  en: { gluten: 'Gluten', lactose: 'Lactose', eggs: 'Eggs', fish: 'Fish', shellfish: 'Shellfish', peanuts: 'Peanuts', nuts: 'Tree Nuts', celery: 'Celery', mustard: 'Mustard', sesame: 'Sesame', sulfites: 'Sulphites', lupin: 'Lupin', molluscs: 'Molluscs', soya: 'Soya', soy: 'Soya' },
+  it: { gluten: 'Glutine', lactose: 'Lattosio', eggs: 'Uova', fish: 'Pesce', shellfish: 'Crostacei', peanuts: 'Arachidi', nuts: 'Frutta a guscio', celery: 'Sedano', mustard: 'Senape', sesame: 'Sesamo', sulfites: 'Solfiti', lupin: 'Lupini', molluscs: 'Molluschi', soya: 'Soia', soy: 'Soia' },
+  es: { gluten: 'Gluten', lactose: 'Lactosa', eggs: 'Huevos', fish: 'Pescado', shellfish: 'Mariscos', peanuts: 'Cacahuetes', nuts: 'Frutos secos', celery: 'Apio', mustard: 'Mostaza', sesame: 'Sésamo', sulfites: 'Sulfitos', lupin: 'Altramuz', molluscs: 'Moluscos', soya: 'Soja', soy: 'Soja' },
 };
 
 const MODAL_LABELS: Record<string, Record<string, string>> = {
-  fr: { allergens: 'Allergènes', close: 'Fermer', outOfStock: 'Rupture de stock' },
-  en: { allergens: 'Allergens', close: 'Close', outOfStock: 'Out of stock' },
-  it: { allergens: 'Allergeni', close: 'Chiudi', outOfStock: 'Esaurito' },
-  es: { allergens: 'Alérgenos', close: 'Cerrar', outOfStock: 'Agotado' },
+  fr: { allergens: 'Contient', close: 'Fermer', outOfStock: 'Rupture de stock' },
+  en: { allergens: 'Contains', close: 'Close', outOfStock: 'Out of stock' },
+  it: { allergens: 'Contiene', close: 'Chiudi', outOfStock: 'Esaurito' },
+  es: { allergens: 'Contiene', close: 'Cerrar', outOfStock: 'Agotado' },
 };
 
 export default function ProductModal({ product, category, locale, onClose, primaryColor }: Props) {
   const t = product.translations[0];
   const catT = category.translations[0];
-  const allergens: string[] = product.allergens ? JSON.parse(product.allergens) : [];
+  const allergens: string[] = (() => {
+    if (!product.allergens) return [];
+    try { return JSON.parse(product.allergens); } catch { return []; }
+  })();
   const L = MODAL_LABELS[locale] || MODAL_LABELS.fr;
   const allergenLabels = ALLERGEN_LABELS[locale] || ALLERGEN_LABELS.fr;
 
@@ -105,20 +102,13 @@ export default function ProductModal({ product, category, locale, onClose, prima
             )}
           </div>
 
-          {/* Allergens */}
+          {/* Allergens — texte uniquement, visible dans le modal */}
           {allergens.length > 0 && (
-            <div className="mt-5">
-              <p className="text-xs font-bold uppercase tracking-wider text-gray-400 mb-2">{L.allergens}</p>
-              <div className="flex flex-wrap gap-2">
-                {allergens.map(a => (
-                  <div key={a} className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-lg">
-                    <span className="text-sm">{ALLERGEN_ICONS[a] || '⚠️'}</span>
-                    <span className="text-xs font-medium text-amber-800">
-                      {allergenLabels[a] || a}
-                    </span>
-                  </div>
-                ))}
-              </div>
+            <div className="mt-5 p-3 bg-amber-50 border border-amber-200 rounded-xl">
+              <p className="text-xs font-bold uppercase tracking-wider text-amber-700 mb-1.5">{L.allergens}</p>
+              <p className="text-sm text-amber-900 leading-relaxed">
+                {allergens.map(a => allergenLabels[a] || a).join(', ')}
+              </p>
             </div>
           )}
 
