@@ -356,9 +356,10 @@ model HeroSlide {
   badgesJson   String?  // JSON array: [{"fr":"...","en":"...","it":"...","es":"..."}]
   sideTextJson String?
   imageUrl     String?
+  videoUrl     String?  // MP4/WebM — lecture en boucle, muet, pour le fond du slide
   bgColor      String   @default("#1F2937")
   bgGradient   String?
-  bgType       String   @default("color") // "color" | "image" | "gradient"
+  bgType       String   @default("color") // "color" | "image" | "gradient" | "video"
   isVisible    Boolean  @default(true)
   sortOrder    Int      @default(0)
   createdAt    DateTime @default(now())

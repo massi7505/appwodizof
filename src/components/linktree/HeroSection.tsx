@@ -33,6 +33,7 @@ interface Slide {
   badgesJson?: string | null;
   sideTextJson?: string | null;
   imageUrl?: string | null;
+  videoUrl?: string | null;
   bgColor: string;
   bgGradient?: string | null;
   bgType: string;
@@ -159,32 +160,53 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
         className="relative w-full rounded-3xl overflow-hidden transition-colors duration-500"
         style={slideBg(slide)}
       >
-        {/* Background image — always full cover when imageUrl exists */}
-        {slide.imageUrl && (
+        {/* Background video — muet, boucle, sans contrôles */}
+        {slide.videoUrl && (
           <div className="absolute inset-0">
-            <Image src={slide.imageUrl} alt="" fill className="object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/40 to-black/20" />
+            <video
+              src={slide.videoUrl}
+              autoPlay
+              loop
+              muted
+              playsInline
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/25" />
           </div>
         )}
 
-        <div className="relative z-10 flex flex-col md:flex-row md:items-stretch min-h-[280px] md:min-h-[320px]">
-          {/* ── Left content ── */}
-          <div className="flex-1 p-5 md:p-8 flex flex-col justify-between">
-            {/* Top: rating on mobile hides, shown separately on desktop */}
+        {/* Background image — affiché si pas de vidéo */}
+        {!slide.videoUrl && slide.imageUrl && (
+          <div className="absolute inset-0">
+            <Image src={slide.imageUrl} alt="" fill className="object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/25" />
+          </div>
+        )}
+
+        <div className="relative z-10 min-h-[300px] md:min-h-[340px]">
+          {/* ── Contenu aligné à GAUCHE ── */}
+          <div className="flex flex-col justify-between h-full p-6 md:p-10 max-w-xl">
             <div>
-              {/* Title */}
-              <h2 className="text-white font-black text-2xl md:text-4xl leading-tight mb-3 max-w-xs md:max-w-sm">
+              {/* Title — plus grand */}
+              <h2 className="text-white font-black text-3xl md:text-5xl leading-tight mb-3">
                 {title}
               </h2>
 
-              {/* Subtitle */}
+              {/* Subtitle — plus grand */}
               {subtitle && (
-                <p className="text-white/70 text-sm md:text-base mb-4 max-w-xs">{subtitle}</p>
+                <p className="text-white/80 text-base md:text-lg mb-3 leading-relaxed">{subtitle}</p>
+              )}
+
+              {/* Side text (déplacé ici à gauche, sous le subtitle) */}
+              {sideText && (
+                <p className="text-white/65 text-sm md:text-base mb-4 leading-relaxed italic">
+                  {sideText}
+                </p>
               )}
 
               {/* CTA Buttons */}
               {slide.buttons.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4">
+                <div className="flex flex-wrap gap-2 mb-5">
                   {slide.buttons.map(btn => (
                     <a
                       key={btn.id}
@@ -205,7 +227,7 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
 
             {/* Badges */}
             {badges.length > 0 && (
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-2">
                 {badges.map((badge, i) => {
                   const text = badge[locale as keyof typeof badge] || badge.fr || '';
                   if (!text) return null;
@@ -215,22 +237,13 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
                         style={{ background: `${settings.accentColor}30` }}>
                         <Check className="w-3 h-3" style={{ color: settings.accentColor }} />
                       </div>
-                      <span className="text-white/80 text-xs font-medium">{text}</span>
+                      <span className="text-white/85 text-sm font-medium">{text}</span>
                     </div>
                   );
                 })}
               </div>
             )}
           </div>
-
-          {/* ── Right content (side text only) ── */}
-          {sideText && (
-            <div className="hidden md:flex items-end justify-end p-8 min-w-[200px]">
-              <p className="text-white/60 text-xs italic text-right max-w-[160px] leading-relaxed">
-                {sideText}
-              </p>
-            </div>
-          )}
         </div>
 
         {/* ── Slider Controls ── */}

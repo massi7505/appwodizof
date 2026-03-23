@@ -83,6 +83,7 @@ const DEFAULT_SLIDE = {
   badgesJson: '[]',
   sideTextJson: '{"fr":"","en":"","it":"","es":""}',
   imageUrl: '',
+  videoUrl: '',
   bgColor: '#1F2937',
   bgGradient: '',
   bgType: 'color',
@@ -661,6 +662,78 @@ export default function AdminHeroPage() {
               <ImageUploader label="🖼️ Image du slide" value={editingSlide.imageUrl} folder="hero"
                 onChange={url => setEditingSlide((s: any) => ({ ...s, imageUrl: url, bgType: 'image' }))}
                 onRemove={() => setEditingSlide((s: any) => ({ ...s, imageUrl: '', bgType: 'color' }))} />
+
+              {/* Vidéo — muet, boucle, sans son */}
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-1.5">
+                  🎬 Vidéo de fond <span className="text-gray-600 font-normal">(MP4 / WebM · max 20 Mo · muet, boucle)</span>
+                </label>
+                {editingSlide.videoUrl ? (
+                  <div className="relative rounded-xl overflow-hidden bg-gray-800 border border-gray-700">
+                    <video
+                      src={editingSlide.videoUrl}
+                      muted
+                      loop
+                      autoPlay
+                      playsInline
+                      className="w-full h-32 object-cover opacity-80"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center gap-2 bg-black/40">
+                      <button type="button"
+                        onClick={() => (document.getElementById('video-upload-input') as HTMLInputElement)?.click()}
+                        className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur transition-colors">
+                        Changer
+                      </button>
+                      <button type="button"
+                        onClick={() => setEditingSlide((s: any) => ({ ...s, videoUrl: '' }))}
+                        className="bg-red-500/80 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+                        Supprimer
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className="relative h-24 rounded-xl border-2 border-dashed border-gray-600 hover:border-amber-500 transition-colors cursor-pointer flex flex-col items-center justify-center text-gray-500 hover:text-amber-400"
+                    onClick={() => (document.getElementById('video-upload-input') as HTMLInputElement)?.click()}
+                    onDrop={async e => {
+                      e.preventDefault();
+                      const file = e.dataTransfer.files[0];
+                      if (!file) return;
+                      const fd = new FormData();
+                      fd.append('file', file);
+                      fd.append('folder', 'hero');
+                      const res = await fetch('/api/upload', { method: 'POST', body: fd, credentials: 'include' });
+                      const data = await res.json();
+                      if (data.url) setEditingSlide((s: any) => ({ ...s, videoUrl: data.url }));
+                    }}
+                    onDragOver={e => e.preventDefault()}
+                  >
+                    <span className="text-2xl mb-1">🎬</span>
+                    <p className="text-xs font-semibold">Glisser-déposer ou cliquer</p>
+                    <p className="text-xs opacity-60 mt-0.5">MP4, WebM · max 20 Mo</p>
+                  </div>
+                )}
+                <input
+                  id="video-upload-input"
+                  type="file"
+                  accept="video/mp4,video/webm"
+                  className="hidden"
+                  onChange={async e => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    fd.append('folder', 'hero');
+                    const res = await fetch('/api/upload', { method: 'POST', body: fd, credentials: 'include' });
+                    const data = await res.json();
+                    if (data.url) setEditingSlide((s: any) => ({ ...s, videoUrl: data.url }));
+                    e.target.value = '';
+                  }}
+                />
+                <input type="text" value={editingSlide.videoUrl || ''} placeholder="Ou coller une URL vidéo..."
+                  onChange={e => setEditingSlide((s: any) => ({ ...s, videoUrl: e.target.value }))}
+                  className="admin-input text-xs mt-2" />
+              </div>
 
               {/* Visibility */}
               <label className="flex items-center gap-3 cursor-pointer bg-gray-800 rounded-xl px-3 py-2">
