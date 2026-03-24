@@ -116,7 +116,7 @@ export default async function MenuPageFR() {
       include: { translations: true },
     }).catch(() => []) ?? [],
     prisma.openingHours.findMany({ orderBy: { sortOrder: 'asc' } }).catch(() => []),
-    prisma.linktreeButton.findMany({ where: { isVisible: true, section: 'commander' }, orderBy: { sortOrder: 'asc' } }).catch(() => []),
+    prisma.linktreeButton.findMany({ where: { isVisible: true, section: { in: ['commander', 'contact'] } }, orderBy: { sortOrder: 'asc' } }).catch(() => []),
   ]);
   const banners = bannersRaw ?? [];
   const openingHours = openingHoursRaw ?? [];
