@@ -52,7 +52,7 @@ export default function ProductCard({ product, locale, onClick, compact = false,
       <button onClick={onClick} className="menu-card w-full text-left" disabled={product.isOutOfStock}>
         <div className="relative aspect-square">
           {product.imageUrl ? (
-            <Image src={product.imageUrl} alt={t?.name || ''} fill className="object-cover" />
+            <Image src={product.imageUrl} alt={t?.name || ''} fill sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 20vw" className="object-cover" />
           ) : (
             <div className="w-full h-full bg-gray-100 flex items-center justify-center text-3xl">🍕</div>
           )}
@@ -93,6 +93,7 @@ export default function ProductCard({ product, locale, onClick, compact = false,
             src={product.imageUrl}
             alt={t?.name || ''}
             fill
+            sizes="(max-width: 768px) 50vw, (max-width: 1280px) 33vw, 20vw"
             className="object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (

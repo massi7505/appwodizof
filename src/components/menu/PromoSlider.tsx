@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useState, useEffect } from 'react';
+import Image from 'next/image';
 
 interface Props {
   promos: any[];
@@ -85,7 +86,8 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
       {canLeft && (
         <button
           onClick={() => scroll(-1)}
-          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-9 h-9 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-all opacity-0 group-hover/slider:opacity-100"
+          aria-label="Promotion précédente"
+          className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-3 z-10 w-11 h-11 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-all opacity-0 group-hover/slider:opacity-100"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6"/></svg>
         </button>
@@ -94,7 +96,8 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
       {canRight && (
         <button
           onClick={() => scroll(1)}
-          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-9 h-9 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-all opacity-0 group-hover/slider:opacity-100"
+          aria-label="Promotion suivante"
+          className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-3 z-10 w-11 h-11 rounded-full bg-white shadow-lg border border-gray-200 flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-all opacity-0 group-hover/slider:opacity-100"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6"/></svg>
         </button>
@@ -115,10 +118,15 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
 
           if (promo.photoOnly && promo.bgImageUrl) {
             return (
-              <div key={promo.id} className="flex-shrink-0 w-72 sm:w-80 rounded-2xl overflow-hidden"
+              <div key={promo.id} className="relative flex-shrink-0 w-72 sm:w-80 rounded-2xl overflow-hidden"
                 style={{ aspectRatio: '16/7', scrollSnapAlign: 'start' }}>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={promo.bgImageUrl} alt={t?.title || ''} className="w-full h-full object-cover" />
+                <Image
+                  src={promo.bgImageUrl}
+                  alt={t?.title || ''}
+                  fill
+                  sizes="(max-width: 640px) 288px, 320px"
+                  className="object-cover"
+                />
               </div>
             );
           }

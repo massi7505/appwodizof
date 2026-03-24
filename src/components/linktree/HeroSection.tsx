@@ -287,7 +287,15 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
         {/* Background image */}
         {!slide.videoUrl && slide.imageUrl && (
           <div className="absolute inset-0 hero-anim-overlay" key={`img-${current}`}>
-            <Image src={slide.imageUrl} alt="" fill className="object-cover pointer-events-none" draggable={false} />
+            <Image
+              src={slide.imageUrl}
+              alt=""
+              fill
+              priority={current === 0}
+              sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1200px"
+              className="object-cover pointer-events-none"
+              draggable={false}
+            />
             <div className="absolute inset-0" style={{ background: 'linear-gradient(105deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.60) 45%, rgba(0,0,0,0.20) 100%)' }} />
           </div>
         )}
@@ -377,14 +385,16 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
               <>
                 <button
                   onClick={prev}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-20"
+                  aria-label="Slide précédent"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-20"
                   style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
                 >
                   <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
                 <button
                   onClick={next}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-20"
+                  aria-label="Slide suivant"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-20"
                   style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
                 >
                   <ChevronRight className="w-5 h-5 text-white" />

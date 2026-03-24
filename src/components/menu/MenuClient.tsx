@@ -1,18 +1,21 @@
 'use client';
 
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
+import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import MenuHeader from './MenuHeader';
 import PromoSlider from './PromoSlider';
 import CategoryTabs from './CategoryTabs';
 import ProductCard from './ProductCard';
-import ProductModal from './ProductModal';
 import { ReviewsSection } from './ReviewsSection';
 import { FAQSection } from './ReviewsSection';
 import MenuFooter from './MenuFooter';
-import GoogleReviewPopup from './GoogleReviewPopup';
 import HeroSection from '@/components/linktree/HeroSection';
 import { SmartNotificationBar } from '@/components/linktree/NotificationBar';
 import type { NotificationBannerData, OpeningHoursData } from '@/components/linktree/NotificationBar';
+
+const ProductModal = dynamic(() => import('./ProductModal'), { ssr: false });
+const GoogleReviewPopup = dynamic(() => import('./GoogleReviewPopup'), { ssr: false });
 
 interface Translation { locale: string; name: string; description?: string | null }
 interface Product {
@@ -228,6 +231,8 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
       {/* Spacer = notif bar height + header height */}
       <div style={{ height: spacerH }} />
 
+      <main id="main-content">
+
       {/* ===== HERO SECTION ===== */}
       {heroData?.slides && heroData.slides.length > 0 && (
         <div className="max-w-7xl mx-auto px-4 pt-4">
@@ -338,8 +343,7 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
               {/* Category Header */}
               <div className="flex items-center gap-2 mb-4">
                 {cat.iconUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={cat.iconUrl} alt="" className="w-7 h-7 rounded-full object-cover flex-shrink-0" />
+                  <Image src={cat.iconUrl} alt="" width={28} height={28} className="rounded-full object-cover flex-shrink-0" />
                 ) : cat.iconEmoji ? (
                   <span className="text-2xl">{cat.iconEmoji}</span>
                 ) : null}
@@ -384,6 +388,8 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
           <FAQSection faqs={faqs} locale={locale} L={L} />
         )}
       </div>
+
+      </main>
 
       {/* ===== FOOTER ===== */}
       <MenuFooter site={site} locale={locale} orderLinks={orderLinks} />

@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import {
   ShoppingCart, UtensilsCrossed, MapPin, Phone, Star, Clock, Globe,
   Instagram, Youtube, Facebook, Twitter, Music2, Link2, ExternalLink,
@@ -130,8 +131,7 @@ function IconBox({ icon, iconUrl, textColor }: { icon?: string | null; iconUrl?:
 
   if (resolved.type === 'url') return (
     <div className={`${base} group-hover:scale-110`} style={bgStyle}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={resolved.iconUrl} alt="" className="w-5 h-5 object-contain" />
+      <Image src={resolved.iconUrl} alt="" width={20} height={20} className="object-contain" />
     </div>
   );
   if (resolved.type === 'svg') return (
@@ -163,8 +163,7 @@ function LargeIconBox({ icon, iconUrl, textColor }: { icon?: string | null; icon
 
   if (resolved.type === 'url') return (
     <div className={`${base} group-hover:scale-110`} style={bgStyle}>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={resolved.iconUrl} alt="" className="w-8 h-8 object-contain rounded-xl" />
+      <Image src={resolved.iconUrl} alt="" width={32} height={32} className="object-contain rounded-xl" />
     </div>
   );
   if (resolved.type === 'svg') return (

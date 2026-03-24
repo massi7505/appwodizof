@@ -1,6 +1,7 @@
 'use client';
 
 import { useRef, useEffect } from 'react';
+import Image from 'next/image';
 
 interface Category {
   id: number;
@@ -48,7 +49,7 @@ export default function CategoryTabs({ categories, active, onSelect, locale, pri
             >
               {/* Image — rounded-2xl, no ring; active = scale up + colored glow */}
               <div
-                className="w-14 h-14 rounded-2xl overflow-hidden transition-all duration-250"
+                className="relative w-14 h-14 rounded-2xl overflow-hidden transition-all duration-250"
                 style={{
                   transform: isActive ? 'scale(1.08)' : 'scale(1)',
                   boxShadow: isActive
@@ -57,11 +58,12 @@ export default function CategoryTabs({ categories, active, onSelect, locale, pri
                 }}
               >
                 {cat.iconUrl ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <Image
                     src={cat.iconUrl}
                     alt={name}
-                    className="w-full h-full object-cover"
+                    fill
+                    sizes="56px"
+                    className="object-cover"
                   />
                 ) : (
                   <div className="w-full h-full bg-gray-100 flex items-center justify-center text-2xl">

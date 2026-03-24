@@ -47,17 +47,19 @@ export default function MenuHeader({ site, locale, search, onSearch, L, primaryC
         <div className="flex-1 relative">
           <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
-            type="text"
+            type="search"
             value={search}
             onChange={e => onSearch(e.target.value)}
             placeholder={L.search}
+            aria-label={L.search}
             className="w-full pl-9 pr-4 py-2 bg-gray-100 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 transition-all"
             style={{ '--tw-ring-color': primaryColor } as any}
           />
           {search && (
             <button
               onClick={() => onSearch('')}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+              aria-label="Effacer la recherche"
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 w-6 h-6 flex items-center justify-center"
             >
               <CloseIcon className="w-4 h-4" />
             </button>

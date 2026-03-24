@@ -6,13 +6,17 @@ import { prisma } from '@/lib/db';
 const playfair = Playfair_Display({
   subsets: ['latin'],
   variable: '--font-display',
-  weight: ['400', '500', '600', '700', '800', '900'],
+  weight: ['400', '700', '900'],
+  display: 'swap',
+  preload: true,
 });
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-body',
-  weight: ['300', '400', '500', '600', '700'],
+  weight: ['400', '500', '700'],
+  display: 'swap',
+  preload: true,
 });
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -33,6 +37,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" className={`${playfair.variable} ${dmSans.variable}`}>
       <body className="font-body bg-gray-950 text-white antialiased">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-[999] focus:px-4 focus:py-2 focus:bg-white focus:text-gray-900 focus:rounded-lg focus:font-semibold focus:text-sm focus:shadow-lg"
+        >
+          Aller au contenu principal
+        </a>
         {children}
       </body>
     </html>
