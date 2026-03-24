@@ -119,7 +119,7 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
 
   // ── IntersectionObserver: sync active tab while scrolling ──────────────────
   const programmaticScroll = useRef(false);
-  const unlockTimer = useRef<ReturnType<typeof setTimeout>>();
+  const unlockTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   useEffect(() => {
     if (search.trim()) return; // disable during search mode
