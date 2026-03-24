@@ -1,4 +1,4 @@
-import { cookies, headers } from 'next/headers';
+import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 
@@ -20,18 +20,11 @@ async function isAuthenticated(): Promise<boolean> {
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const authenticated = await isAuthenticated();
 
+  // Non authentifié : afficher les enfants tels quels
+  // Le middleware redirige déjà toutes les pages admin vers /admin/login
+  // Seule la page /admin/login est donc accessible sans token
   if (!authenticated) {
-    // Lire le pathname injecté par le middleware
-    const headersList = await headers();
-    const pathname = headersList.get('x-pathname') ?? '';
-
-    // Page login → afficher le formulaire normalement
-    if (pathname.startsWith('/admin/login')) {
-      return <>{children}</>;
-    }
-
-    // Toute autre page admin → ne rien afficher (le middleware redirige)
-    return null;
+    return <>{children}</>;
   }
 
   return (
