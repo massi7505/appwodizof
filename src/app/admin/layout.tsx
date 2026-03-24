@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
+import { redirect } from 'next/navigation';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 
 export const metadata = { title: 'Admin — Woodiz' };
@@ -21,7 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const authenticated = await isAuthenticated();
 
   if (!authenticated) {
-    return <>{children}</>;
+    redirect('/admin/login');
   }
 
   return (
