@@ -1,29 +1,13 @@
-import { cookies } from 'next/headers';
-import { jwtVerify } from 'jose';
+import { getSession } from '@/lib/auth';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 
 export const metadata = { title: 'Admin — Woodiz' };
 
-async function isAuthenticated(): Promise<boolean> {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('admin_token')?.value;
-    if (!token) return false;
-    const secret = new TextEncoder().encode(process.env.JWT_SECRET || '');
-    await jwtVerify(token, secret);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
-  const authenticated = await isAuthenticated();
+  const session = await getSession();
 
-  // Non authentifié : afficher les enfants tels quels
-  // Le middleware redirige déjà toutes les pages admin vers /admin/login
-  // Seule la page /admin/login est donc accessible sans token
-  if (!authenticated) {
+  // Non connecté → pas de sidebar (page /admin affiche le formulaire login)
+  if (!session) {
     return <>{children}</>;
   }
 
