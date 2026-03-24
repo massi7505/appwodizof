@@ -154,26 +154,29 @@ const ANIM_IN: Record<string, string> = {
 
 // ── Smart multi-banner component ──────────────────────────────────────────────
 export function SmartNotificationBar({ banners, openingHours = [], locale }: Props) {
-  const [now, setNow] = useState(() => new Date());
+  // Initialize to null to avoid SSR/client mismatch (new Date() differs between server and client)
+  const [now, setNow] = useState<Date | null>(null);
   const [idx, setIdx] = useState(0);
   const [animKey, setAnimKey] = useState(0);
   const [dismissed, setDismissed] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // Refresh every 30s for restaurant status countdown
+  // Set time only on client after hydration, then refresh every 30s
   useEffect(() => {
+    setNow(new Date());
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
 
   const status = useMemo(
-    () => getRestaurantStatus(openingHours, now),
+    () => now ? getRestaurantStatus(openingHours, now) : { isOpen: true, minutesUntilOpen: null as number | null },
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [openingHours, now.getMinutes(), now.getHours()]
+    [openingHours, now?.getMinutes(), now?.getHours()]
   );
 
-  // Build the final display list (memoized)
+  // Build the final display list (memoized) — empty during SSR (now is null)
   const display = useMemo<NotificationBannerData[]>(() => {
+    if (!now) return [];
     const active = getActiveBanners(banners, now).filter(b => {
       if (b.type === 'closed' && status.isOpen) return false;
       if (b.type === 'open' && !status.isOpen) return false;
@@ -213,7 +216,7 @@ export function SmartNotificationBar({ banners, openingHours = [], locale }: Pro
     }
     return withText;
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [banners, status, openingHours]);
+  }, [banners, status, openingHours, now]);
 
   const total = display.length;
 
