@@ -61,7 +61,8 @@ export default function GoogleReviewPopup({
 
   function openReview() {
     try { localStorage.setItem(KEY_CLICKED, '1'); } catch {}
-    window.open(googleReviewsUrl, '_blank', 'noopener');
+    const url = /^https?:\/\//i.test(googleReviewsUrl) ? googleReviewsUrl : `https://${googleReviewsUrl}`;
+    window.open(url, '_blank', 'noopener');
     setClosing(true);
     setTimeout(() => setVisible(false), 300);
   }
