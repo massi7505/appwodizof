@@ -302,25 +302,61 @@ export default function AdminSettingsPage() {
             ))}
           </div>
 
-          {/* Preview */}
+          {/* Live Preview */}
           <div className="admin-card overflow-hidden p-0">
             <div className="px-4 py-3 border-b border-gray-700">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Aperçu en direct</p>
             </div>
-            <div className="p-5" style={{ backgroundColor: settings.backgroundColor }}>
-              <p className="text-xs font-semibold mb-3 opacity-60" style={{ color: settings.textColor }}>Woodiz Paris 15</p>
-              <div className="flex gap-2 flex-wrap">
-                <button className="px-4 py-2 rounded-xl font-bold text-sm" style={{ backgroundColor: settings.primaryColor, color: contrastColor(settings.primaryColor) }}>
-                  Commander
-                </button>
-                <button className="px-4 py-2 rounded-xl font-bold text-sm" style={{ backgroundColor: settings.accentColor, color: contrastColor(settings.accentColor) }}>
-                  Nouveau
-                </button>
-                <div className="px-4 py-2 rounded-xl text-sm" style={{ backgroundColor: settings.secondaryColor, color: contrastColor(settings.secondaryColor) }}>
-                  Carte
+
+            {/* Hero / Page preview */}
+            <div className="p-5 space-y-3" style={{ backgroundColor: settings.backgroundColor }}>
+              {/* Header bar */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-5 h-5 rounded-md font-black text-[10px] flex items-center justify-center" style={{ backgroundColor: settings.primaryColor, color: contrastColor(settings.primaryColor) }}>W</div>
+                  <span className="text-[10px] font-bold" style={{ color: settings.textColor }}>Woodiz Paris 15</span>
+                </div>
+                <div className="flex gap-1">
+                  <div className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ backgroundColor: settings.primaryColor, color: contrastColor(settings.primaryColor) }}>Commander</div>
                 </div>
               </div>
-              <p className="text-xs mt-3 opacity-70" style={{ color: settings.textColor }}>Pizza Margherita — <span style={{ color: settings.primaryColor }}>12,90 €</span></p>
+
+              {/* Hero card mock */}
+              <div className="rounded-xl overflow-hidden" style={{ background: `linear-gradient(105deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4)), ${settings.secondaryColor}` }}>
+                <div className="p-3">
+                  <div className="h-0.5 w-5 rounded-full mb-1.5" style={{ backgroundColor: settings.accentColor }} />
+                  <p className="text-xs font-black text-white">Plus qu'une pizza</p>
+                  <p className="text-[9px] text-white/70 mt-0.5">Le plaisir commence ici.</p>
+                  <div className="mt-2 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ backgroundColor: settings.primaryColor, color: contrastColor(settings.primaryColor) }}>
+                    Commander →
+                  </div>
+                </div>
+              </div>
+
+              {/* Product cards */}
+              <div className="flex gap-2">
+                {['Pizza Margherita', 'Pizza 4 Fromages'].map((p, i) => (
+                  <div key={i} className="flex-1 rounded-lg p-2" style={{ backgroundColor: settings.secondaryColor }}>
+                    <p className="text-[9px] font-bold truncate" style={{ color: contrastColor(settings.secondaryColor) }}>{p}</p>
+                    <p className="text-[10px] font-black mt-0.5" style={{ color: settings.primaryColor }}>12,90 €</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Accent badge */}
+              <div className="flex gap-2 flex-wrap">
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold" style={{ backgroundColor: settings.accentColor, color: contrastColor(settings.accentColor) }}>NOUVEAU</span>
+                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold border" style={{ borderColor: settings.primaryColor, color: settings.primaryColor }}>PROMO -20%</span>
+              </div>
+            </div>
+
+            {/* Footer preview */}
+            <div className="px-4 py-3" style={{ backgroundColor: settings.backgroundColor === '#FFFFFF' || settings.backgroundColor === '#FFFBEB' ? '#111827' : settings.backgroundColor, opacity: 0.9 }}>
+              <div className="h-px w-full mb-2" style={{ background: `linear-gradient(90deg, transparent, ${settings.primaryColor}, transparent)` }} />
+              <div className="flex items-center justify-between">
+                <p className="text-[9px] text-gray-500">© 2026 Woodiz Paris 15</p>
+                <p className="text-[9px] font-medium" style={{ color: settings.primaryColor }}>AdsBooster</p>
+              </div>
             </div>
           </div>
         </div>

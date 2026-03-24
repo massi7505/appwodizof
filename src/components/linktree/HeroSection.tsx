@@ -162,7 +162,7 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
       >
         {/* Background video — muet, boucle, sans contrôles */}
         {slide.videoUrl && (
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 hero-anim-overlay" key={`vid-${current}`}>
             <video
               src={slide.videoUrl}
               autoPlay
@@ -171,42 +171,67 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
               playsInline
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/25" />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(105deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.18) 100%)' }} />
           </div>
         )}
 
         {/* Background image — affiché si pas de vidéo */}
         {!slide.videoUrl && slide.imageUrl && (
-          <div className="absolute inset-0">
+          <div className="absolute inset-0 hero-anim-overlay" key={`img-${current}`}>
             <Image src={slide.imageUrl} alt="" fill className="object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/45 to-black/25" />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(105deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.18) 100%)' }} />
           </div>
         )}
 
-        <div className="relative z-10 min-h-[300px] md:min-h-[340px]">
-          {/* ── Contenu aligné à GAUCHE ── */}
-          <div className="flex flex-col justify-between h-full p-6 md:p-10 max-w-xl">
+        <div className="relative z-10 min-h-[300px] md:min-h-[360px]">
+          {/* ── Contenu animé, aligné à GAUCHE ── */}
+          <div key={current} className="flex flex-col justify-between h-full p-6 md:p-10 max-w-2xl">
             <div>
-              {/* Title — plus grand */}
-              <h2 className="text-white font-black text-3xl md:text-5xl leading-tight mb-3">
+              {/* Accent bar above title */}
+              <div className="hero-anim-0 flex items-center gap-2.5 mb-3">
+                <span className="h-0.5 w-8 rounded-full" style={{ backgroundColor: settings.accentColor }} />
+                {badges.length > 0 && (
+                  <div className="flex flex-col gap-1.5">
+                    {badges.map((badge, i) => {
+                      const text = badge[locale as keyof typeof badge] || badge.fr || '';
+                      if (!text) return null;
+                      return (
+                        <div key={i} className="flex items-center gap-1.5">
+                          <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
+                            style={{ background: `${settings.accentColor}35` }}>
+                            <Check className="w-2.5 h-2.5" style={{ color: settings.accentColor }} />
+                          </div>
+                          <span className="text-white/75 text-xs font-medium">{text}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              {/* Title */}
+              <h2 className="hero-anim-1 text-white font-black text-3xl md:text-5xl leading-[1.1] mb-3"
+                style={{ textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}>
                 {title}
               </h2>
 
-              {/* Subtitle — plus grand */}
+              {/* Subtitle */}
               {subtitle && (
-                <p className="text-white/80 text-base md:text-lg mb-3 leading-relaxed">{subtitle}</p>
+                <p className="hero-anim-2 text-white/80 text-base md:text-xl mb-3 leading-relaxed font-medium">
+                  {subtitle}
+                </p>
               )}
 
-              {/* Side text (déplacé ici à gauche, sous le subtitle) */}
+              {/* Side text */}
               {sideText && (
-                <p className="text-white/65 text-sm md:text-base mb-4 leading-relaxed italic">
+                <p className="hero-anim-3 text-white/55 text-sm md:text-base mb-4 leading-relaxed italic">
                   {sideText}
                 </p>
               )}
 
               {/* CTA Buttons */}
               {slide.buttons.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-5">
+                <div className="hero-anim-4 flex flex-wrap gap-2 mb-4">
                   {slide.buttons.map(btn => (
                     <a
                       key={btn.id}
@@ -224,25 +249,6 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
                 </div>
               )}
             </div>
-
-            {/* Badges */}
-            {badges.length > 0 && (
-              <div className="flex flex-col gap-2">
-                {badges.map((badge, i) => {
-                  const text = badge[locale as keyof typeof badge] || badge.fr || '';
-                  if (!text) return null;
-                  return (
-                    <div key={i} className="flex items-center gap-2">
-                      <div className="w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0"
-                        style={{ background: `${settings.accentColor}30` }}>
-                        <Check className="w-3 h-3" style={{ color: settings.accentColor }} />
-                      </div>
-                      <span className="text-white/85 text-sm font-medium">{text}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
         </div>
 

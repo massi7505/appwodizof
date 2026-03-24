@@ -450,3 +450,20 @@ body {
   border-color: #FDE68A;
   color: #D97706;
 }
+
+/* ===== HERO SLIDER ANIMATIONS ===== */
+@keyframes hero-fade-up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes hero-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.hero-anim-0 { animation: hero-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.00s both; }
+.hero-anim-1 { animation: hero-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.10s both; }
+.hero-anim-2 { animation: hero-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.20s both; }
+.hero-anim-3 { animation: hero-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.30s both; }
+.hero-anim-4 { animation: hero-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.40s both; }
+.hero-anim-overlay { animation: hero-fade-in 0.6s ease both; }
