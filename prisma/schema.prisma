@@ -91,7 +91,7 @@ model LinktreeSettings {
 model LinktreeButton {
   id          Int     @id @default(autoincrement())
   label       String
-  url         String
+  url         String  @db.Text
   icon        String? // SVG string or icon name
   iconUrl     String?
   bgColor            String  @default("#F59E0B")
