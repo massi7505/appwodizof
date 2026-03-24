@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import {
-  ArrowRight, ChevronLeft, ChevronRight, Check,
+  ArrowRight, ChevronLeft, ChevronRight, Check, Pause, Play,
   Truck, Salad, Percent, Tag, Gift, ShoppingCart, ShoppingBag,
   UtensilsCrossed, MapPin, Phone, Clock, Globe, Instagram,
   Bike, Pizza, Coffee, Flame, Leaf, Zap, Award, Sparkles,
@@ -121,27 +121,129 @@ function slideBg(slide: Slide): React.CSSProperties {
   return { backgroundColor: slide.bgColor };
 }
 
+// ── Progress Bar ─────────────────────────────────────────
+function ProgressDots({
+  total, current, paused, delay, accentColor, onGo, onTogglePause,
+}: {
+  total: number; current: number; paused: boolean; delay: number;
+  accentColor: string; onGo: (i: number) => void; onTogglePause: () => void;
+}) {
+  return (
+    <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 z-20">
+      {/* Pause / Play */}
+      <button
+        onClick={onTogglePause}
+        className="w-7 h-7 rounded-full flex items-center justify-center flex-shrink-0 transition-all hover:scale-110 active:scale-95"
+        style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)' }}
+        aria-label={paused ? 'Play' : 'Pause'}
+      >
+        {paused
+          ? <Play className="w-3.5 h-3.5 text-white" fill="white" />
+          : <Pause className="w-3.5 h-3.5 text-white" fill="white" />}
+      </button>
+
+      {/* Indicators */}
+      <div className="flex items-center gap-1.5 flex-1">
+        {Array.from({ length: total }).map((_, i) => {
+          const isActive = i === current;
+          return (
+            <button
+              key={i}
+              onClick={() => onGo(i)}
+              className="relative flex-shrink-0 rounded-full overflow-hidden transition-all duration-300"
+              style={{
+                width: isActive ? '52px' : '6px',
+                height: '6px',
+                background: 'rgba(255,255,255,0.35)',
+              }}
+              aria-label={`Slide ${i + 1}`}
+            >
+              {isActive && (
+                <span
+                  className="absolute inset-y-0 left-0 rounded-full"
+                  style={{
+                    backgroundColor: accentColor,
+                    animation: paused ? 'none' : `hero-progress ${delay}ms linear forwards`,
+                  }}
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 // ── Main Component ────────────────────────────────────────
 export default function HeroSection({ settings, slides, featureCards, locale }: Props) {
   const [current, setCurrent] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [paused, setPaused] = useState(false);
+  const [animKey, setAnimKey] = useState(0);
   const total = slides.length;
+  const delay = settings.autoplayDelay || 5000;
+
+  // Touch / drag refs
+  const dragStartX = useRef<number | null>(null);
+  const isDragging = useRef(false);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const go = useCallback((idx: number) => {
-    if (isAnimating || total === 0) return;
-    setIsAnimating(true);
+    if (total === 0) return;
     setCurrent(((idx % total) + total) % total);
-    setTimeout(() => setIsAnimating(false), 400);
-  }, [isAnimating, total]);
+    setAnimKey(k => k + 1);
+  }, [total]);
 
   const prev = useCallback(() => go(current - 1), [current, go]);
   const next = useCallback(() => go(current + 1), [current, go]);
 
+  // Autoplay with progress reset
   useEffect(() => {
-    if (!settings.autoplay || total <= 1) return;
-    const timer = setInterval(next, settings.autoplayDelay || 5000);
+    if (!settings.autoplay || total <= 1 || paused) return;
+    const timer = setInterval(() => {
+      setCurrent(c => ((c + 1) % total));
+      setAnimKey(k => k + 1);
+    }, delay);
     return () => clearInterval(timer);
-  }, [settings.autoplay, settings.autoplayDelay, next, total]);
+  }, [settings.autoplay, delay, total, paused]);
+
+  // ── Touch handlers ────────────────────────────────────
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    dragStartX.current = e.touches[0].clientX;
+  }, []);
+
+  const onTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (dragStartX.current === null) return;
+    const delta = e.changedTouches[0].clientX - dragStartX.current;
+    dragStartX.current = null;
+    if (Math.abs(delta) < 40) return;
+    if (delta < 0) next(); else prev();
+  }, [next, prev]);
+
+  // ── Mouse drag handlers ───────────────────────────────
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    dragStartX.current = e.clientX;
+    isDragging.current = false;
+  }, []);
+
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    if (dragStartX.current === null) return;
+    if (Math.abs(e.clientX - dragStartX.current) > 8) isDragging.current = true;
+  }, []);
+
+  const onMouseUp = useCallback((e: React.MouseEvent) => {
+    if (dragStartX.current === null) return;
+    const delta = e.clientX - dragStartX.current;
+    dragStartX.current = null;
+    if (!isDragging.current || Math.abs(delta) < 40) { isDragging.current = false; return; }
+    isDragging.current = false;
+    if (delta < 0) next(); else prev();
+  }, [next, prev]);
+
+  const onMouseLeave = useCallback(() => {
+    dragStartX.current = null;
+    isDragging.current = false;
+  }, []);
 
   if (!settings.isVisible || total === 0) return null;
 
@@ -157,10 +259,17 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
     <section className="w-full pb-4">
       {/* ── Hero Card ── */}
       <div
-        className="relative w-full rounded-3xl overflow-hidden transition-colors duration-500"
-        style={slideBg(slide)}
+        ref={containerRef}
+        className="relative w-full rounded-3xl overflow-hidden select-none"
+        style={{ ...slideBg(slide), cursor: isDragging.current ? 'grabbing' : 'grab' }}
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseLeave}
       >
-        {/* Background video — muet, boucle, sans contrôles */}
+        {/* Background video */}
         {slide.videoUrl && (
           <div className="absolute inset-0 hero-anim-overlay" key={`vid-${current}`}>
             <video
@@ -169,87 +278,95 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
               loop
               muted
               playsInline
-              className="w-full h-full object-cover"
+              className="w-full h-full object-cover pointer-events-none"
             />
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(105deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.18) 100%)' }} />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(105deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.60) 45%, rgba(0,0,0,0.20) 100%)' }} />
           </div>
         )}
 
-        {/* Background image — affiché si pas de vidéo */}
+        {/* Background image */}
         {!slide.videoUrl && slide.imageUrl && (
           <div className="absolute inset-0 hero-anim-overlay" key={`img-${current}`}>
-            <Image src={slide.imageUrl} alt="" fill className="object-cover" />
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(105deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.18) 100%)' }} />
+            <Image src={slide.imageUrl} alt="" fill className="object-cover pointer-events-none" draggable={false} />
+            <div className="absolute inset-0" style={{ background: 'linear-gradient(105deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.60) 45%, rgba(0,0,0,0.20) 100%)' }} />
           </div>
         )}
 
-        <div className="relative z-10 min-h-[300px] md:min-h-[360px]">
-          {/* ── Contenu animé, aligné à GAUCHE ── */}
-          <div key={current} className="flex flex-col justify-between h-full p-6 md:p-10 max-w-2xl">
-            <div>
-              {/* Accent bar above title */}
-              <div className="hero-anim-0 flex items-center gap-2.5 mb-3">
-                <span className="h-0.5 w-8 rounded-full" style={{ backgroundColor: settings.accentColor }} />
-                {badges.length > 0 && (
-                  <div className="flex flex-col gap-1.5">
-                    {badges.map((badge, i) => {
-                      const text = badge[locale as keyof typeof badge] || badge.fr || '';
-                      if (!text) return null;
-                      return (
-                        <div key={i} className="flex items-center gap-1.5">
-                          <div className="w-4 h-4 rounded-full flex items-center justify-center flex-shrink-0"
-                            style={{ background: `${settings.accentColor}35` }}>
-                            <Check className="w-2.5 h-2.5" style={{ color: settings.accentColor }} />
-                          </div>
-                          <span className="text-white/75 text-xs font-medium">{text}</span>
-                        </div>
-                      );
-                    })}
+        {/* ── Content ── */}
+        <div
+          key={animKey}
+          className="relative z-10 flex flex-col justify-end min-h-[340px] md:min-h-[420px] p-6 pb-16 md:p-10 md:pb-20"
+        >
+          {/* Badges */}
+          {badges.length > 0 && (
+            <div className="hero-anim-0 flex flex-wrap gap-2 mb-4">
+              {badges.map((badge, i) => {
+                const text = badge[locale as keyof typeof badge] || badge.fr || '';
+                if (!text) return null;
+                return (
+                  <div
+                    key={i}
+                    className="flex items-center gap-1.5 px-3 py-1 rounded-full"
+                    style={{ background: `${settings.accentColor}25`, border: `1px solid ${settings.accentColor}50` }}
+                  >
+                    <Check className="w-3 h-3 flex-shrink-0" style={{ color: settings.accentColor }} />
+                    <span className="text-white text-xs font-semibold tracking-wide">{text}</span>
                   </div>
-                )}
-              </div>
-
-              {/* Title */}
-              <h2 className="hero-anim-1 text-white font-black text-3xl md:text-5xl leading-[1.1] mb-3"
-                style={{ textShadow: '0 2px 20px rgba(0,0,0,0.4)' }}>
-                {title}
-              </h2>
-
-              {/* Subtitle */}
-              {subtitle && (
-                <p className="hero-anim-2 text-white/80 text-base md:text-xl mb-3 leading-relaxed font-medium">
-                  {subtitle}
-                </p>
-              )}
-
-              {/* Side text */}
-              {sideText && (
-                <p className="hero-anim-3 text-white/55 text-sm md:text-base mb-4 leading-relaxed italic">
-                  {sideText}
-                </p>
-              )}
-
-              {/* CTA Buttons */}
-              {slide.buttons.length > 0 && (
-                <div className="hero-anim-4 flex flex-wrap gap-2 mb-4">
-                  {slide.buttons.map(btn => (
-                    <a
-                      key={btn.id}
-                      href={btn.url}
-                      target={btn.url.startsWith('http') ? '_blank' : undefined}
-                      rel={btn.url.startsWith('http') ? 'noopener noreferrer' : undefined}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all hover:scale-105 active:scale-95 hover:shadow-lg"
-                      style={btnBg(btn)}
-                    >
-                      {btn.icon && <SlideIcon icon={btn.icon} color={btn.textColor} size={16} />}
-                      {t(btn.labelJson, locale, 'Button')}
-                      <ArrowRight className="w-4 h-4" />
-                    </a>
-                  ))}
-                </div>
-              )}
+                );
+              })}
             </div>
+          )}
+
+          {/* Accent bar */}
+          <div className="hero-anim-0 mb-3">
+            <span className="h-1 w-10 rounded-full inline-block" style={{ backgroundColor: settings.accentColor }} />
           </div>
+
+          {/* Title — big like O-Tacos */}
+          <h2
+            className="hero-anim-1 text-white font-black leading-[0.95] tracking-tight mb-3"
+            style={{
+              fontSize: 'clamp(2.4rem, 8vw, 4.5rem)',
+              textShadow: '0 2px 32px rgba(0,0,0,0.5)',
+            }}
+          >
+            {title}
+          </h2>
+
+          {/* Subtitle */}
+          {subtitle && (
+            <p className="hero-anim-2 text-white/80 text-base md:text-lg mb-2 leading-relaxed font-medium max-w-lg">
+              {subtitle}
+            </p>
+          )}
+
+          {/* Side text */}
+          {sideText && (
+            <p className="hero-anim-3 text-white/50 text-sm mb-4 leading-relaxed italic">
+              {sideText}
+            </p>
+          )}
+
+          {/* CTA Buttons */}
+          {slide.buttons.length > 0 && (
+            <div className="hero-anim-4 flex flex-wrap gap-2 mt-1">
+              {slide.buttons.map(btn => (
+                <a
+                  key={btn.id}
+                  href={btn.url}
+                  target={btn.url.startsWith('http') ? '_blank' : undefined}
+                  rel={btn.url.startsWith('http') ? 'noopener noreferrer' : undefined}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all hover:scale-105 active:scale-95 hover:shadow-lg"
+                  style={btnBg(btn)}
+                  onClick={e => { if (isDragging.current) e.preventDefault(); }}
+                >
+                  {btn.icon && <SlideIcon icon={btn.icon} color={btn.textColor} size={16} />}
+                  {t(btn.labelJson, locale, 'Button')}
+                  <ArrowRight className="w-4 h-4" />
+                </a>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* ── Slider Controls ── */}
@@ -260,34 +377,33 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
               <>
                 <button
                   onClick={prev}
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-20"
                   style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
                 >
                   <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
                 <button
                   onClick={next}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-20"
                   style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
                 >
                   <ChevronRight className="w-5 h-5 text-white" />
                 </button>
               </>
             )}
-            {/* Dots */}
+
+            {/* Progress dots bar */}
             {settings.showDots && (
-              <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
-                {slides.map((_, i) => (
-                  <button key={i} onClick={() => go(i)}
-                    className="rounded-full transition-all duration-300"
-                    style={{
-                      width: i === current ? '20px' : '6px',
-                      height: '6px',
-                      background: i === current ? settings.accentColor : 'rgba(255,255,255,0.4)',
-                    }}
-                  />
-                ))}
-              </div>
+              <ProgressDots
+                key={animKey}
+                total={total}
+                current={current}
+                paused={paused}
+                delay={delay}
+                accentColor={settings.accentColor}
+                onGo={go}
+                onTogglePause={() => setPaused(p => !p)}
+              />
             )}
           </>
         )}

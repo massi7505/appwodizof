@@ -1,7 +1,6 @@
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import MenuClient from '@/components/menu/MenuClient';
-import NotificationBarComponent from '@/components/linktree/NotificationBar';
 import VisitTracker from '@/components/VisitTracker';
 
 export const dynamic = 'force-dynamic';
@@ -143,11 +142,6 @@ export default async function MenuPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-gray-50">
       <VisitTracker page="menu" />
-      {notifBar?.isVisible && (
-        <div className="sticky top-0 z-50">
-          <NotificationBarComponent bar={notifBar} locale={locale} />
-        </div>
-      )}
       <MenuClient
         categories={categories}
         promos={promos}
@@ -156,6 +150,7 @@ export default async function MenuPage({ params }: Props) {
         site={site}
         locale={locale}
         heroData={heroData as any}
+        notifBar={notifBar}
       />
     </div>
   );

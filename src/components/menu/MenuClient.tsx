@@ -11,6 +11,7 @@ import { FAQSection } from './ReviewsSection';
 import MenuFooter from './MenuFooter';
 import GoogleReviewPopup from './GoogleReviewPopup';
 import HeroSection from '@/components/linktree/HeroSection';
+import NotificationBarComponent from '@/components/linktree/NotificationBar';
 
 interface Translation { locale: string; name: string; description?: string | null }
 interface Product {
@@ -34,6 +35,7 @@ interface Props {
   site: any;
   locale: string;
   heroData?: { settings: any; slides: any[]; featureCards: any[] } | null;
+  notifBar?: any;
 }
 
 const LABELS: Record<string, Record<string, string>> = {
@@ -56,7 +58,7 @@ function sortProducts(products: Product[]): Product[] {
   });
 }
 
-export default function MenuClient({ categories, promos, reviews, faqs, site, locale, heroData }: Props) {
+export default function MenuClient({ categories, promos, reviews, faqs, site, locale, heroData, notifBar }: Props) {
   const [search, setSearch] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(() => {
     if (site?.defaultCategoryId) return site.defaultCategoryId;
@@ -65,6 +67,8 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedCategory, setSelectedCategoryForModal] = useState<Category | null>(null);
   const [showBackTop, setShowBackTop] = useState(false);
+  const [notifBarH, setNotifBarH] = useState(0);
+  const notifBarRef = useRef<HTMLDivElement>(null);
 
   const L = LABELS[locale] || LABELS.fr;
   const primaryColor = site?.primaryColor || '#F59E0B';
@@ -163,6 +167,16 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
     return () => observer.disconnect();
   }, [categories, search]);
 
+  // ── Measure notification bar height ───────────────────────────────────────
+  useEffect(() => {
+    const el = notifBarRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => setNotifBarH(el.offsetHeight));
+    ro.observe(el);
+    setNotifBarH(el.offsetHeight);
+    return () => ro.disconnect();
+  }, [notifBar]);
+
   // ── Back to top visibility ─────────────────────────────────────────────────
   useEffect(() => {
     const onScroll = () => setShowBackTop(window.scrollY > 500);
@@ -191,12 +205,24 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
     if (!v) setActiveCategoryId(site?.defaultCategoryId || categories[0]?.id || null);
   }, [categories, site]);
 
+  const headerTop = notifBarH;
+  const spacerH = notifBarH + 60;
+
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* ===== HEADER (fixed) ===== */}
-      <MenuHeader site={site} locale={locale} search={search} onSearch={handleSearch} L={L} primaryColor={primaryColor} />
-      {/* Spacer to compensate for fixed header height (~60px) */}
-      <div className="h-[60px]" />
+      {/* ===== NOTIFICATION BAR (fixed, above header) ===== */}
+      {notifBar?.isVisible && (
+        <div ref={notifBarRef} className="fixed top-0 left-0 right-0 z-50">
+          <NotificationBarComponent bar={notifBar} locale={locale} />
+        </div>
+      )}
+
+      {/* ===== HEADER (fixed, below notification bar) ===== */}
+      <div style={{ position: 'fixed', top: headerTop, left: 0, right: 0, zIndex: 40 }}>
+        <MenuHeader site={site} locale={locale} search={search} onSearch={handleSearch} L={L} primaryColor={primaryColor} />
+      </div>
+      {/* Spacer = notif bar height + header height */}
+      <div style={{ height: spacerH }} />
 
       {/* ===== HERO SECTION ===== */}
       {heroData?.slides && heroData.slides.length > 0 && (
@@ -256,7 +282,7 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
 
         {/* ===== CATEGORY TABS ===== */}
         {!search && (
-          <div className="sticky top-[60px] bg-gray-50 z-30 pt-4 pb-2 -mx-4 px-4">
+          <div className="sticky bg-gray-50 z-30 pt-4 pb-2 -mx-4 px-4" style={{ top: spacerH }}>
             <CategoryTabs
               categories={categories}
               active={activeCategoryId}

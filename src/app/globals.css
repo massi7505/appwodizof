@@ -467,3 +467,8 @@ body {
 .hero-anim-3 { animation: hero-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.30s both; }
 .hero-anim-4 { animation: hero-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.40s both; }
 .hero-anim-overlay { animation: hero-fade-in 0.6s ease both; }
+
+@keyframes hero-progress {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
