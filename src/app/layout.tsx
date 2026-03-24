@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, DM_Sans } from 'next/font/google';
+import { headers } from 'next/headers';
 import './globals.css';
 import { prisma } from '@/lib/db';
 
@@ -33,7 +34,10 @@ export async function generateMetadata(): Promise<Metadata> {
   }
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Read nonce injected by middleware (Next.js 15 adds it to its own <script> tags via x-nonce header)
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
+  void nonce; // available for future custom <Script nonce={nonce}> if needed
   return (
     <html lang="fr" className={`${playfair.variable} ${dmSans.variable}`}>
       <body className="font-body bg-gray-950 text-white antialiased">
