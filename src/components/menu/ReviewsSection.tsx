@@ -73,7 +73,8 @@ export function ReviewsSection({ reviews, site, locale, L, primaryColor }: Revie
               </div>
               <div className="flex-1 min-w-0">
                 <p className="font-semibold text-gray-900 text-sm truncate">{review.authorName}</p>
-                <p className="text-xs text-gray-400">
+                {/* suppressHydrationWarning: toLocaleDateString ICU differs between Node.js and Chrome */}
+                <p className="text-xs text-gray-400" suppressHydrationWarning>
                   {new Date(review.date).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}
                 </p>
               </div>

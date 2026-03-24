@@ -60,7 +60,8 @@ export default function CategoryTabs({ categories, active, onSelect, locale, pri
                 {cat.iconUrl ? (
                   <Image
                     src={cat.iconUrl}
-                    alt={name}
+                    alt=""
+                    aria-hidden="true"
                     fill
                     sizes="56px"
                     className="object-cover"

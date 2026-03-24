@@ -45,10 +45,16 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(false);
 
-  // Client-side date filter (avoids hydration mismatch)
+  // Client-side date filter + expiry days (avoids hydration mismatch caused by
+  // new Date() / setHours() timezone differences between server (UTC) and client)
   const [activePromos, setActivePromos] = useState<any[]>(promos);
+  const [promoDays, setPromoDays] = useState<Record<number, number | null>>({});
   useEffect(() => {
-    setActivePromos(promos.filter(isPromoActive));
+    const filtered = promos.filter(isPromoActive);
+    setActivePromos(filtered);
+    const days: Record<number, number | null> = {};
+    filtered.forEach(p => { days[p.id] = daysUntilExpiry(p.endsAt); });
+    setPromoDays(days);
   }, [promos]);
 
   function checkScroll() {
@@ -111,7 +117,8 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
       >
         {activePromos.map(promo => {
           const t = promo.translations?.[0];
-          const days = daysUntilExpiry(promo.endsAt);
+          // promoDays is null until useEffect runs (avoids server/client timezone mismatch)
+          const days = promoDays[promo.id] ?? null;
           const showExpiry = days !== null && days <= 6 && days >= 0;
           const promoP = safePrice(promo.promoPrice);
           const origP = safePrice(promo.originalPrice);
@@ -131,19 +138,28 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
             );
           }
 
-          const bgStyle =
-            promo.bgType === 'image' && promo.bgImageUrl
-              ? { backgroundImage: `url(${promo.bgImageUrl})`, backgroundSize: 'cover', backgroundPosition: 'center' }
-              : promo.bgType === 'gradient' && promo.bgGradient
-              ? { background: promo.bgGradient }
-              : { backgroundColor: promo.bgColor };
+          const isImageBg = promo.bgType === 'image' && promo.bgImageUrl;
+          const bgStyle = isImageBg
+            ? {}  // background handled by <Image> below
+            : promo.bgType === 'gradient' && promo.bgGradient
+            ? { background: promo.bgGradient }
+            : { backgroundColor: promo.bgColor };
 
           return (
             <div key={promo.id} className="flex-shrink-0 w-72 sm:w-80 rounded-2xl overflow-hidden relative"
               style={{ ...bgStyle, minHeight: '140px', scrollSnapAlign: 'start' }}>
 
-              {promo.bgType === 'image' && promo.bgImageUrl && (
-                <div className="absolute inset-0 bg-black/40" />
+              {isImageBg && (
+                <>
+                  <Image
+                    src={promo.bgImageUrl}
+                    alt=""
+                    fill
+                    sizes="(max-width: 640px) 288px, 320px"
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-black/40" />
+                </>
               )}
 
               {/* Expiry ribbon */}

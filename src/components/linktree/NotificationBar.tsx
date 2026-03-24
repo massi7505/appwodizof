@@ -260,6 +260,7 @@ export function SmartNotificationBar({ banners, openingHours = [], locale }: Pro
             <button
               key={i}
               onClick={() => { clearTimeout(timerRef.current); setIdx(i); setAnimKey(k => k + 1); }}
+              aria-label={`Message ${i + 1}`}
               className="rounded-full transition-all"
               style={{
                 width: i === idx % total ? '12px' : '5px',

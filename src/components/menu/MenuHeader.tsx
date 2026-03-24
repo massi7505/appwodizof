@@ -26,7 +26,7 @@ export default function MenuHeader({ site, locale, search, onSearch, L, primaryC
         {/* Logo */}
         <div className="flex items-center gap-2 flex-shrink-0">
           {site?.logoUrl ? (
-            <Image src={site.logoUrl} alt={site.siteName} width={36} height={36} className="rounded-lg object-contain" />
+            <Image src={site.logoUrl} alt="" width={36} height={36} className="rounded-lg object-contain" aria-hidden="true" />
           ) : (
             <div
               className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-900 font-black text-lg"
@@ -36,7 +36,7 @@ export default function MenuHeader({ site, locale, search, onSearch, L, primaryC
             </div>
           )}
           <div className="hidden sm:block">
-            <p className="font-black text-gray-900 text-sm leading-none">{site?.siteName || 'Woodiz'}</p>
+            <h1 className="font-black text-gray-900 text-sm leading-none">{site?.siteName || 'Woodiz'}</h1>
             {site?.siteSlogan && (
               <p className="text-xs text-gray-400 leading-none mt-0.5">{site.siteSlogan}</p>
             )}
