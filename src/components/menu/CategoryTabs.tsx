@@ -1,5 +1,7 @@
 'use client';
 
+import { useRef, useEffect } from 'react';
+
 interface Category {
   id: number;
   iconEmoji?: string | null;
@@ -16,17 +18,27 @@ interface Props {
 }
 
 export default function CategoryTabs({ categories, active, onSelect, locale, primaryColor }: Props) {
+  const scrollRef = useRef<HTMLDivElement>(null);
   const hasImages = categories.some(c => c.iconUrl);
+
+  // Auto-scroll active tab into view (e.g. when IntersectionObserver updates it)
+  useEffect(() => {
+    if (active == null || !scrollRef.current) return;
+    const btn = scrollRef.current.querySelector<HTMLElement>(`[data-tab-id="${active}"]`);
+    if (!btn) return;
+    btn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  }, [active]);
 
   if (hasImages) {
     return (
-      <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide px-1">
+      <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide px-1">
         {categories.map(cat => {
           const isActive = active === cat.id;
           const name = cat.translations[0]?.name || '—';
           return (
             <button
               key={cat.id}
+              data-tab-id={cat.id}
               onClick={() => {
                 onSelect(cat.id);
                 const el = document.getElementById(`cat-${cat.id}`);
@@ -69,10 +81,11 @@ export default function CategoryTabs({ categories, active, onSelect, locale, pri
 
   // Fallback: pill style (no images)
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+    <div ref={scrollRef} className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
       {categories.map(cat => (
         <button
           key={cat.id}
+          data-tab-id={cat.id}
           onClick={() => {
             onSelect(cat.id);
             const el = document.getElementById(`cat-${cat.id}`);
