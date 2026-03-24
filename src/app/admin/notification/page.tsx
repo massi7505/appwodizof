@@ -303,7 +303,20 @@ export default function AdminNotificationPage() {
                     </div>
                   </div>
 
-                  {/* Scheduling */}
+                  {/* Scheduling — hidden for closed/open types */}
+                  {b.type === 'closed' || b.type === 'open' ? (
+                    <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs"
+                      style={{ background: b.type === 'closed' ? 'rgba(239,68,68,0.08)' : 'rgba(52,211,153,0.08)', color: b.type === 'closed' ? '#fca5a5' : '#6ee7b7' }}>
+                      <span className="text-base">{b.type === 'closed' ? '🔒' : '✅'}</span>
+                      <span>
+                        {b.type === 'closed'
+                          ? 'S\'affiche automatiquement quand le restaurant est fermé selon les horaires configurés dans'
+                          : 'S\'affiche automatiquement quand le restaurant est ouvert selon les horaires configurés dans'}
+                        {' '}<a href="/admin/hours" target="_blank" className="underline font-bold">Admin › Horaires</a>.
+                        {b.type === 'closed' && ' Aucune programmation manuelle nécessaire.'}
+                      </span>
+                    </div>
+                  ) : (
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <p className="admin-section-title mb-0">Programmation horaire</p>
@@ -340,14 +353,16 @@ export default function AdminNotificationPage() {
                       </div>
                     )}
                   </div>
+                  )}
 
                   {/* Translations */}
                   <div>
                     <p className="admin-section-title">Textes multilingues</p>
                     {b.type === 'closed' && (
                       <p className="text-xs text-amber-500/80 mb-3 bg-amber-500/10 rounded-lg px-3 py-2">
-                        💡 Type "Fermé" : laissez vide pour utiliser le message automatique, ou personnalisez le texte.
-                        Utilisez <code className="bg-gray-800 px-1 rounded">&#123;time&#125;</code> pour insérer le temps restant.
+                        💡 Laissez vide → texte automatique <em>"Restaurant fermé · Réouverture dans 2h30"</em>.
+                        Ou personnalisez avec <code className="bg-gray-800 px-1 rounded">&#123;time&#125;</code> pour insérer le temps calculé.
+                        Ex : <em>"Fermé pour ce soir, on rouvre dans &#123;time&#125; !"</em>
                       </p>
                     )}
                     <div className="space-y-2">

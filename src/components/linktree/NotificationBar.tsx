@@ -77,6 +77,8 @@ function getActiveBanners(banners: NotificationBannerData[], now: Date): Notific
   return banners
     .filter(b => {
       if (!b.isVisible) return false;
+      // closed/open types are driven by restaurant status — ignore manual schedule
+      if (b.type === 'closed' || b.type === 'open') return true;
       if (!b.scheduleEnabled) return true;
       let days: number[] = [];
       try { days = JSON.parse(b.scheduleDays); } catch { days = [0, 1, 2, 3, 4, 5, 6]; }
@@ -141,6 +143,8 @@ function formatMinutes(minutes: number): string {
   return m > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${h}h`;
 }
 
+const LOCALES_ORDER = ['fr', 'en', 'it', 'es'];
+
 // ── Animation classes ─────────────────────────────────────────────────────────
 const ANIM_IN: Record<string, string> = {
   slide: 'notif-slide-in',
@@ -178,8 +182,27 @@ export function SmartNotificationBar({ banners, openingHours = [], locale }: Pro
     return true;
   });
 
+  // Inject auto-text into closed banners that have empty translations
+  const bannersWithText = activeBanners.map(b => {
+    if (b.type !== 'closed') return b;
+    const AUTO: Record<string, string> = {
+      fr: status.minutesUntilOpen != null ? `Restaurant fermé · Réouverture dans ${formatMinutes(status.minutesUntilOpen)}` : 'Restaurant fermé pour aujourd\'hui',
+      en: status.minutesUntilOpen != null ? `Closed · Reopening in ${formatMinutes(status.minutesUntilOpen)}` : 'Closed today',
+      it: status.minutesUntilOpen != null ? `Chiuso · Riapertura tra ${formatMinutes(status.minutesUntilOpen)}` : 'Chiuso oggi',
+      es: status.minutesUntilOpen != null ? `Cerrado · Reapertura en ${formatMinutes(status.minutesUntilOpen)}` : 'Cerrado hoy',
+    };
+    return {
+      ...b,
+      translations: LOCALES_ORDER.map(l => {
+        const existing = b.translations.find(t => t.locale === l);
+        const text = existing?.text?.replace('{time}', status.minutesUntilOpen != null ? formatMinutes(status.minutesUntilOpen) : '?') || AUTO[l] || AUTO.fr;
+        return { locale: l, text };
+      }),
+    };
+  });
+
   // Auto-add a synthetic "closed" banner if restaurant is closed and no custom closed banner
-  const hasClosed = activeBanners.some(b => b.type === 'closed');
+  const hasClosed = bannersWithText.some(b => b.type === 'closed');
   const syntheticClosed: NotificationBannerData | null =
     !status.isOpen && !hasClosed && openingHours.length > 0
       ? {
@@ -220,8 +243,8 @@ export function SmartNotificationBar({ banners, openingHours = [], locale }: Pro
       : null;
 
   const display = syntheticClosed
-    ? [syntheticClosed, ...activeBanners]
-    : activeBanners;
+    ? [syntheticClosed, ...bannersWithText]
+    : bannersWithText;
 
   // Reset index when display list changes
   useEffect(() => {
