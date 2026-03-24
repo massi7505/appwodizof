@@ -1,6 +1,13 @@
 import Image from 'next/image';
 
-interface Props { site: any; locale: string; }
+interface OrderLink { label: string; url: string; }
+interface Props { site: any; locale: string; orderLinks?: OrderLink[]; }
+
+/** S'assure que l'URL a un préfixe https:// */
+function ensureUrl(url: string): string {
+  if (!url) return '#';
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
 
 const FOOTER_COLS: Record<string, { menu: string; order: string; follow: string; }> = {
   fr: { menu: 'Notre Carte', order: 'Commander', follow: 'Nous suivre' },
@@ -28,7 +35,7 @@ function footerBg(hex: string): string {
   return lum > 0.4 ? '#111827' : darken(hex, 0.15);
 }
 
-export default function MenuFooter({ site, locale }: Props) {
+export default function MenuFooter({ site, locale, orderLinks = [] }: Props) {
   const L = FOOTER_COLS[locale] || FOOTER_COLS.fr;
   const name = site?.siteName || 'Woodiz';
   const year = new Date().getFullYear();
@@ -80,15 +87,19 @@ export default function MenuFooter({ site, locale }: Props) {
             </div>
           </div>
 
-          {/* Order */}
-          <div>
-            <h4 className="text-white font-semibold text-sm mb-3">{L.order}</h4>
-            <div className="space-y-1.5 text-xs text-gray-500">
-              <a href="https://www.ubereats.com" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">Uber Eats</a>
-              <a href="https://www.deliveroo.fr" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">Deliveroo</a>
-              <a href="https://www.delicity.com" target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">Delicity</a>
+          {/* Order — liens depuis Linktree */}
+          {orderLinks.length > 0 && (
+            <div>
+              <h4 className="text-white font-semibold text-sm mb-3">{L.order}</h4>
+              <div className="space-y-1.5 text-xs text-gray-500">
+                {orderLinks.map(link => (
+                  <a key={link.url} href={ensureUrl(link.url)} target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">
+                    {link.label}
+                  </a>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Follow */}
           <div>
@@ -101,7 +112,7 @@ export default function MenuFooter({ site, locale }: Props) {
                 <a href={site.googleMapsUrl} target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">Google Maps</a>
               )}
               {site?.googleReviewsUrl && (
-                <a href={site.googleReviewsUrl} target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">Avis Google</a>
+                <a href={ensureUrl(site.googleReviewsUrl)} target="_blank" rel="noopener noreferrer" className="block hover:text-white transition-colors">Avis Google</a>
               )}
             </div>
           </div>

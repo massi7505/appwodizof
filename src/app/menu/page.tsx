@@ -107,18 +107,23 @@ export default async function MenuPageFR() {
   const notifBar = notifRes.status === 'fulfilled' ? notifRes.value : null;
   const site = serializeSite(siteRes.status === 'fulfilled' ? siteRes.value : null);
 
-  // Banners (new multi-banner system) + opening hours
+  // Banners (new multi-banner system) + opening hours + order links
   const p = prisma as any;
-  const [bannersRaw, openingHoursRaw] = await Promise.all([
+  const [bannersRaw, openingHoursRaw, orderLinksRaw] = await Promise.all([
     p.notificationBanner?.findMany?.({
       where: { isVisible: true },
       orderBy: [{ priority: 'desc' }, { sortOrder: 'asc' }],
       include: { translations: true },
     }).catch(() => []) ?? [],
     prisma.openingHours.findMany({ orderBy: { sortOrder: 'asc' } }).catch(() => []),
+    prisma.linktreeButton.findMany({ where: { isVisible: true, section: 'commander' }, orderBy: { sortOrder: 'asc' } }).catch(() => []),
   ]);
   const banners = bannersRaw ?? [];
   const openingHours = openingHoursRaw ?? [];
+  // Liens de commande : boutons linktree section commander avec URL externe
+  const orderLinks = (orderLinksRaw ?? [])
+    .filter((b: any) => b.url && /^https?:\/\//i.test(b.url))
+    .map((b: any) => ({ label: b.label, url: b.url }));
 
   // Hero data
   let heroData: { settings: any; slides: any[]; featureCards: any[] } | null = null;
@@ -152,6 +157,7 @@ export default async function MenuPageFR() {
         notifBar={banners.length === 0 ? notifBar : undefined}
         banners={banners}
         openingHours={openingHours}
+        orderLinks={orderLinks}
       />
     </div>
   );

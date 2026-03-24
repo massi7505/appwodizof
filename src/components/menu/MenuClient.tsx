@@ -39,6 +39,7 @@ interface Props {
   notifBar?: any; // legacy, kept for compat
   banners?: NotificationBannerData[];
   openingHours?: OpeningHoursData[];
+  orderLinks?: { label: string; url: string }[];
 }
 
 const LABELS: Record<string, Record<string, string>> = {
@@ -61,7 +62,7 @@ function sortProducts(products: Product[]): Product[] {
   });
 }
 
-export default function MenuClient({ categories, promos, reviews, faqs, site, locale, heroData, notifBar, banners = [], openingHours = [] }: Props) {
+export default function MenuClient({ categories, promos, reviews, faqs, site, locale, heroData, notifBar, banners = [], openingHours = [], orderLinks = [] }: Props) {
   const [search, setSearch] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(() => {
     if (site?.defaultCategoryId) return site.defaultCategoryId;
@@ -401,7 +402,7 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
       </div>
 
       {/* ===== FOOTER ===== */}
-      <MenuFooter site={site} locale={locale} />
+      <MenuFooter site={site} locale={locale} orderLinks={orderLinks} />
 
       {/* ===== GOOGLE REVIEW POPUP ===== */}
       {site?.reviewPopupEnabled && site?.googleReviewsUrl && (
