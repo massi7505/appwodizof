@@ -151,10 +151,10 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
                 <div>
                   {/* Badges row */}
                   <div className="flex flex-wrap gap-1.5 mb-2">
-                    {promo.badgeText && (
+                    {(() => { try { const b = JSON.parse(promo.badgeText || '{}'); return b[locale] || b.fr || null; } catch { return promo.badgeText || null; } })() && (
                       <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded"
                         style={{ backgroundColor: promo.badgeColor, color: '#fff' }}>
-                        {promo.badgeText}
+                        {(() => { try { const b = JSON.parse(promo.badgeText || '{}'); return b[locale] || b.fr || promo.badgeText; } catch { return promo.badgeText; } })()}
                       </span>
                     )}
                   </div>

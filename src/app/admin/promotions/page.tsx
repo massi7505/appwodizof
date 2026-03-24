@@ -7,16 +7,27 @@ import { ChevronSortUpIcon, ChevronSortDownIcon, EyeIcon, EditIcon, TrashIcon, C
 
 const LOCALES = ['fr', 'en', 'it', 'es'];
 const LOCALE_LABELS: Record<string, string> = { fr: '🇫🇷 FR', en: '🇬🇧 EN', it: '🇮🇹 IT', es: '🇪🇸 ES' };
-const PROMO_TYPES = ['delivery', 'takeaway', 'onsite', 'all'];
-const TYPE_LABELS: Record<string, string> = { delivery: '🛵 Livraison', takeaway: '🥡 À emporter', onsite: '🪑 Sur place', all: '🌐 Toutes' };
+const PROMO_TYPES = ['', 'delivery', 'takeaway', 'onsite', 'all'];
+const TYPE_LABELS: Record<string, string> = { '': '— Aucun', delivery: '🛵 Livraison', takeaway: '🥡 À emporter', onsite: '🪑 Sur place', all: '🌐 Toutes' };
 const BG_TYPES = ['color', 'gradient', 'image'];
 
 const DEFAULT_PROMO = {
-  type: 'delivery', bgType: 'color', bgColor: '#F59E0B', textColor: '#FFFFFF',
-  badgeColor: '#EF4444', promoPrice: '', originalPrice: '', photoOnly: false,
+  type: '', bgType: 'color', bgColor: '#F59E0B', textColor: '#FFFFFF',
+  badgeColor: '#EF4444', badgeText: '', promoPrice: '', originalPrice: '', photoOnly: false,
   isVisible: true, showOnLinktree: true, showOnMenu: true,
   translations: LOCALES.map(l => ({ locale: l, title: '', description: '', cta: '', ctaUrl: '' })),
 };
+
+function parseBadge(val: string | null | undefined): Record<string, string> {
+  if (!val) return { fr: '', en: '', it: '', es: '' };
+  try { return { fr: '', en: '', it: '', es: '', ...JSON.parse(val) }; }
+  catch { return { fr: val, en: val, it: val, es: val }; }
+}
+
+function stringifyBadge(obj: Record<string, string>): string {
+  const clean = Object.fromEntries(Object.entries(obj).filter(([, v]) => v.trim()));
+  return Object.keys(clean).length ? JSON.stringify(clean) : '';
+}
 
 export default function AdminPromotionsPage() {
   const [promos, setPromos] = useState<any[]>([]);
@@ -186,10 +197,10 @@ export default function AdminPromotionsPage() {
                   )}
                   <div className="relative z-10 flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
-                      {editing.badgeText && (
+                      {parseBadge(editing.badgeText).fr && (
                         <span className="inline-block text-xs font-black px-2.5 py-1 rounded-full mb-2 text-white"
                           style={{ backgroundColor: editing.badgeColor || '#EF4444' }}>
-                          {editing.badgeText}
+                          {parseBadge(editing.badgeText).fr}
                         </span>
                       )}
                       <p className="font-black text-lg leading-tight">
@@ -251,13 +262,36 @@ export default function AdminPromotionsPage() {
                 </div>
               )}
 
+              {/* Badge texte traduit */}
+              {!editing.photoOnly && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-400 mb-2">Badge texte <span className="text-gray-600 font-normal">(optionnel, traduit)</span></label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {LOCALES.map(locale => {
+                      const badge = parseBadge(editing.badgeText);
+                      return (
+                        <div key={locale} className="flex items-center gap-2">
+                          <span className="text-xs text-gray-500 w-6 flex-shrink-0">{LOCALE_LABELS[locale]}</span>
+                          <input
+                            type="text"
+                            value={badge[locale] || ''}
+                            onChange={e => {
+                              const updated = { ...parseBadge(editing.badgeText), [locale]: e.target.value };
+                              setEditing((x: any) => ({ ...x, badgeText: stringifyBadge(updated) }));
+                            }}
+                            className="admin-input text-xs flex-1"
+                            placeholder="MENU MIDI"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Prix */}
               {!editing.photoOnly && (
-                <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-400 mb-1.5">Badge texte</label>
-                    <input type="text" value={editing.badgeText || ''} onChange={e => setEditing((x: any) => ({ ...x, badgeText: e.target.value }))} className="admin-input" placeholder="MENU MIDI" />
-                  </div>
+                <div className="grid grid-cols-2 gap-3">
                   <div>
                     <label className="block text-sm font-medium text-gray-400 mb-1.5">Prix promo (€)</label>
                     <input type="number" step="0.01" value={editing.promoPrice || ''} onChange={e => setEditing((x: any) => ({ ...x, promoPrice: e.target.value }))} className="admin-input" placeholder="10.90" />

@@ -120,10 +120,10 @@ export default function LinktreePromos({ promos, locale }: Props) {
               <div className="relative z-10 p-4" style={{ color: promo.textColor }}>
                 {/* Badges */}
                 <div className="flex flex-wrap gap-1.5 mb-1.5">
-                  {promo.badgeText && (
+                  {(() => { try { const b = JSON.parse(promo.badgeText || '{}'); return b[locale] || b.fr || null; } catch { return promo.badgeText || null; } })() && (
                     <span className="text-[10px] font-bold uppercase tracking-wide px-2 py-0.5 rounded-md text-white"
                       style={{ backgroundColor: promo.badgeColor }}>
-                      {promo.badgeText}
+                      {(() => { try { const b = JSON.parse(promo.badgeText || '{}'); return b[locale] || b.fr || promo.badgeText; } catch { return promo.badgeText; } })()}
                     </span>
                   )}
                   <span className="text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-md bg-white/20">
