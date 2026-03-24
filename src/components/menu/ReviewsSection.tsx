@@ -28,8 +28,15 @@ function StarRating({ rating, color }: { rating: number; color: string }) {
   );
 }
 
+function ensureUrl(url: string): string {
+  if (!url) return url;
+  return /^https?:\/\//i.test(url) ? url : `https://${url}`;
+}
+
 export function ReviewsSection({ reviews, site, locale, L, primaryColor }: ReviewsProps) {
-  const avgRating = reviews.reduce((s, r) => s + r.rating, 0) / reviews.length;
+  const calcAvg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : 0;
+  const displayRating = site?.googleRating ?? (reviews.length ? calcAvg : 0);
+  const displayCount = site?.googleReviewCount ?? reviews.length;
 
   return (
     <section className="mt-12">
@@ -37,14 +44,14 @@ export function ReviewsSection({ reviews, site, locale, L, primaryColor }: Revie
         <div>
           <h2 className="text-lg font-bold text-gray-900">{L.reviews}</h2>
           <div className="flex items-center gap-2 mt-1">
-            <StarRating rating={Math.round(avgRating)} color={primaryColor} />
-            <span className="text-sm font-bold text-gray-700">{avgRating.toFixed(1)}</span>
-            <span className="text-sm text-gray-400">({reviews.length} avis)</span>
+            <StarRating rating={Math.round(displayRating)} color={primaryColor} />
+            <span className="text-sm font-bold text-gray-700">{displayRating.toFixed(1)}</span>
+            <span className="text-sm text-gray-400">({displayCount} avis)</span>
           </div>
         </div>
         {site?.googleReviewsUrl && (
           <a
-            href={site.googleReviewsUrl}
+            href={ensureUrl(site.googleReviewsUrl)}
             target="_blank"
             rel="noopener noreferrer"
             className="text-xs font-semibold px-3 py-2 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 transition-colors"

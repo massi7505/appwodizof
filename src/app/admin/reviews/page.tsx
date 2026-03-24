@@ -18,13 +18,41 @@ export default function AdminReviewsPage() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState('');
 
+  // Review settings (googleReviewsUrl, googleReviewCount, googleRating)
+  const [reviewSettings, setReviewSettings] = useState({ googleReviewsUrl: '', googleReviewCount: '', googleRating: '' });
+  const [savingSettings, setSavingSettings] = useState(false);
+
   function showToast(msg: string) { setToast(msg); setTimeout(() => setToast(''), 2500); }
 
   async function load() {
     const res = await fetch('/api/reviews?visible=false');
     setReviews(await res.json());
   }
-  useEffect(() => { load(); }, []);
+
+  async function loadSettings() {
+    const res = await fetch('/api/settings');
+    const data = await res.json();
+    setReviewSettings({
+      googleReviewsUrl: data.googleReviewsUrl || '',
+      googleReviewCount: data.googleReviewCount != null ? String(data.googleReviewCount) : '',
+      googleRating: data.googleRating != null ? String(data.googleRating) : '',
+    });
+  }
+
+  async function saveSettings() {
+    setSavingSettings(true);
+    try {
+      const payload: any = { googleReviewsUrl: reviewSettings.googleReviewsUrl || null };
+      payload.googleReviewCount = reviewSettings.googleReviewCount !== '' ? parseInt(reviewSettings.googleReviewCount) : null;
+      payload.googleRating = reviewSettings.googleRating !== '' ? parseFloat(reviewSettings.googleRating) : null;
+      const res = await fetch('/api/settings', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      showToast('✅ Paramètres sauvegardés');
+    } catch (e) { showToast(`❌ Erreur: ${e instanceof Error ? e.message : 'inconnue'}`); }
+    setSavingSettings(false);
+  }
+
+  useEffect(() => { load(); loadSettings(); }, []);
 
   async function save() {
     if (!editing) return;
@@ -80,6 +108,50 @@ export default function AdminReviewsPage() {
         </div>
         <button onClick={() => { setEditing({ ...DEFAULT_REVIEW }); setIsNew(true); }} className="admin-btn-primary">
           + Ajouter un avis
+        </button>
+      </div>
+
+      {/* Settings card */}
+      <div className="admin-card mb-6 space-y-4">
+        <h2 className="text-sm font-bold text-white mb-3">⚙️ Paramètres — Section Avis Clients</h2>
+        <div>
+          <label className="block text-xs font-medium text-gray-400 mb-1.5">Lien « Voir tous les avis Google »</label>
+          <input
+            value={reviewSettings.googleReviewsUrl}
+            onChange={e => setReviewSettings(s => ({ ...s, googleReviewsUrl: e.target.value }))}
+            className="admin-input w-full"
+            placeholder="https://g.page/r/..."
+          />
+          <p className="text-xs text-gray-600 mt-1">URL Google Business de vos avis (s'affiche en bouton dans la section avis)</p>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-1.5">Nombre d'avis affiché</label>
+            <input
+              type="number"
+              min="0"
+              value={reviewSettings.googleReviewCount}
+              onChange={e => setReviewSettings(s => ({ ...s, googleReviewCount: e.target.value }))}
+              className="admin-input w-full"
+              placeholder="Ex : 450"
+            />
+            <p className="text-xs text-gray-600 mt-1">Laisser vide = nombre réel</p>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-400 mb-1.5">Note affichée (étoiles)</label>
+            <input
+              type="number"
+              min="1" max="5" step="0.1"
+              value={reviewSettings.googleRating}
+              onChange={e => setReviewSettings(s => ({ ...s, googleRating: e.target.value }))}
+              className="admin-input w-full"
+              placeholder="Ex : 4.8"
+            />
+            <p className="text-xs text-gray-600 mt-1">Laisser vide = moyenne réelle</p>
+          </div>
+        </div>
+        <button onClick={saveSettings} disabled={savingSettings} className="admin-btn-primary disabled:opacity-50">
+          {savingSettings ? 'Sauvegarde...' : '💾 Sauvegarder les paramètres'}
         </button>
       </div>
 
