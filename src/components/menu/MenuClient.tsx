@@ -97,7 +97,7 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
   );
 
   // Accent-insensitive filtered categories, out-of-stock sorted last
-  // Les produits vedette/semaine restent dans leur catégorie d'origine
+  // Les produits vedette/semaine restent AUSSI dans leur catégorie d'origine (v2)
   const filteredCategories = useMemo(() => {
     const q = normalize(search);
 
