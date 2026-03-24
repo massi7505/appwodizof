@@ -96,21 +96,11 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
     [categories]
   );
 
-  // IDs already shown in featured/week sections — exclude them from category grid
-  const featuredIds = useMemo(
-    () => new Set(showFeatured ? featuredProducts.map(p => p.id) : []),
-    [featuredProducts, showFeatured]
-  );
-  const weekIds = useMemo(
-    () => new Set(showWeekSpecial ? weekSpecials.map(p => p.id) : []),
-    [weekSpecials, showWeekSpecial]
-  );
-
   // Accent-insensitive filtered categories, out-of-stock sorted last
+  // Les produits vedette/semaine restent dans leur catégorie d'origine
   const filteredCategories = useMemo(() => {
     const q = normalize(search);
 
-    // During search: show all products (featured sections hidden anyway)
     if (q) {
       return categories
         .map(cat => ({
@@ -125,19 +115,13 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
         .filter(cat => cat.products.length > 0);
     }
 
-    // Exclude products already shown above (featured / week sections)
-    const excluded = new Set([...featuredIds, ...weekIds]);
-
-    const filterCat = (products: Product[]) =>
-      sortProducts(products.filter(p => !excluded.has(p.id)));
-
     if (activeCategoryId !== null) {
       return categories
         .filter(c => c.id === activeCategoryId)
-        .map(cat => ({ ...cat, products: filterCat(cat.products) }));
+        .map(cat => ({ ...cat, products: sortProducts(cat.products) }));
     }
-    return categories.map(cat => ({ ...cat, products: filterCat(cat.products) }));
-  }, [categories, search, activeCategoryId, featuredIds, weekIds]);
+    return categories.map(cat => ({ ...cat, products: sortProducts(cat.products) }));
+  }, [categories, search, activeCategoryId]);
 
   const totalResults = useMemo(
     () => filteredCategories.reduce((s, c) => s + c.products.length, 0),
