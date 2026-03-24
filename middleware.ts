@@ -13,35 +13,22 @@ async function isAuthenticated(request: NextRequest): Promise<boolean> {
   }
 }
 
-function isAllowedHost(request: NextRequest): boolean {
-  const host = request.headers.get('host') || '';
-  return (
-    host === 'www.woodiz15.fr' ||
-    host === 'woodiz15.fr' ||
-    host.startsWith('localhost') ||
-    host.startsWith('127.0.0.1')
-  );
-}
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  if (!pathname.startsWith('/admin')) return NextResponse.next();
+  const authenticated = await isAuthenticated(request);
 
-  // Bloquer l'accès admin depuis tout domaine non autorisé (ex: *.vercel.app)
-  if (!isAllowedHost(request)) {
-    const res = NextResponse.redirect('https://www.woodiz15.fr/admin/login');
-    // Effacer le cookie de session pour éviter tout contournement
-    res.cookies.delete('admin_token');
-    return res;
+  // /admin/login : accessible si non connecté, redirige vers /admin si déjà connecté
+  if (pathname.startsWith('/admin/login')) {
+    if (authenticated) {
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
+    return NextResponse.next();
   }
 
-  // Sur le bon domaine : protéger les routes admin sauf /admin/login
-  if (!pathname.startsWith('/admin/login')) {
-    const authenticated = await isAuthenticated(request);
-    if (!authenticated) {
-      return NextResponse.redirect(new URL('/admin/login', request.url));
-    }
+  // Toutes les autres routes /admin : requiert d'être connecté
+  if (!authenticated) {
+    return NextResponse.redirect(new URL('/admin/login', request.url));
   }
 
   return NextResponse.next();
