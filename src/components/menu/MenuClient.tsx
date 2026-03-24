@@ -193,8 +193,10 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
 
   return (
     <div className="bg-gray-50 min-h-screen">
-      {/* ===== HEADER ===== */}
+      {/* ===== HEADER (fixed) ===== */}
       <MenuHeader site={site} locale={locale} search={search} onSearch={handleSearch} L={L} primaryColor={primaryColor} />
+      {/* Spacer to compensate for fixed header height (~60px) */}
+      <div className="h-[60px]" />
 
       {/* ===== HERO SECTION ===== */}
       {heroData?.slides && heroData.slides.length > 0 && (
@@ -254,7 +256,7 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
 
         {/* ===== CATEGORY TABS ===== */}
         {!search && (
-          <div className="sticky top-0 bg-gray-50 z-30 pt-4 pb-2 -mx-4 px-4">
+          <div className="sticky top-[60px] bg-gray-50 z-30 pt-4 pb-2 -mx-4 px-4">
             <CategoryTabs
               categories={categories}
               active={activeCategoryId}
