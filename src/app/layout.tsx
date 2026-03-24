@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, DM_Sans } from 'next/font/google';
 import { headers } from 'next/headers';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 import './globals.css';
 import { prisma } from '@/lib/db';
 
@@ -48,6 +49,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           Aller au contenu principal
         </a>
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );
