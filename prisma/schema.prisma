@@ -489,3 +489,33 @@ model HeroFeatureCard {
 
   @@map("hero_feature_cards")
 }
+
+// ===================== MARKETING POPUP =====================
+model PopupSettings {
+  id            Int      @id @default(1)
+  enabled       Boolean  @default(true)
+  showFirstname Boolean  @default(true)
+  showPhone     Boolean  @default(true)
+  showEmail     Boolean  @default(false)
+  /// delay: 0 = immédiat, >0 = secondes, -1 = après scroll
+  delay         Int      @default(3)
+  /// showOnce: true = localStorage (une fois), false = sessionStorage (par session)
+  showOnce      Boolean  @default(true)
+  title         String   @default("Recevez nos promos & nouveautés")
+  message       String   @default("Inscrivez-vous pour être parmi les premiers informés de nos offres exclusives.")
+  buttonText    String   @default("S'inscrire")
+  updatedAt     DateTime @updatedAt
+
+  @@map("popup_settings")
+}
+
+model Lead {
+  id        Int      @id @default(autoincrement())
+  firstname String?
+  phone     String?
+  email     String?
+  source    String   @default("popup")
+  createdAt DateTime @default(now())
+
+  @@map("leads")
+}
