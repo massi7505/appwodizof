@@ -11,7 +11,8 @@ import { FAQSection } from './ReviewsSection';
 import MenuFooter from './MenuFooter';
 import GoogleReviewPopup from './GoogleReviewPopup';
 import HeroSection from '@/components/linktree/HeroSection';
-import NotificationBarComponent from '@/components/linktree/NotificationBar';
+import { SmartNotificationBar } from '@/components/linktree/NotificationBar';
+import type { NotificationBannerData, OpeningHoursData } from '@/components/linktree/NotificationBar';
 
 interface Translation { locale: string; name: string; description?: string | null }
 interface Product {
@@ -35,7 +36,9 @@ interface Props {
   site: any;
   locale: string;
   heroData?: { settings: any; slides: any[]; featureCards: any[] } | null;
-  notifBar?: any;
+  notifBar?: any; // legacy, kept for compat
+  banners?: NotificationBannerData[];
+  openingHours?: OpeningHoursData[];
 }
 
 const LABELS: Record<string, Record<string, string>> = {
@@ -58,7 +61,7 @@ function sortProducts(products: Product[]): Product[] {
   });
 }
 
-export default function MenuClient({ categories, promos, reviews, faqs, site, locale, heroData, notifBar }: Props) {
+export default function MenuClient({ categories, promos, reviews, faqs, site, locale, heroData, notifBar, banners = [], openingHours = [] }: Props) {
   const [search, setSearch] = useState('');
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(() => {
     if (site?.defaultCategoryId) return site.defaultCategoryId;
@@ -211,9 +214,25 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* ===== NOTIFICATION BAR (fixed, above header) ===== */}
-      {notifBar?.isVisible && (
+      {(banners.length > 0 || notifBar?.isVisible) && (
         <div ref={notifBarRef} className="fixed top-0 left-0 right-0 z-50">
-          <NotificationBarComponent bar={notifBar} locale={locale} />
+          {banners.length > 0 ? (
+            <SmartNotificationBar banners={banners} openingHours={openingHours} locale={locale} />
+          ) : notifBar?.isVisible ? (
+            <SmartNotificationBar
+              banners={[{
+                id: 0, isVisible: true,
+                bgColor: notifBar.bgColor, textColor: notifBar.textColor,
+                icon: notifBar.icon, link: notifBar.link, linkLabel: notifBar.linkLabel,
+                priority: 0, displayDuration: 8000, animType: 'slide', type: 'custom',
+                scheduleEnabled: false, scheduleStart: null, scheduleEnd: null,
+                scheduleDays: '[0,1,2,3,4,5,6]', sortOrder: 0,
+                translations: notifBar.translations || [],
+              }]}
+              openingHours={openingHours}
+              locale={locale}
+            />
+          ) : null}
         </div>
       )}
 

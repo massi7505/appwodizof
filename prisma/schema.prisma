@@ -284,6 +284,42 @@ model NotificationBarTranslation {
   @@map("notification_bar_translations")
 }
 
+// ===================== NOTIFICATION BANNERS (multi-banner system) =====================
+model NotificationBanner {
+  id              Int      @id @default(autoincrement())
+  isVisible       Boolean  @default(true)
+  bgColor         String   @default("#1F2937")
+  textColor       String   @default("#F59E0B")
+  icon            String?
+  link            String?
+  linkLabel       String?
+  priority        Int      @default(0)       // higher = shown first
+  displayDuration Int      @default(8000)    // ms before cycling to next
+  animType        String   @default("slide") // slide | fade | bounce
+  type            String   @default("custom") // custom | closed | open
+  scheduleEnabled Boolean  @default(false)
+  scheduleStart   String?                    // "12:00" HH:MM
+  scheduleEnd     String?                    // "14:00" HH:MM
+  scheduleDays    String   @default("[0,1,2,3,4,5,6]") // JSON — 0=Mon…6=Sun
+  sortOrder       Int      @default(0)
+  translations    NotificationBannerTranslation[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("notification_banners")
+}
+
+model NotificationBannerTranslation {
+  id       Int                @id @default(autoincrement())
+  bannerId Int
+  locale   String
+  text     String             @db.Text
+  banner   NotificationBanner @relation(fields: [bannerId], references: [id], onDelete: Cascade)
+
+  @@unique([bannerId, locale])
+  @@map("notification_banner_translations")
+}
+
 // ===================== FOOTER =====================
 model FooterSettings {
   id          Int    @id @default(1)

@@ -472,3 +472,37 @@ body {
   from { width: 0%; }
   to   { width: 100%; }
 }
+
+/* ===== NOTIFICATION BANNER ANIMATIONS ===== */
+@keyframes notif-slide-in {
+  from { transform: translateY(-110%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+@keyframes notif-slide-out {
+  from { transform: translateY(0);     opacity: 1; }
+  to   { transform: translateY(-110%); opacity: 0; }
+}
+@keyframes notif-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes notif-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes notif-bounce-in {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  60%  { transform: translateY(6%);    opacity: 1; }
+  80%  { transform: translateY(-3%); }
+  100% { transform: translateY(0); }
+}
+@keyframes notif-progress {
+  from { width: 0%; }
+  to   { width: 100%; }
+}
+
+.notif-slide-in  { animation: notif-slide-in  0.35s cubic-bezier(0.16,1,0.3,1) both; }
+.notif-slide-out { animation: notif-slide-out 0.30s ease-in both; }
+.notif-fade-in   { animation: notif-fade-in   0.35s ease both; }
+.notif-fade-out  { animation: notif-fade-out  0.30s ease both; }
+.notif-bounce-in { animation: notif-bounce-in 0.50s cubic-bezier(0.16,1,0.3,1) both; }

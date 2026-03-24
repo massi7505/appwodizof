@@ -107,10 +107,22 @@ export default async function MenuPageFR() {
   const notifBar = notifRes.status === 'fulfilled' ? notifRes.value : null;
   const site = serializeSite(siteRes.status === 'fulfilled' ? siteRes.value : null);
 
+  // Banners (new multi-banner system) + opening hours
+  const p = prisma as any;
+  const [bannersRaw, openingHoursRaw] = await Promise.all([
+    p.notificationBanner?.findMany?.({
+      where: { isVisible: true },
+      orderBy: [{ priority: 'desc' }, { sortOrder: 'asc' }],
+      include: { translations: true },
+    }).catch(() => []) ?? [],
+    prisma.openingHours.findMany({ orderBy: { sortOrder: 'asc' } }).catch(() => []),
+  ]);
+  const banners = bannersRaw ?? [];
+  const openingHours = openingHoursRaw ?? [];
+
   // Hero data
   let heroData: { settings: any; slides: any[]; featureCards: any[] } | null = null;
   try {
-    const p = prisma as any;
     const DEFAULT_SETTINGS = { isVisible: true, autoplay: true, autoplayDelay: 5000, showDots: true, showArrows: true, showFeatureCards: true, accentColor: '#F59E0B' };
     const [heroSettings, heroSlides, heroCards] = await Promise.all([
       p.heroSettings?.findFirst?.().catch(() => null) ?? null,
@@ -137,7 +149,9 @@ export default async function MenuPageFR() {
         site={site}
         locale={LOCALE}
         heroData={heroData as any}
-        notifBar={notifBar}
+        notifBar={banners.length === 0 ? notifBar : undefined}
+        banners={banners}
+        openingHours={openingHours}
       />
     </div>
   );
