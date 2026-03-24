@@ -10,24 +10,36 @@ type Props = { params: Promise<{ locale: string }> };
 
 function pickBestTranslation(translations: any[], locale: string) {
   const priority = (loc: string) => loc === locale ? 0 : loc === 'fr' ? 1 : loc === 'en' ? 2 : loc === 'it' ? 3 : loc === 'es' ? 4 : 5;
-  return [...translations].sort((a, b) => priority(a.locale) - priority(b.locale));
+  // Deduplicate by locale first (Prisma JOIN can produce duplicate translation rows)
+  const seen = new Set<string>();
+  const uniq = translations.filter(t => { if (seen.has(t.locale)) return false; seen.add(t.locale); return true; });
+  return uniq.sort((a, b) => priority(a.locale) - priority(b.locale));
 }
 
 function serializeCategories(categories: any[], locale: string) {
-  return categories.map(cat => ({
-    ...cat,
-    createdAt: cat.createdAt?.toISOString() ?? null,
-    updatedAt: cat.updatedAt?.toISOString() ?? null,
-    translations: pickBestTranslation(cat.translations || [], locale),
-    products: cat.products.map((p: any) => ({
-      ...p,
-      price: parseFloat(p.price?.toString() ?? '0'),
-      comparePrice: p.comparePrice ? parseFloat(p.comparePrice.toString()) : null,
-      createdAt: p.createdAt?.toISOString() ?? null,
-      updatedAt: p.updatedAt?.toISOString() ?? null,
-      translations: pickBestTranslation(p.translations || [], locale),
-    })),
-  }));
+  return categories.map(cat => {
+    // Deduplicate products by ID (Prisma JOIN with multi-locale include can duplicate rows)
+    const seenIds = new Set<number>();
+    const uniqueProducts = (cat.products as any[]).filter(p => {
+      if (seenIds.has(p.id)) return false;
+      seenIds.add(p.id);
+      return true;
+    });
+    return {
+      ...cat,
+      createdAt: cat.createdAt?.toISOString() ?? null,
+      updatedAt: cat.updatedAt?.toISOString() ?? null,
+      translations: pickBestTranslation(cat.translations || [], locale),
+      products: uniqueProducts.map((p: any) => ({
+        ...p,
+        price: parseFloat(p.price?.toString() ?? '0'),
+        comparePrice: p.comparePrice ? parseFloat(p.comparePrice.toString()) : null,
+        createdAt: p.createdAt?.toISOString() ?? null,
+        updatedAt: p.updatedAt?.toISOString() ?? null,
+        translations: pickBestTranslation(p.translations || [], locale),
+      })),
+    };
+  });
 }
 
 function serializePromos(promos: any[]) {
@@ -68,11 +80,11 @@ export default async function MenuPage({ params }: Props) {
       where: { isVisible: true },
       orderBy: { sortOrder: 'asc' },
       include: {
-        translations: { where: { locale: { in: [locale, 'fr'] } } },
+        translations: { where: { locale: { in: [...new Set([locale, 'fr'])] } } },
         products: {
           where: { isVisible: true },
           orderBy: { sortOrder: 'asc' },
-          include: { translations: { where: { locale: { in: [locale, 'fr'] } } } },
+          include: { translations: { where: { locale: { in: [...new Set([locale, 'fr'])] } } } },
         },
       },
     }),
