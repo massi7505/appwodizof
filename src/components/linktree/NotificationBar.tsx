@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { X } from 'lucide-react';
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -13,19 +13,19 @@ export interface NotificationBannerData {
   link?: string | null;
   linkLabel?: string | null;
   priority: number;
-  displayDuration: number; // ms
-  animType: string;        // slide | fade | bounce
-  type: string;            // custom | closed | open
+  displayDuration: number;
+  animType: string;   // slide | fade | bounce
+  type: string;       // custom | closed | open
   scheduleEnabled: boolean;
-  scheduleStart?: string | null; // "12:00"
-  scheduleEnd?: string | null;   // "14:00"
-  scheduleDays: string;          // JSON "[0,1,2,3,4,5,6]" — 0=Mon
+  scheduleStart?: string | null;
+  scheduleEnd?: string | null;
+  scheduleDays: string;
   sortOrder: number;
   translations: { locale: string; text: string }[];
 }
 
 export interface OpeningHoursData {
-  dayOfWeek: number; // 0=Mon…6=Sun (schema convention)
+  dayOfWeek: number; // 0=Mon…6=Sun (schema)
   isOpen: boolean;
   slots: string; // JSON [{"open":"11:30","close":"14:30"}]
 }
@@ -36,7 +36,6 @@ interface Props {
   locale: string;
 }
 
-// Legacy single-bar props (backward compat for linktree)
 interface LegacyProps {
   bar: {
     isVisible?: boolean;
@@ -51,14 +50,15 @@ interface LegacyProps {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+const LOCALES_ORDER = ['fr', 'en', 'it', 'es'];
+
 function parseHHMM(hhmm: string): number {
-  const [h, m] = hhmm.split(':').map(Number);
+  const [h, m] = (hhmm || '').split(':').map(Number);
   return (h || 0) * 60 + (m || 0);
 }
 
 function schemaDay(jsDay: number): number {
-  // JS: 0=Sun…6=Sat → Schema: 0=Mon…6=Sun
-  return (jsDay + 6) % 7;
+  return (jsDay + 6) % 7; // JS 0=Sun → Schema 0=Mon
 }
 
 function getT(translations: { locale: string; text: string }[], locale: string): string {
@@ -70,6 +70,48 @@ function getT(translations: { locale: string; text: string }[], locale: string):
   );
 }
 
+function formatMinutes(minutes: number): string {
+  if (minutes < 60) return `${minutes} min`;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${h}h`;
+}
+
+function getRestaurantStatus(hours: OpeningHoursData[], now: Date) {
+  const day = schemaDay(now.getDay());
+  const min = now.getHours() * 60 + now.getMinutes();
+  const todayHours = hours.find(h => h.dayOfWeek === day);
+
+  if (todayHours?.isOpen) {
+    let slots: { open: string; close: string }[] = [];
+    try { slots = JSON.parse(todayHours.slots); } catch { slots = []; }
+    for (const s of slots) {
+      if (min >= parseHHMM(s.open) && min < parseHHMM(s.close))
+        return { isOpen: true, minutesUntilOpen: null as number | null };
+    }
+    // Later slot today?
+    for (const s of slots) {
+      const o = parseHHMM(s.open);
+      if (o > min) return { isOpen: false, minutesUntilOpen: o - min };
+    }
+  }
+
+  // Next opening in coming 7 days
+  for (let d = 1; d <= 7; d++) {
+    const nextDay = (day + d) % 7;
+    const nh = hours.find(h => h.dayOfWeek === nextDay);
+    if (nh?.isOpen) {
+      let slots: { open: string; close: string }[] = [];
+      try { slots = JSON.parse(nh.slots); } catch { slots = []; }
+      if (slots.length) {
+        const first = [...slots].sort((a, b) => parseHHMM(a.open) - parseHHMM(b.open))[0];
+        return { isOpen: false, minutesUntilOpen: (24 * 60 - min) + (d - 1) * 24 * 60 + parseHHMM(first.open) };
+      }
+    }
+  }
+  return { isOpen: false, minutesUntilOpen: null as number | null };
+}
+
 function getActiveBanners(banners: NotificationBannerData[], now: Date): NotificationBannerData[] {
   const day = schemaDay(now.getDay());
   const min = now.getHours() * 60 + now.getMinutes();
@@ -77,11 +119,11 @@ function getActiveBanners(banners: NotificationBannerData[], now: Date): Notific
   return banners
     .filter(b => {
       if (!b.isVisible) return false;
-      // closed/open types are driven by restaurant status — ignore manual schedule
+      // closed/open are driven by restaurant status — skip manual schedule
       if (b.type === 'closed' || b.type === 'open') return true;
       if (!b.scheduleEnabled) return true;
       let days: number[] = [];
-      try { days = JSON.parse(b.scheduleDays); } catch { days = [0, 1, 2, 3, 4, 5, 6]; }
+      try { days = JSON.parse(b.scheduleDays); } catch { days = [0,1,2,3,4,5,6]; }
       if (!days.includes(day)) return false;
       if (b.scheduleStart && b.scheduleEnd) {
         const start = parseHHMM(b.scheduleStart);
@@ -93,220 +135,133 @@ function getActiveBanners(banners: NotificationBannerData[], now: Date): Notific
     .sort((a, b) => b.priority - a.priority || a.sortOrder - b.sortOrder);
 }
 
-interface RestaurantStatus {
-  isOpen: boolean;
-  minutesUntilOpen: number | null;
+function buildAutoClosedText(status: { minutesUntilOpen: number | null }): Record<string, string> {
+  const t = status.minutesUntilOpen != null ? formatMinutes(status.minutesUntilOpen) : null;
+  return {
+    fr: t ? `Restaurant fermé · Réouverture dans ${t}` : 'Restaurant fermé pour aujourd\'hui',
+    en: t ? `Closed · Reopening in ${t}` : 'Closed today',
+    it: t ? `Chiuso · Riapertura tra ${t}` : 'Chiuso oggi',
+    es: t ? `Cerrado · Reapertura en ${t}` : 'Cerrado hoy',
+  };
 }
 
-function getRestaurantStatus(hours: OpeningHoursData[], now: Date): RestaurantStatus {
-  const day = schemaDay(now.getDay());
-  const min = now.getHours() * 60 + now.getMinutes();
-
-  const todayHours = hours.find(h => h.dayOfWeek === day);
-  if (todayHours?.isOpen) {
-    let slots: { open: string; close: string }[] = [];
-    try { slots = JSON.parse(todayHours.slots); } catch { slots = []; }
-    for (const slot of slots) {
-      const o = parseHHMM(slot.open);
-      const c = parseHHMM(slot.close);
-      if (min >= o && min < c) return { isOpen: true, minutesUntilOpen: null };
-    }
-    // Check for a later slot today
-    for (const slot of slots) {
-      const o = parseHHMM(slot.open);
-      if (o > min) return { isOpen: false, minutesUntilOpen: o - min };
-    }
-  }
-
-  // Find next opening across the coming 7 days
-  for (let d = 1; d <= 7; d++) {
-    const nextDay = (day + d) % 7;
-    const nextHours = hours.find(h => h.dayOfWeek === nextDay);
-    if (nextHours?.isOpen) {
-      let slots: { open: string; close: string }[] = [];
-      try { slots = JSON.parse(nextHours.slots); } catch { slots = []; }
-      if (slots.length > 0) {
-        const firstSlot = slots.sort((a, b) => parseHHMM(a.open) - parseHHMM(b.open))[0];
-        const minsToday = 24 * 60 - min;
-        const minsNext = (d - 1) * 24 * 60 + parseHHMM(firstSlot.open);
-        return { isOpen: false, minutesUntilOpen: minsToday + minsNext };
-      }
-    }
-  }
-  return { isOpen: false, minutesUntilOpen: null };
-}
-
-function formatMinutes(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`;
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return m > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${h}h`;
-}
-
-const LOCALES_ORDER = ['fr', 'en', 'it', 'es'];
-
-// ── Animation classes ─────────────────────────────────────────────────────────
+// ── Animation enter classes ───────────────────────────────────────────────────
 const ANIM_IN: Record<string, string> = {
   slide: 'notif-slide-in',
   fade: 'notif-fade-in',
   bounce: 'notif-bounce-in',
-};
-const ANIM_OUT: Record<string, string> = {
-  slide: 'notif-slide-out',
-  fade: 'notif-fade-out',
-  bounce: 'notif-slide-out',
 };
 
 // ── Smart multi-banner component ──────────────────────────────────────────────
 export function SmartNotificationBar({ banners, openingHours = [], locale }: Props) {
   const [now, setNow] = useState(() => new Date());
   const [idx, setIdx] = useState(0);
-  const [phase, setPhase] = useState<'in' | 'visible' | 'out'>('in');
+  const [animKey, setAnimKey] = useState(0);
   const [dismissed, setDismissed] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  // Tick every minute to re-evaluate schedules & restaurant status
+  // Refresh every 30s for restaurant status countdown
   useEffect(() => {
     const id = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(id);
   }, []);
 
-  const status = getRestaurantStatus(openingHours, now);
+  const status = useMemo(
+    () => getRestaurantStatus(openingHours, now),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [openingHours, now.getMinutes(), now.getHours()]
+  );
 
-  // Build display list: active banners filtered by schedule
-  // If restaurant is closed and there's a "closed" type banner active, use its text
-  // If restaurant is open and there's an "open" type banner active, inject it
-  const activeBanners = getActiveBanners(banners, now).filter(b => {
-    if (b.type === 'closed' && status.isOpen) return false;
-    if (b.type === 'open' && !status.isOpen) return false;
-    return true;
-  });
+  // Build the final display list (memoized)
+  const display = useMemo<NotificationBannerData[]>(() => {
+    const active = getActiveBanners(banners, now).filter(b => {
+      if (b.type === 'closed' && status.isOpen) return false;
+      if (b.type === 'open' && !status.isOpen) return false;
+      return true;
+    });
 
-  // Inject auto-text into closed banners that have empty translations
-  const bannersWithText = activeBanners.map(b => {
-    if (b.type !== 'closed') return b;
-    const AUTO: Record<string, string> = {
-      fr: status.minutesUntilOpen != null ? `Restaurant fermé · Réouverture dans ${formatMinutes(status.minutesUntilOpen)}` : 'Restaurant fermé pour aujourd\'hui',
-      en: status.minutesUntilOpen != null ? `Closed · Reopening in ${formatMinutes(status.minutesUntilOpen)}` : 'Closed today',
-      it: status.minutesUntilOpen != null ? `Chiuso · Riapertura tra ${formatMinutes(status.minutesUntilOpen)}` : 'Chiuso oggi',
-      es: status.minutesUntilOpen != null ? `Cerrado · Reapertura en ${formatMinutes(status.minutesUntilOpen)}` : 'Cerrado hoy',
-    };
-    return {
-      ...b,
-      translations: LOCALES_ORDER.map(l => {
-        const existing = b.translations.find(t => t.locale === l);
-        const text = existing?.text?.replace('{time}', status.minutesUntilOpen != null ? formatMinutes(status.minutesUntilOpen) : '?') || AUTO[l] || AUTO.fr;
-        return { locale: l, text };
-      }),
-    };
-  });
+    // Inject auto-text into closed banners with empty translations
+    const autoText = buildAutoClosedText(status);
+    const withText = active.map(b => {
+      if (b.type !== 'closed') return b;
+      return {
+        ...b,
+        translations: LOCALES_ORDER.map(l => {
+          const existing = b.translations.find(t => t.locale === l);
+          const text = existing?.text
+            ? existing.text.replace('{time}', status.minutesUntilOpen != null ? formatMinutes(status.minutesUntilOpen) : '?')
+            : autoText[l] || autoText.fr;
+          return { locale: l, text };
+        }),
+      };
+    });
 
-  // Auto-add a synthetic "closed" banner if restaurant is closed and no custom closed banner
-  const hasClosed = bannersWithText.some(b => b.type === 'closed');
-  const syntheticClosed: NotificationBannerData | null =
-    !status.isOpen && !hasClosed && openingHours.length > 0
-      ? {
-          id: -1, isVisible: true,
-          bgColor: '#1a1a1a', textColor: '#f59e0b',
-          icon: '🕐', link: null, linkLabel: null,
-          priority: 999, displayDuration: 10000,
-          animType: 'slide', type: 'closed',
-          scheduleEnabled: false, scheduleStart: null, scheduleEnd: null,
-          scheduleDays: '[0,1,2,3,4,5,6]', sortOrder: 0,
-          translations: [
-            {
-              locale: 'fr',
-              text: status.minutesUntilOpen != null
-                ? `Restaurant fermé · Réouverture dans ${formatMinutes(status.minutesUntilOpen)}`
-                : 'Restaurant fermé pour aujourd\'hui',
-            },
-            {
-              locale: 'en',
-              text: status.minutesUntilOpen != null
-                ? `Closed · Reopening in ${formatMinutes(status.minutesUntilOpen)}`
-                : 'Closed today',
-            },
-            {
-              locale: 'it',
-              text: status.minutesUntilOpen != null
-                ? `Chiuso · Riapertura tra ${formatMinutes(status.minutesUntilOpen)}`
-                : 'Chiuso oggi',
-            },
-            {
-              locale: 'es',
-              text: status.minutesUntilOpen != null
-                ? `Cerrado · Reapertura en ${formatMinutes(status.minutesUntilOpen)}`
-                : 'Cerrado hoy',
-            },
-          ],
-        }
-      : null;
+    // Add synthetic closed banner if no user-defined closed banner exists
+    const hasClosed = withText.some(b => b.type === 'closed');
+    if (!status.isOpen && !hasClosed && openingHours.length > 0) {
+      const synthetic: NotificationBannerData = {
+        id: -1, isVisible: true,
+        bgColor: '#1a1a1a', textColor: '#f59e0b',
+        icon: '🕐', link: null, linkLabel: null,
+        priority: 999, displayDuration: 10_000,
+        animType: 'slide', type: 'closed',
+        scheduleEnabled: false, scheduleStart: null, scheduleEnd: null,
+        scheduleDays: '[0,1,2,3,4,5,6]', sortOrder: 0,
+        translations: LOCALES_ORDER.map(l => ({ locale: l, text: autoText[l] || autoText.fr })),
+      };
+      return [synthetic, ...withText];
+    }
+    return withText;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [banners, status, openingHours]);
 
-  const display = syntheticClosed
-    ? [syntheticClosed, ...bannersWithText]
-    : bannersWithText;
+  const total = display.length;
 
-  // Reset index when display list changes
+  // Reset to first banner when list changes
   useEffect(() => {
     setIdx(0);
-    setPhase('in');
+    setAnimKey(k => k + 1);
     setDismissed(false);
-  }, [display.length]);
+  }, [total]);
 
-  const advanceToNext = useCallback(() => {
-    if (display.length <= 1) return;
-    setPhase('out');
-    clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      setIdx(i => (i + 1) % display.length);
-      setPhase('in');
-    }, 350);
-  }, [display.length]);
-
-  // Enter → visible → exit cycle
+  // Auto-cycle: schedule next advance after current banner's displayDuration
   useEffect(() => {
-    if (display.length === 0 || dismissed) return;
+    if (dismissed || total <= 1) return;
     clearTimeout(timerRef.current);
-
-    if (phase === 'in') {
-      timerRef.current = setTimeout(() => setPhase('visible'), 350);
-    } else if (phase === 'visible') {
-      if (display.length <= 1) return; // single banner: stay forever
-      const dur = display[idx]?.displayDuration ?? 8000;
-      timerRef.current = setTimeout(advanceToNext, dur);
-    }
+    const dur = display[idx % total]?.displayDuration ?? 8_000;
+    timerRef.current = setTimeout(() => {
+      setIdx(i => (i + 1) % total);
+      setAnimKey(k => k + 1);
+    }, dur);
     return () => clearTimeout(timerRef.current);
-  }, [phase, idx, display, dismissed, advanceToNext]);
+  }, [idx, total, dismissed, display]);
 
-  if (display.length === 0 || dismissed) return null;
+  if (dismissed || total === 0) return null;
 
-  const banner = display[idx % display.length];
+  const banner = display[idx % total];
   const text = getT(banner.translations, locale);
   if (!text) return null;
 
-  const animClass = phase === 'in'
-    ? ANIM_IN[banner.animType] || ANIM_IN.slide
-    : phase === 'out'
-    ? ANIM_OUT[banner.animType] || ANIM_OUT.slide
-    : '';
+  const animClass = ANIM_IN[banner.animType] || ANIM_IN.slide;
 
   const inner = (
     <div
-      className={`relative flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium w-full overflow-hidden ${animClass}`}
+      key={animKey}
+      className={`relative flex items-center justify-center gap-2 px-10 py-2 text-sm font-medium w-full ${animClass}`}
       style={{ backgroundColor: banner.bgColor, color: banner.textColor }}
     >
-      {/* Dot indicator for multiple banners */}
-      {display.length > 1 && (
+      {/* Dot indicators */}
+      {total > 1 && (
         <div className="absolute left-3 top-1/2 -translate-y-1/2 flex gap-1">
           {display.map((_, i) => (
             <button
               key={i}
-              onClick={() => { clearTimeout(timerRef.current); setIdx(i); setPhase('in'); }}
+              onClick={() => { clearTimeout(timerRef.current); setIdx(i); setAnimKey(k => k + 1); }}
               className="rounded-full transition-all"
               style={{
-                width: i === idx ? '12px' : '5px',
+                width: i === idx % total ? '12px' : '5px',
                 height: '5px',
-                background: i === idx ? banner.textColor : `${banner.textColor}50`,
+                background: i === idx % total ? banner.textColor : `${banner.textColor}50`,
               }}
             />
           ))}
@@ -321,19 +276,10 @@ export function SmartNotificationBar({ banners, openingHours = [], locale }: Pro
         </span>
       )}
 
-      {/* Dismiss button */}
-      <button
-        onClick={e => { e.preventDefault(); e.stopPropagation(); setDismissed(true); }}
-        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-60 hover:opacity-100 transition-opacity"
-        aria-label="Fermer"
-      >
-        <X className="w-3.5 h-3.5" style={{ color: banner.textColor }} />
-      </button>
-
-      {/* Progress bar (bottom) for multi-banner cycling */}
-      {display.length > 1 && phase === 'visible' && (
+      {/* Progress bar */}
+      {total > 1 && (
         <span
-          key={`prog-${idx}-${phase}`}
+          key={`prog-${animKey}`}
           className="absolute bottom-0 left-0 h-0.5 rounded-full"
           style={{
             backgroundColor: banner.textColor,
@@ -341,6 +287,15 @@ export function SmartNotificationBar({ banners, openingHours = [], locale }: Pro
           }}
         />
       )}
+
+      {/* Dismiss */}
+      <button
+        onClick={e => { e.preventDefault(); e.stopPropagation(); setDismissed(true); clearTimeout(timerRef.current); }}
+        className="absolute right-2 top-1/2 -translate-y-1/2 opacity-50 hover:opacity-100 transition-opacity p-1"
+        aria-label="Fermer"
+      >
+        <X className="w-3.5 h-3.5" style={{ color: banner.textColor }} />
+      </button>
     </div>
   );
 
@@ -354,7 +309,7 @@ export function SmartNotificationBar({ banners, openingHours = [], locale }: Pro
   return inner;
 }
 
-// ── Legacy single-bar export (backward compat) ────────────────────────────────
+// ── Legacy single-bar export ──────────────────────────────────────────────────
 export function NotificationBarComponent({ bar, locale }: LegacyProps) {
   const t =
     bar.translations.find(x => x.locale === locale && x.text) ||
@@ -377,11 +332,7 @@ export function NotificationBarComponent({ bar, locale }: LegacyProps) {
   );
 
   if (bar.link) {
-    return (
-      <a href={bar.link} target="_blank" rel="noopener noreferrer" className="block">
-        {inner}
-      </a>
-    );
+    return <a href={bar.link} target="_blank" rel="noopener noreferrer" className="block">{inner}</a>;
   }
   return inner;
 }
