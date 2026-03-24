@@ -1,3 +1,5 @@
+import Image from 'next/image';
+
 interface Props { site: any; locale: string; }
 
 const FOOTER_COLS: Record<string, { menu: string; order: string; follow: string; }> = {
@@ -47,8 +49,7 @@ export default function MenuFooter({ site, locale }: Props) {
           <div className="col-span-2 md:col-span-1">
             <div className="flex items-center gap-2.5 mb-3">
               {site?.logoUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={site.logoUrl} alt={name} className="w-9 h-9 rounded-xl object-contain" />
+                <Image src={site.logoUrl} alt={name} width={36} height={36} className="rounded-lg object-contain" />
               ) : (
                 <div className="w-9 h-9 rounded-xl flex items-center justify-center text-gray-900 font-black text-lg"
                   style={{ backgroundColor: primary }}>

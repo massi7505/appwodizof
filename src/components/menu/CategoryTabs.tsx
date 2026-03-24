@@ -21,7 +21,7 @@ export default function CategoryTabs({ categories, active, onSelect, locale, pri
   const scrollRef = useRef<HTMLDivElement>(null);
   const hasImages = categories.some(c => c.iconUrl);
 
-  // Auto-scroll active tab into view (e.g. when IntersectionObserver updates it)
+  // Auto-scroll active tab into view when IntersectionObserver updates it
   useEffect(() => {
     if (active == null || !scrollRef.current) return;
     const btn = scrollRef.current.querySelector<HTMLElement>(`[data-tab-id="${active}"]`);
@@ -31,7 +31,7 @@ export default function CategoryTabs({ categories, active, onSelect, locale, pri
 
   if (hasImages) {
     return (
-      <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-2 scrollbar-hide px-1">
+      <div ref={scrollRef} className="flex gap-4 overflow-x-auto pb-3 scrollbar-hide px-1">
         {categories.map(cat => {
           const isActive = active === cat.id;
           const name = cat.translations[0]?.name || '—';
@@ -44,13 +44,16 @@ export default function CategoryTabs({ categories, active, onSelect, locale, pri
                 const el = document.getElementById(`cat-${cat.id}`);
                 if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
               }}
-              className="flex flex-col items-center gap-1.5 flex-shrink-0 group"
+              className="flex flex-col items-center gap-1 flex-shrink-0 group"
             >
+              {/* Image — rounded-2xl, no ring; active = scale up + colored glow */}
               <div
-                className="w-14 h-14 rounded-full overflow-hidden transition-all duration-200 border-2"
+                className="w-14 h-14 rounded-2xl overflow-hidden transition-all duration-250"
                 style={{
-                  borderColor: isActive ? primaryColor : 'transparent',
-                  boxShadow: isActive ? `0 0 0 2px ${primaryColor}` : '0 1px 4px rgba(0,0,0,0.10)',
+                  transform: isActive ? 'scale(1.08)' : 'scale(1)',
+                  boxShadow: isActive
+                    ? `0 4px 14px ${primaryColor}55, 0 2px 6px rgba(0,0,0,0.08)`
+                    : '0 1px 4px rgba(0,0,0,0.08)',
                 }}
               >
                 {cat.iconUrl ? (
@@ -66,12 +69,24 @@ export default function CategoryTabs({ categories, active, onSelect, locale, pri
                   </div>
                 )}
               </div>
+
+              {/* Name */}
               <span
-                className="text-[11px] font-semibold text-center leading-tight max-w-[70px] break-words"
+                className="text-[11px] font-semibold text-center leading-tight max-w-[70px] break-words transition-colors duration-200"
                 style={{ color: isActive ? primaryColor : '#374151' }}
               >
                 {name}
               </span>
+
+              {/* Animated indicator bar — expands when active */}
+              <div
+                className="rounded-full transition-all duration-300"
+                style={{
+                  height: '2.5px',
+                  width: isActive ? '20px' : '4px',
+                  backgroundColor: isActive ? primaryColor : 'transparent',
+                }}
+              />
             </button>
           );
         })}
