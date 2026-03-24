@@ -123,8 +123,9 @@ export default async function MenuPage({ params }: Props) {
   ]);
   const banners = bannersRaw ?? [];
   const openingHours = openingHoursRaw ?? [];
+  // Liens de commande : exclure uniquement les liens internes (/) et tel:/mailto:
   const orderLinks = (orderLinksRaw ?? [])
-    .filter((b: any) => b.url && /^https?:\/\//i.test(b.url))
+    .filter((b: any) => b.url && !b.url.startsWith('/') && !b.url.startsWith('tel:') && !b.url.startsWith('mailto:'))
     .map((b: any) => ({ label: b.label, url: b.url }));
 
   // Hero data — fetched separately with per-call fallbacks
