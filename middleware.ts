@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { jwtVerify } from 'jose';
 
-const PRODUCTION_HOST = 'www.woodiz15.fr';
-
 async function isAuthenticated(request: NextRequest): Promise<boolean> {
   const token = request.cookies.get('admin_token')?.value;
   if (!token) return false;
@@ -15,16 +13,31 @@ async function isAuthenticated(request: NextRequest): Promise<boolean> {
   }
 }
 
-export async function middleware(request: NextRequest) {
-  const { pathname, hostname } = request.nextUrl;
+function isAllowedHost(request: NextRequest): boolean {
+  const host = request.headers.get('host') || '';
+  return (
+    host === 'www.woodiz15.fr' ||
+    host === 'woodiz15.fr' ||
+    host.startsWith('localhost') ||
+    host.startsWith('127.0.0.1')
+  );
+}
 
-  // Bloquer /admin depuis tout domaine autre que le domaine de production
-  if (pathname.startsWith('/admin') && hostname !== PRODUCTION_HOST) {
-    return NextResponse.redirect(`https://${PRODUCTION_HOST}/admin/login`);
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  if (!pathname.startsWith('/admin')) return NextResponse.next();
+
+  // Bloquer l'accès admin depuis tout domaine non autorisé (ex: *.vercel.app)
+  if (!isAllowedHost(request)) {
+    const res = NextResponse.redirect('https://www.woodiz15.fr/admin/login');
+    // Effacer le cookie de session pour éviter tout contournement
+    res.cookies.delete('admin_token');
+    return res;
   }
 
-  // Protect admin routes — skip the login page itself
-  if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
+  // Sur le bon domaine : protéger les routes admin sauf /admin/login
+  if (!pathname.startsWith('/admin/login')) {
     const authenticated = await isAuthenticated(request);
     if (!authenticated) {
       return NextResponse.redirect(new URL('/admin/login', request.url));
