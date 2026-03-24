@@ -1,4 +1,4 @@
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import { jwtVerify } from 'jose';
 import AdminSidebar from '@/components/admin/AdminSidebar';
 
@@ -20,10 +20,18 @@ async function isAuthenticated(): Promise<boolean> {
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const authenticated = await isAuthenticated();
 
-  // Si non authentifié, le middleware gère la redirection vers /admin/login
-  // Le layout rend juste les children (page login)
   if (!authenticated) {
-    return <>{children}</>;
+    // Lire le pathname injecté par le middleware
+    const headersList = await headers();
+    const pathname = headersList.get('x-pathname') ?? '';
+
+    // Page login → afficher le formulaire normalement
+    if (pathname.startsWith('/admin/login')) {
+      return <>{children}</>;
+    }
+
+    // Toute autre page admin → ne rien afficher (le middleware redirige)
+    return null;
   }
 
   return (
