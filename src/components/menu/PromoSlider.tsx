@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { autoTextColor } from '@/lib/color';
 
@@ -46,8 +46,6 @@ function safePrice(val: any): string | null {
 }
 
 export default function PromoSlider({ promos, locale, primaryColor }: Props) {
-  const trackRef = useRef<HTMLDivElement>(null);
-  const [activeIndex, setActiveIndex] = useState(0);
   const [activePromos, setActivePromos] = useState<any[]>(promos);
   const [promoDays, setPromoDays] = useState<Record<number, number | null>>({});
 
@@ -59,82 +57,14 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
     setPromoDays(days);
   }, [promos]);
 
-  // Track active index via IntersectionObserver on desktop
-  useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    const cards = el.querySelectorAll('[data-promo-card]');
-    if (cards.length === 0) return;
-    const observer = new IntersectionObserver(
-      entries => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const idx = parseInt((entry.target as HTMLElement).dataset.promoCard || '0');
-            setActiveIndex(idx);
-          }
-        });
-      },
-      { root: el, threshold: 0.6 }
-    );
-    cards.forEach(c => observer.observe(c));
-    return () => observer.disconnect();
-  }, [activePromos]);
-
-  function scroll(dir: 1 | -1) {
-    const el = trackRef.current;
-    if (!el) return;
-    // On mobile (flex-col) scroll vertically, on desktop scroll horizontally
-    if (window.innerWidth < 640) {
-      el.scrollBy({ top: dir * 260, behavior: 'smooth' });
-    } else {
-      el.scrollBy({ left: dir * 320, behavior: 'smooth' });
-    }
-  }
-
-  // Wheel → horizontal scroll on desktop
-  useEffect(() => {
-    const el = trackRef.current;
-    if (!el) return;
-    const onWheel = (e: WheelEvent) => {
-      if (window.innerWidth < 640) return;
-      if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
-      if (e.deltaY === 0) return;
-      e.preventDefault();
-      el.scrollBy({ left: e.deltaY * 2.5, behavior: 'auto' });
-    };
-    el.addEventListener('wheel', onWheel, { passive: false });
-    return () => el.removeEventListener('wheel', onWheel);
-  }, [activePromos]);
-
   if (activePromos.length === 0) return null;
 
   const expiryFn = EXPIRY_LABELS[locale] || EXPIRY_LABELS.fr;
-  const total = activePromos.length;
 
   return (
-    <div className="relative">
-      {/* Arrows — desktop only */}
-      <div className="hidden sm:block">
-        {total > 1 && (
-          <>
-            <button onClick={() => scroll(-1)} aria-label="Précédent"
-              className="absolute left-1 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/95 shadow-md border border-gray-100 flex items-center justify-center text-gray-700 hover:bg-white transition-all hover:scale-110">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="15 18 9 12 15 6" /></svg>
-            </button>
-            <button onClick={() => scroll(1)} aria-label="Suivant"
-              className="absolute right-1 top-1/2 -translate-y-1/2 z-20 w-9 h-9 rounded-full bg-white/95 shadow-md border border-gray-100 flex items-center justify-center text-gray-700 hover:bg-white transition-all hover:scale-110">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="9 18 15 12 9 6" /></svg>
-            </button>
-          </>
-        )}
-      </div>
-
-      {/* Track — vertical on mobile, horizontal on desktop */}
-      <div
-        ref={trackRef}
-        className="flex flex-col gap-3 sm:flex-row sm:overflow-x-auto sm:pb-2"
-        style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-      >
+    <div>
+      {/* Mobile: stacked vertically — Desktop: grid, all cards visible */}
+      <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
         {activePromos.map((promo, i) => {
           const tr = promo.translations?.[0];
           const days = promoDays[promo.id] ?? null;
@@ -153,9 +83,9 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
           // Photo-only card
           if (promo.photoOnly && promo.bgImageUrl) {
             return (
-              <div key={promo.id} data-promo-card={i}
-                className="relative w-full sm:flex-shrink-0 sm:w-72 md:w-64 xl:w-80 rounded-2xl overflow-hidden"
-                style={{ height: '220px', scrollSnapAlign: 'start' }}>
+              <div key={promo.id}
+                className="relative w-full rounded-2xl overflow-hidden"
+                style={{ height: '220px' }}>
                 <Image src={promo.bgImageUrl} alt={tr?.title || ''} fill
                   sizes="(max-width: 640px) 100vw, 320px" quality={70} priority={isPriority}
                   className="object-cover" />
@@ -169,9 +99,9 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
           })();
 
           return (
-            <div key={promo.id} data-promo-card={i}
-              className="group w-full sm:flex-shrink-0 sm:w-72 md:w-64 xl:w-80 rounded-2xl overflow-hidden relative"
-              style={{ ...bgStyle, height: '220px', scrollSnapAlign: 'start' }}>
+            <div key={promo.id}
+              className="group w-full rounded-2xl overflow-hidden relative"
+              style={{ ...bgStyle, height: '220px' }}>
 
               {/* Background image */}
               {isImageBg && (
@@ -273,28 +203,6 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
         })}
       </div>
 
-      {/* Counter dots — desktop only */}
-      {total > 1 && (
-        <div className="hidden sm:flex justify-center gap-1.5 mt-3">
-          {activePromos.map((_, i) => (
-            <button key={i}
-              onClick={() => {
-                const el = trackRef.current;
-                if (!el) return;
-                const cards = el.querySelectorAll('[data-promo-card]');
-                (cards[i] as HTMLElement)?.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
-              }}
-              className="transition-all duration-300 rounded-full"
-              style={{
-                width: i === activeIndex ? '20px' : '6px',
-                height: '6px',
-                backgroundColor: i === activeIndex ? primaryColor : '#D1D5DB',
-              }}
-              aria-label={`Promo ${i + 1}`}
-            />
-          ))}
-        </div>
-      )}
     </div>
   );
 }

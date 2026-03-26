@@ -7,7 +7,6 @@ import MenuHeader from './MenuHeader';
 import PromoSlider from './PromoSlider';
 import CategoryTabs from './CategoryTabs';
 import ProductCard from './ProductCard';
-import AppOrderSection from './AppOrderSection';
 import HeroSection from '@/components/linktree/HeroSection';
 import { SmartNotificationBar } from '@/components/linktree/NotificationBar';
 import type { NotificationBannerData, OpeningHoursData } from '@/components/linktree/NotificationBar';
@@ -395,14 +394,6 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
           <FAQSection faqs={faqs} locale={locale} L={L} />
         )}
       </div>
-
-      {/* ===== APP / ORDER SECTION (full-width, before footer) ===== */}
-      <AppOrderSection
-        site={site}
-        locale={locale}
-        primaryColor={primaryColor}
-        orderLinks={orderLinks}
-      />
 
       </main>
 
