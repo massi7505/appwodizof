@@ -11,10 +11,55 @@ const PROMO_TYPES = ['', 'delivery', 'takeaway', 'onsite', 'all'];
 const TYPE_LABELS: Record<string, string> = { '': '— Aucun', delivery: '🛵 Livraison', takeaway: '🥡 À emporter', onsite: '🪑 Sur place', all: '🌐 Toutes' };
 const BG_TYPES = ['color', 'gradient', 'image'];
 
+const SIZE_OPTIONS = [
+  { label: 'XS', value: 10 },
+  { label: 'S', value: 12 },
+  { label: 'M', value: 14 },
+  { label: 'L', value: 16 },
+  { label: 'XL', value: 18 },
+  { label: '2XL', value: 20 },
+  { label: '3XL', value: 24 },
+  { label: '4XL', value: 28 },
+  { label: '5XL', value: 32 },
+];
+
+function SizePicker({ value, onChange, defaultVal, label }: {
+  value: number | null | undefined;
+  onChange: (v: number | null) => void;
+  defaultVal: number;
+  label: string;
+}) {
+  const current = value ?? defaultVal;
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-1.5">
+        <label className="text-xs font-medium text-gray-400">{label}</label>
+        <span className="text-xs font-bold" style={{ color: 'var(--accent)' }}>{current}px</span>
+      </div>
+      <div className="flex flex-wrap gap-1">
+        {SIZE_OPTIONS.map(opt => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => onChange(opt.value === defaultVal && value === null ? null : opt.value)}
+            className="px-2.5 py-1 rounded-lg text-xs font-bold transition-all"
+            style={current === opt.value
+              ? { backgroundColor: 'var(--accent)', color: '#111827' }
+              : { backgroundColor: 'rgba(255,255,255,0.06)', color: '#9CA3AF' }}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 const DEFAULT_PROMO = {
   type: '', bgType: 'color', bgColor: '#F59E0B', textColor: '#FFFFFF',
   badgeColor: '#EF4444', badgeText: '', promoPrice: '', originalPrice: '', photoOnly: false,
   availFrom: '', availTo: '',
+  titleSize: null, descSize: null, priceSize: null, badgeSize: null, ctaSize: null,
   isVisible: true, showOnLinktree: true, showOnMenu: true,
   translations: LOCALES.map(l => ({ locale: l, title: '', description: '', note: '', cta: '', ctaUrl: '' })),
 };
@@ -199,16 +244,18 @@ export default function AdminPromotionsPage() {
                   <div className="relative z-10 flex items-start justify-between gap-4">
                     <div className="flex-1 min-w-0">
                       {parseBadge(editing.badgeText).fr && (
-                        <span className="inline-block text-xs font-black px-2.5 py-1 rounded-full mb-2 text-white"
-                          style={{ backgroundColor: editing.badgeColor || '#EF4444' }}>
+                        <span className="inline-block font-black px-2.5 py-1 rounded-full mb-2 text-white"
+                          style={{ backgroundColor: editing.badgeColor || '#EF4444', fontSize: `${editing.badgeSize || 10}px` }}>
                           {parseBadge(editing.badgeText).fr}
                         </span>
                       )}
-                      <p className="font-black text-lg leading-tight">
+                      <p className="font-black leading-tight"
+                        style={{ fontSize: `${editing.titleSize || 16}px` }}>
                         {editing.translations?.find((x: any) => x.locale === 'fr')?.title || 'Titre de l\'offre'}
                       </p>
                       {editing.translations?.find((x: any) => x.locale === 'fr')?.description && (
-                        <p className="text-sm mt-1 opacity-80">
+                        <p className="mt-1 opacity-80"
+                          style={{ fontSize: `${editing.descSize || 12}px` }}>
                           {editing.translations.find((x: any) => x.locale === 'fr').description}
                         </p>
                       )}
@@ -216,15 +263,16 @@ export default function AdminPromotionsPage() {
                     {editing.promoPrice && (
                       <div className="flex-shrink-0 text-right">
                         {editing.originalPrice && (
-                          <p className="text-sm line-through opacity-60">{parseFloat(editing.originalPrice).toFixed(2)}€</p>
+                          <p className="line-through opacity-60" style={{ fontSize: `${Math.max(10, (editing.priceSize || 24) - 8)}px` }}>{parseFloat(editing.originalPrice).toFixed(2)}€</p>
                         )}
-                        <p className="text-3xl font-black">{parseFloat(editing.promoPrice || '0').toFixed(2)}€</p>
+                        <p className="font-black" style={{ fontSize: `${editing.priceSize || 24}px` }}>{parseFloat(editing.promoPrice || '0').toFixed(2)}€</p>
                       </div>
                     )}
                   </div>
                   {editing.translations?.find((x: any) => x.locale === 'fr')?.cta && (
                     <div className="relative z-10 mt-3">
-                      <span className="inline-block text-xs font-bold px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-sm">
+                      <span className="inline-block font-bold px-4 py-1.5 rounded-full bg-white/20 backdrop-blur-sm"
+                        style={{ fontSize: `${editing.ctaSize || 12}px` }}>
                         {editing.translations.find((x: any) => x.locale === 'fr').cta}
                       </span>
                     </div>
@@ -330,6 +378,52 @@ export default function AdminPromotionsPage() {
                 <ColorPicker value={editing.textColor} onChange={c => setEditing((e: any) => ({ ...e, textColor: c }))} label="Couleur du texte" />
                 <ColorPicker value={editing.badgeColor} onChange={c => setEditing((e: any) => ({ ...e, badgeColor: c }))} label="Couleur du badge" />
               </div>
+
+              {/* Taille des textes */}
+              {!editing.photoOnly && (
+                <div className="border border-gray-700 rounded-xl p-4 bg-gray-800/50 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm font-semibold text-white">🔤 Taille des textes</p>
+                    <button
+                      type="button"
+                      onClick={() => setEditing((x: any) => ({ ...x, titleSize: null, descSize: null, priceSize: null, badgeSize: null, ctaSize: null }))}
+                      className="text-xs text-gray-500 hover:text-amber-400 transition-colors"
+                    >
+                      Réinitialiser
+                    </button>
+                  </div>
+                  <SizePicker
+                    label="Titre"
+                    value={editing.titleSize}
+                    defaultVal={16}
+                    onChange={v => setEditing((x: any) => ({ ...x, titleSize: v }))}
+                  />
+                  <SizePicker
+                    label="Description"
+                    value={editing.descSize}
+                    defaultVal={12}
+                    onChange={v => setEditing((x: any) => ({ ...x, descSize: v }))}
+                  />
+                  <SizePicker
+                    label="Prix"
+                    value={editing.priceSize}
+                    defaultVal={24}
+                    onChange={v => setEditing((x: any) => ({ ...x, priceSize: v }))}
+                  />
+                  <SizePicker
+                    label="Badge"
+                    value={editing.badgeSize}
+                    defaultVal={10}
+                    onChange={v => setEditing((x: any) => ({ ...x, badgeSize: v }))}
+                  />
+                  <SizePicker
+                    label="Bouton CTA"
+                    value={editing.ctaSize}
+                    defaultVal={12}
+                    onChange={v => setEditing((x: any) => ({ ...x, ctaSize: v }))}
+                  />
+                </div>
+              )}
 
               {/* Visibilité */}
               <div className="grid grid-cols-3 gap-2">

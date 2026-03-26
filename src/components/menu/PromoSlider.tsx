@@ -196,8 +196,12 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
               {/* Top-left: promo badge */}
               {badgeText && (
                 <div className="absolute top-3 left-3 z-20">
-                  <span className="text-[10px] font-black uppercase px-2.5 py-1 rounded-lg shadow"
-                    style={{ backgroundColor: promo.badgeColor, color: autoTextColor(promo.badgeColor) }}>
+                  <span className="font-black uppercase px-2.5 py-1 rounded-lg shadow"
+                    style={{
+                      backgroundColor: promo.badgeColor,
+                      color: autoTextColor(promo.badgeColor),
+                      fontSize: `${promo.badgeSize || 10}px`,
+                    }}>
                     {badgeText}
                   </span>
                 </div>
@@ -206,29 +210,49 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
               {/* Content — bottom */}
               <div className="absolute bottom-0 left-0 right-0 z-10 p-4" style={{ color: promo.textColor }}>
                 {tr?.title && (
-                  <p className="font-black text-base leading-snug mb-1 line-clamp-2"
-                    style={{ textShadow: isImageBg ? '0 1px 8px rgba(0,0,0,0.6)' : 'none' }}>
+                  <p className="font-black leading-snug mb-1 line-clamp-2"
+                    style={{
+                      fontSize: `${promo.titleSize || 16}px`,
+                      textShadow: isImageBg ? '0 1px 8px rgba(0,0,0,0.6)' : 'none',
+                    }}>
                     {tr.title}
                   </p>
                 )}
                 {tr?.description && (
-                  <p className="text-xs opacity-75 mb-2 line-clamp-1">{tr.description}</p>
+                  <p className="opacity-75 mb-2 line-clamp-1"
+                    style={{ fontSize: `${promo.descSize || 12}px` }}>
+                    {tr.description}
+                  </p>
                 )}
 
                 {/* Price + CTA row */}
                 <div className="flex items-end justify-between gap-2">
                   {promoP && (
                     <div className="flex items-baseline gap-1.5">
-                      {origP && <span className="text-xs line-through opacity-50">{origP}€</span>}
-                      <span className="text-2xl font-black leading-none" style={{ textShadow: isImageBg ? '0 2px 12px rgba(0,0,0,0.5)' : 'none' }}>
+                      {origP && (
+                        <span className="line-through opacity-50"
+                          style={{ fontSize: `${Math.max(10, (promo.priceSize || 24) - 8)}px` }}>
+                          {origP}€
+                        </span>
+                      )}
+                      <span className="font-black leading-none"
+                        style={{
+                          fontSize: `${promo.priceSize || 24}px`,
+                          textShadow: isImageBg ? '0 2px 12px rgba(0,0,0,0.5)' : 'none',
+                        }}>
                         {promoP}€
                       </span>
                     </div>
                   )}
                   {tr?.ctaUrl && tr?.cta && (
                     <a href={tr.ctaUrl} target="_blank" rel="noopener noreferrer"
-                      className="flex-shrink-0 text-xs font-bold px-3 py-1.5 rounded-full flex items-center gap-1 transition-all hover:scale-105"
-                      style={{ background: 'rgba(255,255,255,0.22)', backdropFilter: 'blur(6px)', border: '1px solid rgba(255,255,255,0.3)' }}>
+                      className="flex-shrink-0 font-bold px-3 py-1.5 rounded-full flex items-center gap-1 transition-all hover:scale-105"
+                      style={{
+                        fontSize: `${promo.ctaSize || 12}px`,
+                        background: 'rgba(255,255,255,0.22)',
+                        backdropFilter: 'blur(6px)',
+                        border: '1px solid rgba(255,255,255,0.3)',
+                      }}>
                       {tr.cta}
                       <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />

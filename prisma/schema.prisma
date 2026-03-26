@@ -189,6 +189,11 @@ model Promotion {
   badgeColor      String   @default("#EF4444")
   originalPrice   Decimal? @db.Decimal(10, 2)
   promoPrice      Decimal? @db.Decimal(10, 2)
+  titleSize       Int?     // font-size px for title (default 16)
+  descSize        Int?     // font-size px for description (default 12)
+  priceSize       Int?     // font-size px for price (default 24)
+  badgeSize       Int?     // font-size px for badge (default 10)
+  ctaSize         Int?     // font-size px for CTA button (default 12)
   photoOnly       Boolean  @default(false)
   availFrom       String?  // ex: "11:30"
   availTo         String?  // ex: "14:30"
