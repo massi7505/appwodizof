@@ -97,6 +97,13 @@ export function ReviewsSection({ reviews, site, locale, L, primaryColor }: Revie
 }
 
 // ===== FAQ SECTION =====
+const FAQ_TITLES: Record<string, { title: string; subtitle: string }> = {
+  fr: { title: 'Des Questions ?', subtitle: 'Trouvez les réponses à vos questions les plus fréquentes.' },
+  en: { title: 'Got Questions?', subtitle: 'Find answers to your most frequently asked questions.' },
+  it: { title: 'Domande?', subtitle: 'Trova le risposte alle domande più frequenti.' },
+  es: { title: '¿Preguntas?', subtitle: 'Encuentra respuestas a tus preguntas más frecuentes.' },
+};
+
 interface FAQProps {
   faqs: any[];
   locale: string;
@@ -105,35 +112,69 @@ interface FAQProps {
 
 export function FAQSection({ faqs, locale, L }: FAQProps) {
   const [openId, setOpenId] = useState<number | null>(null);
+  const titles = FAQ_TITLES[locale] || FAQ_TITLES.fr;
 
   return (
-    <section className="mt-12">
-      <h2 className="text-lg font-bold text-gray-900 mb-5">{L.faqs}</h2>
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-100">
+    <section className="mt-16 mb-4">
+      {/* Centered heading */}
+      <div className="text-center mb-10">
+        <h2 className="text-3xl sm:text-4xl font-black text-gray-900 mb-3">{titles.title}</h2>
+        <p className="text-gray-500 text-base max-w-md mx-auto">{titles.subtitle}</p>
+      </div>
+
+      {/* Accordion */}
+      <div className="max-w-3xl mx-auto space-y-3">
         {faqs.map(faq => {
           const t = faq.translations[0];
           if (!t) return null;
           const isOpen = openId === faq.id;
           return (
-            <div key={faq.id}>
+            <div
+              key={faq.id}
+              className="rounded-2xl overflow-hidden transition-all duration-200"
+              style={{
+                backgroundColor: isOpen ? '#111827' : '#fff',
+                boxShadow: isOpen
+                  ? '0 4px 24px rgba(0,0,0,0.18)'
+                  : '0 1px 4px rgba(0,0,0,0.06)',
+                border: isOpen ? 'none' : '1px solid #f0f0f0',
+              }}
+            >
               <button
                 onClick={() => setOpenId(isOpen ? null : faq.id)}
-                className="w-full text-left px-5 py-4 flex items-center justify-between gap-3 hover:bg-gray-50 transition-colors"
+                className="w-full text-left px-6 py-5 flex items-center justify-between gap-4 transition-colors"
               >
-                <span className="text-sm font-semibold text-gray-900">{t.question}</span>
-                <svg
-                  className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
-                  fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                <span
+                  className="text-sm font-bold leading-snug"
+                  style={{ color: isOpen ? '#fff' : '#111827' }}
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
+                  {t.question}
+                </span>
+                <span
+                  className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200"
+                  style={{
+                    backgroundColor: isOpen ? 'rgba(255,255,255,0.15)' : '#f3f4f6',
+                  }}
+                >
+                  <svg
+                    className={`w-3.5 h-3.5 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
+                    fill="none"
+                    stroke={isOpen ? '#fff' : '#6b7280'}
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </span>
               </button>
+
               <div
-                className="grid transition-all duration-300"
+                className="grid transition-all duration-300 ease-out"
                 style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
               >
                 <div className="overflow-hidden">
-                  <p className="px-5 pb-4 text-sm text-gray-600 leading-relaxed">{t.answer}</p>
+                  <p className="px-6 pb-5 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.72)' }}>
+                    {t.answer}
+                  </p>
                 </div>
               </div>
             </div>
