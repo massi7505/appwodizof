@@ -128,10 +128,10 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
         </button>
       )}
 
-      {/* Scrollable track */}
+      {/* Mobile: vertical stack — Desktop: horizontal scroll */}
       <div
         ref={trackRef}
-        className="flex gap-3 overflow-x-auto pb-2"
+        className="flex flex-col gap-3 sm:flex-row sm:overflow-x-auto sm:pb-2"
         style={{ scrollSnapType: 'x mandatory', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
         {(() => {
@@ -152,7 +152,7 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
 
           if (promo.photoOnly && promo.bgImageUrl) {
             return (
-              <div key={promo.id} className="relative flex-shrink-0 w-[80vw] sm:w-72 md:w-64 xl:w-72 rounded-2xl overflow-hidden"
+              <div key={promo.id} className="relative w-full sm:flex-shrink-0 sm:w-72 md:w-64 xl:w-72 rounded-2xl overflow-hidden"
                 style={{ height: '160px', scrollSnapAlign: 'start' }}>
                 <Image src={promo.bgImageUrl} alt={t?.title || ''} fill sizes="(max-width: 640px) 80vw, (max-width: 768px) 288px, (max-width: 1280px) 256px, 288px" quality={65} priority={isPriority} className="object-cover" />
               </div>
@@ -167,7 +167,7 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
             : { backgroundColor: promo.bgColor };
 
           return (
-            <div key={promo.id} className="flex-shrink-0 w-[80vw] sm:w-72 md:w-64 xl:w-72 rounded-2xl overflow-hidden relative"
+            <div key={promo.id} className="w-full sm:flex-shrink-0 sm:w-72 md:w-64 xl:w-72 rounded-2xl overflow-hidden relative"
               style={{ ...bgStyle, height: '160px', scrollSnapAlign: 'start' }}>
 
               {isImageBg && (
