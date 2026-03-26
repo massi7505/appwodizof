@@ -68,7 +68,7 @@ export default function MenuFooter({ site, locale, orderLinks = [] }: Props) {
   }
 
   return (
-    <footer style={{ backgroundColor: bg }} className="text-gray-400 mt-16">
+    <footer style={{ backgroundColor: bg }} className="text-gray-400">
       {/* Top accent line */}
       <div className="h-0.5 w-full" style={{ background: `linear-gradient(90deg, transparent, ${primary}, transparent)` }} />
 
