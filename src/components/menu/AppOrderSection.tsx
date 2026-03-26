@@ -76,7 +76,6 @@ export default function AppOrderSection({ site, locale, primaryColor, orderLinks
               className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-widest px-4 py-1.5 rounded-full mb-6"
               style={{ backgroundColor: `${primaryColor}22`, color: primaryColor }}
             >
-              <span>●</span>
               {L.tag}
             </span>
 
@@ -89,7 +88,13 @@ export default function AppOrderSection({ site, locale, primaryColor, orderLinks
             {/* Platform buttons */}
             <div className="flex flex-col sm:flex-row flex-wrap gap-3">
               {orderLinks.length > 0
-                ? orderLinks.slice(0, 4).map(link => (
+                ? orderLinks
+                    .filter(link => {
+                      const l = link.label.toLowerCase();
+                      return !l.includes('itinéraire') && !l.includes('maps') && !l.includes('adresse') && !l.includes('localisation');
+                    })
+                    .slice(0, 4)
+                    .map(link => (
                     <a
                       key={link.url}
                       href={link.url}
@@ -103,7 +108,7 @@ export default function AppOrderSection({ site, locale, primaryColor, orderLinks
                       }}
                     >
                       <span className="text-base">{platformIcon(link.label)}</span>
-                      <span>Commandez via {link.label}.</span>
+                      <span>{link.label}</span>
                     </a>
                   ))
                 : (

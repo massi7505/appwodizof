@@ -7,7 +7,6 @@ import MenuHeader from './MenuHeader';
 import PromoSlider from './PromoSlider';
 import CategoryTabs from './CategoryTabs';
 import ProductCard from './ProductCard';
-import PromoBannerSlider from './PromoBannerSlider';
 import AppOrderSection from './AppOrderSection';
 import HeroSection from '@/components/linktree/HeroSection';
 import { SmartNotificationBar } from '@/components/linktree/NotificationBar';
@@ -389,16 +388,6 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
         {/* ===== REVIEWS ===== */}
         {reviews.length > 0 && (
           <ReviewsSection reviews={reviews} site={site} locale={locale} L={L} primaryColor={primaryColor} />
-        )}
-
-        {/* ===== PROMO BANNER SLIDER (before FAQs) ===== */}
-        {promos.length > 0 && (
-          <PromoBannerSlider
-            promos={promos}
-            locale={locale}
-            primaryColor={primaryColor}
-            orderLinks={orderLinks}
-          />
         )}
 
         {/* ===== FAQS ===== */}
