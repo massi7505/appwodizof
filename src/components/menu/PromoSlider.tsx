@@ -62,7 +62,7 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
   const expiryFn = EXPIRY_LABELS[locale] || EXPIRY_LABELS.fr;
 
   return (
-    <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+    <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {activePromos.map((promo, i) => {
         const tr = promo.translations?.[0];
         const days = promoDays[promo.id] ?? null;
@@ -85,7 +85,7 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
           return (
             <div key={promo.id}
               className="relative w-full rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-              style={{ height: '240px' }}>
+              style={{ height: 'clamp(160px, 40vw, 240px)' }}>
               <Image src={promo.bgImageUrl} alt={tr?.title || ''} fill
                 sizes="(max-width: 640px) 100vw, 320px" quality={75} priority={isPriority}
                 className="object-cover" />
@@ -102,7 +102,7 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
         return (
           <div key={promo.id}
             className="group relative w-full rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-            style={{ ...bgStyle, minHeight: '240px', color: textCol }}>
+            style={{ ...bgStyle, minHeight: 'clamp(160px, 40vw, 240px)', color: textCol }}>
 
             {/* Background image + overlay */}
             {isImageBg && (
@@ -122,7 +122,7 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
             )}
 
             {/* Top row: badges */}
-            <div className="relative z-10 flex items-start justify-between gap-2 p-3">
+            <div className="relative z-10 flex items-start justify-between gap-1 p-2 sm:p-3">
               <div className="flex flex-wrap gap-1.5">
                 {badgeText && (
                   <span className="font-black uppercase px-2.5 py-1 rounded-full shadow-sm tracking-wide"
@@ -147,11 +147,11 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
             <div className="flex-1" />
 
             {/* Bottom content */}
-            <div className="relative z-10 p-4 pt-2">
+            <div className="relative z-10 p-2.5 sm:p-4 sm:pt-2">
               {tr?.title && (
                 <p className="font-black leading-tight mb-1 line-clamp-2"
                   style={{
-                    fontSize: `${promo.titleSize || 16}px`,
+                    fontSize: `clamp(12px, 2.5vw, ${promo.titleSize || 16}px)`,
                     textShadow: isImageBg ? '0 1px 10px rgba(0,0,0,0.7)' : 'none',
                   }}>
                   {tr.title}
@@ -159,7 +159,7 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
               )}
 
               {tr?.description && (
-                <p className="opacity-70 mb-2.5 line-clamp-2 leading-snug"
+                <p className="opacity-70 mb-1.5 line-clamp-2 leading-snug hidden sm:block"
                   style={{ fontSize: `${promo.descSize || 11}px` }}>
                   {tr.description}
                 </p>
@@ -167,16 +167,16 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
 
               {/* Price row */}
               {promoP && (
-                <div className="flex items-baseline gap-1.5 mb-2.5">
+                <div className="flex items-baseline gap-1 mb-2">
                   {origP && (
                     <span className="line-through opacity-50"
-                      style={{ fontSize: `${Math.max(10, (promo.priceSize || 22) - 8)}px` }}>
+                      style={{ fontSize: `clamp(9px, 2vw, ${Math.max(10, (promo.priceSize || 22) - 8)}px)` }}>
                       {origP}€
                     </span>
                   )}
                   <span className="font-black leading-none"
                     style={{
-                      fontSize: `${promo.priceSize || 22}px`,
+                      fontSize: `clamp(14px, 4vw, ${promo.priceSize || 22}px)`,
                       textShadow: isImageBg ? '0 1px 10px rgba(0,0,0,0.6)' : 'none',
                     }}>
                     {promoP}€
@@ -184,10 +184,10 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
                 </div>
               )}
 
-              {/* CTA button */}
+              {/* CTA button — hidden on mobile (cards too narrow) */}
               {tr?.ctaUrl && tr?.cta && (
                 <a href={tr.ctaUrl} target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full font-black transition-all hover:scale-105 hover:shadow-lg active:scale-95 mb-1"
+                  className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full font-black transition-all hover:scale-105 hover:shadow-lg active:scale-95 mb-1"
                   style={{
                     fontSize: `${promo.ctaSize || 12}px`,
                     backgroundColor: primaryColor,
