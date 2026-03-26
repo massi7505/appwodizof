@@ -304,7 +304,7 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
             {slide.imageUrl && (
               <div
                 key={`photo-desk-${current}-${animKey}`}
-                className={`absolute inset-0 hero-anim-overlay hero-ken-burns${slide.mobileImageUrl ? ' hidden md:block' : ''}`}
+                className={`absolute inset-0 hero-anim-overlay${slide.mobileImageUrl ? ' hidden md:block' : ''}`}
               >
                 <Image src={slide.imageUrl} alt="" fill priority
                   sizes="(max-width: 1280px) 100vw, 1400px" quality={75}
@@ -314,7 +314,7 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
               </div>
             )}
             {slide.mobileImageUrl && (
-              <div key={`photo-mob-${current}-${animKey}`} className="absolute inset-0 hero-anim-overlay hero-ken-burns md:hidden">
+              <div key={`photo-mob-${current}-${animKey}`} className="absolute inset-0 hero-anim-overlay md:hidden">
                 <Image src={slide.mobileImageUrl} alt="" fill priority
                   sizes="100vw" quality={75}
                   className="object-cover object-center pointer-events-none"
@@ -349,7 +349,7 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
                 <>
                   <Image src={slide.imageUrl} alt="" fill priority
                     sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1400px"
-                    quality={72} className="object-cover pointer-events-none hero-ken-burns" draggable={false}
+                    quality={72} className="object-cover pointer-events-none" draggable={false}
                   />
                   <div className="absolute inset-0" style={{ background: 'linear-gradient(170deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.90) 100%)' }} />
                 </>
