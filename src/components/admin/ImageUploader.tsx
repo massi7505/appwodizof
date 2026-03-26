@@ -25,7 +25,7 @@ export default function ImageUploader({
   const [error, setError] = useState('');
 
   async function handleFile(file: File) {
-    setUploading(true); setError(''); setProgress(20);
+    setUploading(true); setError(''); setProgress(10);
     try {
       const fd = new FormData();
       fd.append('file', file);
@@ -48,25 +48,40 @@ export default function ImageUploader({
       {label && <label className="block text-sm font-medium text-gray-400 mb-1.5">{label}</label>}
       <div
         className={`relative ${aspectRatio} w-full rounded-xl border-2 border-dashed border-gray-600 overflow-hidden cursor-pointer hover:border-amber-500 transition-colors group`}
-        onClick={() => !value && inputRef.current?.click()}
+        onClick={() => (!value || error) && inputRef.current?.click()}
         onDrop={e => { e.preventDefault(); e.dataTransfer.files[0] && handleFile(e.dataTransfer.files[0]); }}
         onDragOver={e => e.preventDefault()}
       >
         {value ? (
           <>
             <Image src={value} alt="Preview" fill className="object-cover" unoptimized />
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-3 transition-opacity">
-              <button type="button" onClick={e => { e.stopPropagation(); inputRef.current?.click(); }}
-                className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur transition-colors">
-                Changer
-              </button>
-              {onRemove && (
-                <button type="button" onClick={e => { e.stopPropagation(); onRemove(); }}
-                  className="bg-red-500/80 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
-                  Supprimer
+            {error ? (
+              <div className="absolute inset-0 bg-black/80 flex flex-col items-center justify-center gap-2 p-3">
+                <p className="text-xs font-semibold text-red-400 text-center leading-snug">⚠️ {error}</p>
+                <button type="button" onClick={e => { e.stopPropagation(); setError(''); inputRef.current?.click(); }}
+                  className="bg-amber-500 hover:bg-amber-600 text-black px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+                  Réessayer
                 </button>
-              )}
-            </div>
+              </div>
+            ) : uploading ? (
+              <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-2">
+                <div className="w-8 h-8 border-2 border-amber-500 border-t-transparent rounded-full animate-spin" />
+                <p className="text-xs font-medium text-amber-400">{progress}%</p>
+              </div>
+            ) : (
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center gap-3 transition-opacity">
+                <button type="button" onClick={e => { e.stopPropagation(); inputRef.current?.click(); }}
+                  className="bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-lg text-xs font-semibold backdrop-blur transition-colors">
+                  Changer
+                </button>
+                {onRemove && (
+                  <button type="button" onClick={e => { e.stopPropagation(); onRemove(); }}
+                    className="bg-red-500/80 hover:bg-red-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors">
+                    Supprimer
+                  </button>
+                )}
+              </div>
+            )}
           </>
         ) : (
           <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500 group-hover:text-amber-400 transition-colors p-4">
@@ -74,6 +89,12 @@ export default function ImageUploader({
               <div className="text-center">
                 <div className="w-10 h-10 border-2 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
                 <p className="text-xs font-medium text-amber-400">{progress}%</p>
+              </div>
+            ) : error ? (
+              <div className="text-center px-3">
+                <p className="text-2xl mb-1">⚠️</p>
+                <p className="text-xs font-semibold text-red-400 leading-snug">{error}</p>
+                <p className="text-xs text-gray-500 mt-1">Cliquer pour réessayer</p>
               </div>
             ) : (
               <>
