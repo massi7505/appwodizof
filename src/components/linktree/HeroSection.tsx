@@ -132,11 +132,10 @@ function ProgressDots({
 }) {
   return (
     <div className="absolute bottom-4 left-4 right-4 flex items-center gap-2 z-20">
-      {/* Pause / Play */}
       <button
         onClick={onTogglePause}
-        className="w-11 h-11 rounded-full flex items-center justify-center flex-shrink-0 transition-all hover:scale-110 active:scale-95"
-        style={{ background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)' }}
+        className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 transition-all hover:scale-110 active:scale-95"
+        style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)' }}
         aria-label={paused ? 'Play' : 'Pause'}
       >
         {paused
@@ -144,7 +143,6 @@ function ProgressDots({
           : <Pause className="w-3.5 h-3.5 text-white" fill="white" />}
       </button>
 
-      {/* Indicators */}
       <div className="flex items-center gap-1.5 flex-1">
         {Array.from({ length: total }).map((_, i) => {
           const isActive = i === current;
@@ -166,8 +164,8 @@ function ProgressDots({
                 className="rounded-full overflow-hidden transition-all duration-300"
                 style={{
                   width: '100%',
-                  height: '6px',
-                  background: 'rgba(255,255,255,0.35)',
+                  height: '4px',
+                  background: 'rgba(255,255,255,0.3)',
                   display: 'block',
                   position: 'relative',
                 }}
@@ -187,6 +185,11 @@ function ProgressDots({
           );
         })}
       </div>
+
+      {/* Slide counter */}
+      <span className="text-xs font-bold text-white/70 flex-shrink-0 tabular-nums">
+        {current + 1}<span className="text-white/40">/{total}</span>
+      </span>
     </div>
   );
 }
@@ -194,36 +197,47 @@ function ProgressDots({
 // ── Main Component ────────────────────────────────────────
 export default function HeroSection({ settings, slides, featureCards, locale }: Props) {
   const [current, setCurrent] = useState(0);
+  const [prev, setPrev] = useState<number | null>(null);
   const [paused, setPaused] = useState(false);
   const [animKey, setAnimKey] = useState(0);
   const total = slides.length;
   const delay = settings.autoplayDelay || 5000;
 
-  // Touch / drag refs
   const dragStartX = useRef<number | null>(null);
   const isDragging = useRef(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const go = useCallback((idx: number) => {
     if (total === 0) return;
-    setCurrent(((idx % total) + total) % total);
+    const next = ((idx % total) + total) % total;
+    setPrev(current);
+    setCurrent(next);
     setAnimKey(k => k + 1);
-  }, [total]);
+  }, [current, total]);
 
-  const prev = useCallback(() => go(current - 1), [current, go]);
-  const next = useCallback(() => go(current + 1), [current, go]);
+  const goPrev = useCallback(() => go(current - 1), [current, go]);
+  const goNext = useCallback(() => go(current + 1), [current, go]);
 
-  // Autoplay with progress reset
   useEffect(() => {
     if (!settings.autoplay || total <= 1 || paused) return;
     const timer = setInterval(() => {
-      setCurrent(c => ((c + 1) % total));
-      setAnimKey(k => k + 1);
+      setCurrent(c => {
+        const next = (c + 1) % total;
+        setPrev(c);
+        setAnimKey(k => k + 1);
+        return next;
+      });
     }, delay);
     return () => clearInterval(timer);
   }, [settings.autoplay, delay, total, paused]);
 
-  // ── Touch handlers ────────────────────────────────────
+  // Clear prev after transition
+  useEffect(() => {
+    if (prev === null) return;
+    const t = setTimeout(() => setPrev(null), 700);
+    return () => clearTimeout(t);
+  }, [prev, current]);
+
   const onTouchStart = useCallback((e: React.TouchEvent) => {
     dragStartX.current = e.touches[0].clientX;
   }, []);
@@ -233,10 +247,9 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
     const delta = e.changedTouches[0].clientX - dragStartX.current;
     dragStartX.current = null;
     if (Math.abs(delta) < 40) return;
-    if (delta < 0) next(); else prev();
-  }, [next, prev]);
+    if (delta < 0) goNext(); else goPrev();
+  }, [goNext, goPrev]);
 
-  // ── Mouse drag handlers ───────────────────────────────
   const onMouseDown = useCallback((e: React.MouseEvent) => {
     dragStartX.current = e.clientX;
     isDragging.current = false;
@@ -253,8 +266,8 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
     dragStartX.current = null;
     if (!isDragging.current || Math.abs(delta) < 40) { isDragging.current = false; return; }
     isDragging.current = false;
-    if (delta < 0) next(); else prev();
-  }, [next, prev]);
+    if (delta < 0) goNext(); else goPrev();
+  }, [goNext, goPrev]);
 
   const onMouseLeave = useCallback(() => {
     dragStartX.current = null;
@@ -273,10 +286,10 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
 
   return (
     <section className="w-full pb-4">
-      {/* ── Hero Card ── */}
+      {/* ── Hero Card — full-bleed mobile, rounded on desktop ── */}
       <div
         ref={containerRef}
-        className="relative w-full rounded-3xl overflow-hidden select-none"
+        className="relative w-full overflow-hidden select-none md:rounded-3xl"
         style={{ ...slideBg(slide), cursor: isDragging.current ? 'grabbing' : 'grab' }}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
@@ -285,109 +298,86 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
         onMouseUp={onMouseUp}
         onMouseLeave={onMouseLeave}
       >
-        {/* ── Photo-only mode : image nette sans texte ── */}
+        {/* ── Photo-only mode ── */}
         {slide.photoOnly ? (
           <>
-            {/*
-              Image desktop : affichée sur md+ (≥768px).
-              Si aucune image mobile, affichée sur tous les écrans.
-              Le wrapper div est absolute inset-0 ; c'est LUI qu'on cache
-              (pas l'<img>) pour que Next.js Image fonctionne correctement.
-            */}
             {slide.imageUrl && (
               <div
-                key={`photo-desk-${current}`}
-                className={`absolute inset-0 hero-anim-overlay${slide.mobileImageUrl ? ' hidden md:block' : ''}`}
+                key={`photo-desk-${current}-${animKey}`}
+                className={`absolute inset-0 hero-anim-overlay hero-ken-burns${slide.mobileImageUrl ? ' hidden md:block' : ''}`}
               >
-                <Image
-                  src={slide.imageUrl}
-                  alt=""
-                  fill
-                  priority
-                  sizes="(max-width: 1280px) 90vw, 1200px"
-                  quality={72}
+                <Image src={slide.imageUrl} alt="" fill priority
+                  sizes="(max-width: 1280px) 100vw, 1400px" quality={75}
                   className="object-cover object-center pointer-events-none"
                   draggable={false}
                 />
               </div>
             )}
-
-            {/*
-              Image mobile : affichée uniquement sur < md (< 768px).
-              Format portrait recommandé (ex : 9:16 ou 3:4).
-            */}
             {slide.mobileImageUrl && (
-              <div
-                key={`photo-mob-${current}`}
-                className="absolute inset-0 hero-anim-overlay md:hidden"
-              >
-                <Image
-                  src={slide.mobileImageUrl}
-                  alt=""
-                  fill
-                  priority
-                  sizes="100vw"
-                  quality={72}
+              <div key={`photo-mob-${current}-${animKey}`} className="absolute inset-0 hero-anim-overlay hero-ken-burns md:hidden">
+                <Image src={slide.mobileImageUrl} alt="" fill priority
+                  sizes="100vw" quality={75}
                   className="object-cover object-center pointer-events-none"
                   draggable={false}
                 />
               </div>
             )}
-
-            {/* Espace qui donne sa hauteur au card (flow normal, pas absolute) */}
-            <div className="min-h-[300px] md:min-h-[500px]" />
+            <div className="min-h-[56vw] md:min-h-[500px]" style={{ minHeight: 'min(60vh, 680px)' }} />
           </>
         ) : (
           <>
-            {/* Background video */}
-            {slide.videoUrl && (
-              <div className="absolute inset-0 hero-anim-overlay" key={`vid-${current}`}>
-                <video
-                  src={slide.videoUrl}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                  className="w-full h-full object-cover pointer-events-none"
-                />
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(105deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.60) 45%, rgba(0,0,0,0.20) 100%)' }} />
+            {/* Prev slide fading out */}
+            {prev !== null && slides[prev] && (
+              <div key={`prev-${prev}`} className="absolute inset-0 hero-anim-out" style={{ zIndex: 1 }}>
+                {slides[prev].videoUrl ? (
+                  <video src={slides[prev].videoUrl!} autoPlay loop muted playsInline className="w-full h-full object-cover pointer-events-none" />
+                ) : slides[prev].imageUrl ? (
+                  <Image src={slides[prev].imageUrl!} alt="" fill sizes="100vw" quality={55} className="object-cover pointer-events-none" draggable={false} />
+                ) : null}
+                <div className="absolute inset-0" style={{ background: 'linear-gradient(170deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.75) 70%, rgba(0,0,0,0.92) 100%)' }} />
               </div>
             )}
 
-            {/* Background image */}
-            {!slide.videoUrl && slide.imageUrl && (
-              <div className="absolute inset-0 hero-anim-overlay" key={`img-${current}`}>
-                <Image
-                  src={slide.imageUrl}
-                  alt=""
-                  fill
-                  priority
-                  sizes="(max-width: 768px) 100vw, (max-width: 1280px) 90vw, 1200px"
-                  quality={55}
-                  className="object-cover pointer-events-none"
-                  draggable={false}
-                />
-                <div className="absolute inset-0" style={{ background: 'linear-gradient(105deg, rgba(0,0,0,0.88) 0%, rgba(0,0,0,0.60) 45%, rgba(0,0,0,0.20) 100%)' }} />
-              </div>
-            )}
+            {/* Current slide */}
+            <div key={`curr-${current}-${animKey}`} className="absolute inset-0 hero-anim-overlay" style={{ zIndex: 2 }}>
+              {slide.videoUrl ? (
+                <>
+                  <video src={slide.videoUrl} autoPlay loop muted playsInline className="w-full h-full object-cover pointer-events-none" />
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(170deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.75) 70%, rgba(0,0,0,0.92) 100%)' }} />
+                </>
+              ) : slide.imageUrl ? (
+                <>
+                  <Image src={slide.imageUrl} alt="" fill priority
+                    sizes="(max-width: 768px) 100vw, (max-width: 1280px) 100vw, 1400px"
+                    quality={72} className="object-cover pointer-events-none hero-ken-burns" draggable={false}
+                  />
+                  <div className="absolute inset-0" style={{ background: 'linear-gradient(170deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.55) 50%, rgba(0,0,0,0.90) 100%)' }} />
+                </>
+              ) : (
+                <div className="absolute inset-0" style={slideBg(slide)} />
+              )}
+            </div>
 
             {/* ── Content ── */}
             <div
               key={animKey}
-              className="relative z-10 flex flex-col justify-end min-h-[340px] md:min-h-[420px] p-6 pb-16 md:p-10 md:pb-20"
+              className="relative flex flex-col justify-end p-5 pb-20 md:p-10 md:pb-24"
+              style={{ minHeight: 'min(62vh, 680px)', zIndex: 10 }}
             >
+              {/* Accent line */}
+              <div className="hero-anim-0 mb-3">
+                <span className="h-[3px] w-8 rounded-full inline-block" style={{ backgroundColor: settings.accentColor }} />
+              </div>
+
               {/* Badges */}
               {badges.length > 0 && (
-                <div className="hero-anim-0 flex flex-wrap gap-2 mb-4">
+                <div className="hero-anim-0 flex flex-wrap gap-2 mb-3">
                   {badges.map((badge, i) => {
                     const text = badge[locale as keyof typeof badge] || badge.fr || '';
                     if (!text) return null;
                     return (
-                      <div
-                        key={i}
-                        className="flex items-center gap-1.5 px-3 py-1 rounded-full"
-                        style={{ background: `${settings.accentColor}25`, border: `1px solid ${settings.accentColor}50` }}
-                      >
+                      <div key={i} className="flex items-center gap-1.5 px-3 py-1 rounded-full"
+                        style={{ background: `${settings.accentColor}25`, border: `1px solid ${settings.accentColor}50` }}>
                         <Check className="w-3 h-3 flex-shrink-0" style={{ color: settings.accentColor }} />
                         <span className="text-white text-xs font-semibold tracking-wide">{text}</span>
                       </div>
@@ -396,17 +386,12 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
                 </div>
               )}
 
-              {/* Accent bar */}
-              <div className="hero-anim-0 mb-3">
-                <span className="h-1 w-10 rounded-full inline-block" style={{ backgroundColor: settings.accentColor }} />
-              </div>
-
-              {/* Title — big like O-Tacos */}
+              {/* Title */}
               <h1
-                className="hero-anim-1 text-white font-black leading-[0.95] tracking-tight mb-3"
+                className="hero-anim-1 text-white font-black leading-[0.92] tracking-tight mb-3"
                 style={{
-                  fontSize: 'clamp(2.4rem, 8vw, 4.5rem)',
-                  textShadow: '0 2px 32px rgba(0,0,0,0.5)',
+                  fontSize: 'clamp(2.6rem, 9vw, 5rem)',
+                  textShadow: '0 2px 40px rgba(0,0,0,0.6)',
                 }}
               >
                 {title}
@@ -414,28 +399,28 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
 
               {/* Subtitle */}
               {subtitle && (
-                <p className="hero-anim-2 text-white/80 text-base md:text-lg mb-2 leading-relaxed font-medium max-w-lg">
+                <p className="hero-anim-2 text-white/75 text-sm md:text-base mb-3 leading-relaxed font-medium max-w-lg">
                   {subtitle}
                 </p>
               )}
 
               {/* Side text */}
               {sideText && (
-                <p className="hero-anim-3 text-white/50 text-sm mb-4 leading-relaxed italic">
+                <p className="hero-anim-3 text-white/45 text-sm mb-3 leading-relaxed italic">
                   {sideText}
                 </p>
               )}
 
               {/* CTA Buttons */}
               {slide.buttons.length > 0 && (
-                <div className="hero-anim-4 flex flex-wrap gap-2 mt-1">
+                <div className="hero-anim-4 flex flex-wrap gap-2.5 mt-1">
                   {slide.buttons.map(btn => (
                     <a
                       key={btn.id}
                       href={btn.url}
                       target={btn.url.startsWith('http') ? '_blank' : undefined}
                       rel={btn.url.startsWith('http') ? 'noopener noreferrer' : undefined}
-                      className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full font-bold text-sm transition-all hover:scale-105 active:scale-95 hover:shadow-lg"
+                      className="inline-flex items-center gap-2 px-5 py-3 rounded-full font-bold text-sm transition-all hover:scale-105 active:scale-95 hover:shadow-xl"
                       style={btnBg(btn)}
                       onClick={e => { if (isDragging.current) e.preventDefault(); }}
                     >
@@ -453,29 +438,21 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
         {/* ── Slider Controls ── */}
         {total > 1 && (
           <>
-            {/* Arrows */}
             {settings.showArrows && (
               <>
-                <button
-                  onClick={prev}
-                  aria-label="Slide précédent"
+                <button onClick={goPrev} aria-label="Slide précédent"
                   className="absolute left-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-20"
-                  style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
-                >
+                  style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)' }}>
                   <ChevronLeft className="w-5 h-5 text-white" />
                 </button>
-                <button
-                  onClick={next}
-                  aria-label="Slide suivant"
+                <button onClick={goNext} aria-label="Slide suivant"
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 z-20"
-                  style={{ background: 'rgba(255,255,255,0.15)', backdropFilter: 'blur(8px)' }}
-                >
+                  style={{ background: 'rgba(0,0,0,0.35)', backdropFilter: 'blur(8px)', border: '1px solid rgba(255,255,255,0.15)' }}>
                   <ChevronRight className="w-5 h-5 text-white" />
                 </button>
               </>
             )}
 
-            {/* Progress dots bar */}
             {settings.showDots && (
               <ProgressDots
                 key={animKey}
@@ -492,36 +469,50 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
         )}
       </div>
 
-      {/* ── Feature Cards ── */}
+      {/* ── Feature Cards — horizontal scroll on mobile ── */}
       {settings.showFeatureCards && featureCards.length > 0 && (
-        <div className="grid gap-3 mt-3" style={{ gridTemplateColumns: `repeat(${Math.min(featureCards.length, 3)}, 1fr)` }}>
+        <div
+          className="flex gap-3 mt-3 overflow-x-auto pb-1 md:grid md:overflow-visible md:pb-0"
+          style={{
+            scrollSnapType: 'x mandatory',
+            scrollbarWidth: 'none',
+            gridTemplateColumns: `repeat(${Math.min(featureCards.length, 3)}, 1fr)`,
+          }}
+        >
           {featureCards.map(card => {
             const cardTitle = t(card.titleJson, locale);
             const Inner = (
               <div
-                className="relative flex flex-col justify-between p-4 rounded-2xl min-h-[110px] md:min-h-[130px] transition-all hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] cursor-pointer overflow-hidden"
-                style={{ backgroundColor: card.bgColor }}
+                className="relative flex flex-col justify-between p-4 rounded-2xl transition-all hover:scale-[1.02] hover:shadow-lg active:scale-[0.98] cursor-pointer overflow-hidden flex-shrink-0 md:flex-shrink"
+                style={{
+                  backgroundColor: card.bgColor,
+                  scrollSnapAlign: 'start',
+                  minWidth: '140px',
+                  minHeight: '110px',
+                  width: 'calc(45vw)',
+                  maxWidth: '200px',
+                }}
               >
-                <div>
-                  <p className="font-black text-sm md:text-base leading-snug" style={{ color: card.textColor }}>
-                    {cardTitle}
-                  </p>
-                </div>
-                <div className="flex items-end justify-between mt-2">
-                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-xl flex items-center justify-center"
-                    style={{ background: `${card.iconColor}15` }}>
-                    <SlideIcon icon={card.icon} color={card.iconColor} size={22} />
+                <p className="font-black text-sm leading-snug" style={{ color: card.textColor }}>
+                  {cardTitle}
+                </p>
+                <div className="flex items-end justify-between mt-3">
+                  <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{ background: `${card.iconColor}18` }}>
+                    <SlideIcon icon={card.icon} color={card.iconColor} size={20} />
                   </div>
-                  <div className="w-8 h-8 rounded-full flex items-center justify-center"
+                  <div className="w-7 h-7 rounded-full flex items-center justify-center"
                     style={{ background: `${card.arrowColor}20` }}>
-                    <ArrowRight className="w-4 h-4" style={{ color: card.arrowColor }} />
+                    <ArrowRight className="w-3.5 h-3.5" style={{ color: card.arrowColor }} />
                   </div>
                 </div>
               </div>
             );
             if (card.url) return (
-              <a key={card.id} href={card.url} target={card.url.startsWith('http') ? '_blank' : undefined}
-                rel={card.url.startsWith('http') ? 'noopener noreferrer' : undefined}>
+              <a key={card.id} href={card.url}
+                target={card.url.startsWith('http') ? '_blank' : undefined}
+                rel={card.url.startsWith('http') ? 'noopener noreferrer' : undefined}
+                style={{ scrollSnapAlign: 'start' }}>
                 {Inner}
               </a>
             );

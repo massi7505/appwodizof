@@ -149,12 +149,23 @@ body {
   to   { transform: scaleX(1); }
 }
 
+@keyframes hero-ken-burns {
+  from { transform: scale(1);    }
+  to   { transform: scale(1.06); }
+}
+@keyframes hero-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+
 .hero-anim-0       { animation: hero-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.00s both; }
-.hero-anim-1       { animation: hero-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.10s both; }
-.hero-anim-2       { animation: hero-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.20s both; }
-.hero-anim-3       { animation: hero-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.30s both; }
-.hero-anim-4       { animation: hero-fade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) 0.40s both; }
-.hero-anim-overlay { animation: hero-fade-in 0.6s ease both; }
+.hero-anim-1       { animation: hero-fade-up 0.60s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both; }
+.hero-anim-2       { animation: hero-fade-up 0.60s cubic-bezier(0.16, 1, 0.3, 1) 0.18s both; }
+.hero-anim-3       { animation: hero-fade-up 0.60s cubic-bezier(0.16, 1, 0.3, 1) 0.28s both; }
+.hero-anim-4       { animation: hero-fade-up 0.60s cubic-bezier(0.16, 1, 0.3, 1) 0.38s both; }
+.hero-anim-overlay { animation: hero-fade-in 0.65s ease both; }
+.hero-anim-out     { animation: hero-fade-out 0.65s ease both; pointer-events: none; }
+.hero-ken-burns    { animation: hero-ken-burns 8s ease-out both; }
 
 /* ===== NOTIFICATION BANNER ANIMATIONS ===== */
 @keyframes notif-slide-in  { from { transform: translateY(-110%); opacity: 0; } to { transform: translateY(0);     opacity: 1; } }
