@@ -19,8 +19,11 @@ const nextConfig: NextConfig = {
   serverExternalPackages: ['sharp'],
   images: {
     remotePatterns: [
+      // Vercel Blob storage (primary image host)
+      { protocol: 'https', hostname: '*.public.blob.vercel-storage.com' },
+      { protocol: 'https', hostname: 'public.blob.vercel-storage.com' },
+      // Fallback: any https host (admin may configure external image URLs)
       { protocol: 'https', hostname: '**' },
-      { protocol: 'http', hostname: '**' },
     ],
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 60 * 60 * 24 * 30, // 30 days

@@ -1,9 +1,17 @@
 import type { Metadata } from 'next';
 import { Playfair_Display, DM_Sans } from 'next/font/google';
 import { headers } from 'next/headers';
+import { unstable_cache } from 'next/cache';
 import './globals.css';
 import { prisma } from '@/lib/db';
 import CookieConsent from '@/components/CookieConsent';
+
+// Cached siteSettings — shared between generateMetadata and getJsonLd (same request)
+const getCachedSiteSettings = unstable_cache(
+  () => prisma.siteSettings.findFirst(),
+  ['root-site-settings'],
+  { revalidate: 60 },
+);
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -23,7 +31,7 @@ const dmSans = DM_Sans({
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const settings = await prisma.siteSettings.findFirst();
+    const settings = await getCachedSiteSettings();
     const baseUrl = settings?.canonicalUrl?.replace(/\/$/, '') || 'https://woodiz.fr';
     const siteName = settings?.siteName || 'Woodiz';
     const title = settings?.metaTitle || `${siteName} — Pizzeria artisanale Paris 15`;
@@ -110,7 +118,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 async function getJsonLd() {
   try {
-    const settings = await prisma.siteSettings.findFirst();
+    const settings = await getCachedSiteSettings();
     const baseUrl = settings?.canonicalUrl?.replace(/\/$/, '') || 'https://woodiz.fr';
     const [hours, reviews] = await Promise.all([
       prisma.openingHours.findMany({ orderBy: { dayOfWeek: 'asc' } }),
