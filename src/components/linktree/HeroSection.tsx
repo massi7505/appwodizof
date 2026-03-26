@@ -285,11 +285,11 @@ export default function HeroSection({ settings, slides, featureCards, locale }: 
   try { if (slide.badgesJson) badges = JSON.parse(slide.badgesJson); } catch { /* noop */ }
 
   return (
-    <section className="w-full pb-4">
+    <section className="w-full">
       {/* ── Hero Card — full-bleed mobile, rounded on desktop ── */}
       <div
         ref={containerRef}
-        className="relative w-full overflow-hidden select-none md:rounded-3xl"
+        className="relative w-full overflow-hidden select-none"
         style={{ ...slideBg(slide), cursor: isDragging.current ? 'grabbing' : 'grab' }}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
