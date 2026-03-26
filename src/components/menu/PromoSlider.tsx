@@ -62,147 +62,157 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
   const expiryFn = EXPIRY_LABELS[locale] || EXPIRY_LABELS.fr;
 
   return (
-    <div>
-      {/* Mobile: stacked vertically — Desktop: grid, all cards visible */}
-      <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
-        {activePromos.map((promo, i) => {
-          const tr = promo.translations?.[0];
-          const days = promoDays[promo.id] ?? null;
-          const showExpiry = days !== null && days <= 6 && days >= 0;
-          const promoP = safePrice(promo.promoPrice);
-          const origP = safePrice(promo.originalPrice);
-          const isPriority = i === 0;
+    <div className="flex flex-col gap-3 sm:grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
+      {activePromos.map((promo, i) => {
+        const tr = promo.translations?.[0];
+        const days = promoDays[promo.id] ?? null;
+        const showExpiry = days !== null && days <= 6 && days >= 0;
+        const promoP = safePrice(promo.promoPrice);
+        const origP = safePrice(promo.originalPrice);
+        const isPriority = i === 0;
 
-          const isImageBg = promo.bgType === 'image' && promo.bgImageUrl;
-          const bgStyle = isImageBg
-            ? {}
-            : promo.bgType === 'gradient' && promo.bgGradient
-            ? { background: promo.bgGradient }
-            : { backgroundColor: promo.bgColor };
+        const isImageBg = promo.bgType === 'image' && promo.bgImageUrl;
+        const bgStyle = isImageBg
+          ? {}
+          : promo.bgType === 'gradient' && promo.bgGradient
+          ? { background: promo.bgGradient }
+          : { backgroundColor: promo.bgColor || '#F59E0B' };
 
-          // Photo-only card
-          if (promo.photoOnly && promo.bgImageUrl) {
-            return (
-              <div key={promo.id}
-                className="relative w-full rounded-2xl overflow-hidden"
-                style={{ height: '220px' }}>
-                <Image src={promo.bgImageUrl} alt={tr?.title || ''} fill
-                  sizes="(max-width: 640px) 100vw, 320px" quality={70} priority={isPriority}
-                  className="object-cover" />
-              </div>
-            );
-          }
+        const textCol = promo.textColor || '#fff';
 
-          const badgeText = (() => {
-            try { const b = JSON.parse(promo.badgeText || '{}'); return b[locale] || b.fr || null; }
-            catch { return promo.badgeText || null; }
-          })();
-
+        // ── Photo-only card ──
+        if (promo.photoOnly && promo.bgImageUrl) {
           return (
             <div key={promo.id}
-              className="group w-full rounded-2xl overflow-hidden relative"
-              style={{ ...bgStyle, height: '220px' }}>
+              className="relative w-full rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+              style={{ height: '240px' }}>
+              <Image src={promo.bgImageUrl} alt={tr?.title || ''} fill
+                sizes="(max-width: 640px) 100vw, 320px" quality={75} priority={isPriority}
+                className="object-cover" />
+            </div>
+          );
+        }
 
-              {/* Background image */}
-              {isImageBg && (
-                <>
-                  <Image src={promo.bgImageUrl} alt="" fill
-                    sizes="(max-width: 640px) 100vw, 320px" quality={70} priority={isPriority}
-                    className="object-cover transition-transform duration-700 group-hover:scale-105" />
-                  {/* Bottom gradient for readability */}
-                  <div className="absolute inset-0" style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.40) 50%, rgba(0,0,0,0.10) 100%)' }} />
-                </>
-              )}
+        const badgeText = (() => {
+          try { const b = JSON.parse(promo.badgeText || '{}'); return b[locale] || b.fr || null; }
+          catch { return promo.badgeText || null; }
+        })();
 
-              {/* Top-right: expiry badge */}
-              {showExpiry && (
-                <div className="absolute top-3 right-3 z-20">
-                  <span className="bg-red-500 text-white text-[9px] font-black px-2 py-1 rounded-lg tracking-wide uppercase shadow">
-                    {expiryFn(days!)}
-                  </span>
-                </div>
-              )}
+        // ── Regular card ──
+        return (
+          <div key={promo.id}
+            className="group relative w-full rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
+            style={{ ...bgStyle, minHeight: '240px', color: textCol }}>
 
-              {/* Top-left: promo badge */}
-              {badgeText && (
-                <div className="absolute top-3 left-3 z-20">
-                  <span className="font-black uppercase px-2.5 py-1 rounded-lg shadow"
+            {/* Background image + overlay */}
+            {isImageBg && (
+              <>
+                <Image src={promo.bgImageUrl} alt="" fill
+                  sizes="(max-width: 640px) 100vw, 320px" quality={75} priority={isPriority}
+                  className="object-cover" />
+                <div className="absolute inset-0"
+                  style={{ background: 'linear-gradient(170deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.88) 100%)' }} />
+              </>
+            )}
+
+            {/* Decorative circle for solid/gradient cards */}
+            {!isImageBg && (
+              <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
+                style={{ backgroundColor: 'rgba(255,255,255,0.08)' }} />
+            )}
+
+            {/* Top row: badges */}
+            <div className="relative z-10 flex items-start justify-between gap-2 p-3">
+              <div className="flex flex-wrap gap-1.5">
+                {badgeText && (
+                  <span className="font-black uppercase px-2.5 py-1 rounded-full shadow-sm tracking-wide"
                     style={{
-                      backgroundColor: promo.badgeColor,
-                      color: autoTextColor(promo.badgeColor),
+                      backgroundColor: promo.badgeColor || '#EF4444',
+                      color: autoTextColor(promo.badgeColor || '#EF4444'),
                       fontSize: `${promo.badgeSize || 10}px`,
                     }}>
                     {badgeText}
                   </span>
+                )}
+              </div>
+              {showExpiry && (
+                <span className="flex-shrink-0 bg-red-500 text-white font-black px-2 py-0.5 rounded-full tracking-wide uppercase shadow-sm"
+                  style={{ fontSize: '9px' }}>
+                  {expiryFn(days!)}
+                </span>
+              )}
+            </div>
+
+            {/* Spacer to push content to bottom */}
+            <div className="flex-1" />
+
+            {/* Bottom content */}
+            <div className="relative z-10 p-4 pt-2">
+              {tr?.title && (
+                <p className="font-black leading-tight mb-1 line-clamp-2"
+                  style={{
+                    fontSize: `${promo.titleSize || 16}px`,
+                    textShadow: isImageBg ? '0 1px 10px rgba(0,0,0,0.7)' : 'none',
+                  }}>
+                  {tr.title}
+                </p>
+              )}
+
+              {tr?.description && (
+                <p className="opacity-70 mb-2.5 line-clamp-2 leading-snug"
+                  style={{ fontSize: `${promo.descSize || 11}px` }}>
+                  {tr.description}
+                </p>
+              )}
+
+              {/* Price row */}
+              {promoP && (
+                <div className="flex items-baseline gap-1.5 mb-2.5">
+                  {origP && (
+                    <span className="line-through opacity-50"
+                      style={{ fontSize: `${Math.max(10, (promo.priceSize || 22) - 8)}px` }}>
+                      {origP}€
+                    </span>
+                  )}
+                  <span className="font-black leading-none"
+                    style={{
+                      fontSize: `${promo.priceSize || 22}px`,
+                      textShadow: isImageBg ? '0 1px 10px rgba(0,0,0,0.6)' : 'none',
+                    }}>
+                    {promoP}€
+                  </span>
                 </div>
               )}
 
-              {/* Content — bottom */}
-              <div className="absolute bottom-0 left-0 right-0 z-10 p-4" style={{ color: promo.textColor }}>
-                {tr?.title && (
-                  <p className="font-black leading-snug mb-1 line-clamp-2"
-                    style={{
-                      fontSize: `${promo.titleSize || 16}px`,
-                      textShadow: isImageBg ? '0 1px 8px rgba(0,0,0,0.6)' : 'none',
-                    }}>
-                    {tr.title}
-                  </p>
-                )}
-                {tr?.description && (
-                  <p className="opacity-75 mb-2 line-clamp-1"
-                    style={{ fontSize: `${promo.descSize || 12}px` }}>
-                    {tr.description}
-                  </p>
-                )}
+              {/* CTA button */}
+              {tr?.ctaUrl && tr?.cta && (
+                <a href={tr.ctaUrl} target="_blank" rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full font-black transition-all hover:scale-105 hover:shadow-lg active:scale-95 mb-1"
+                  style={{
+                    fontSize: `${promo.ctaSize || 12}px`,
+                    backgroundColor: primaryColor,
+                    color: autoTextColor(primaryColor),
+                  }}>
+                  {tr.cta}
+                  <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                  </svg>
+                </a>
+              )}
 
-                {/* Price + CTA row */}
-                <div className="flex items-end justify-between gap-2">
-                  {promoP && (
-                    <div className="flex items-baseline gap-1.5">
-                      {origP && (
-                        <span className="line-through opacity-50"
-                          style={{ fontSize: `${Math.max(10, (promo.priceSize || 24) - 8)}px` }}>
-                          {origP}€
-                        </span>
-                      )}
-                      <span className="font-black leading-none"
-                        style={{
-                          fontSize: `${promo.priceSize || 24}px`,
-                          textShadow: isImageBg ? '0 2px 12px rgba(0,0,0,0.5)' : 'none',
-                        }}>
-                        {promoP}€
-                      </span>
-                    </div>
-                  )}
-                  {tr?.ctaUrl && tr?.cta && (
-                    <a href={tr.ctaUrl} target="_blank" rel="noopener noreferrer"
-                      className="flex-shrink-0 font-bold px-3 py-1.5 rounded-full flex items-center gap-1 transition-all hover:scale-105"
-                      style={{
-                        fontSize: `${promo.ctaSize || 12}px`,
-                        background: 'rgba(255,255,255,0.22)',
-                        backdropFilter: 'blur(6px)',
-                        border: '1px solid rgba(255,255,255,0.3)',
-                      }}>
-                      {tr.cta}
-                      <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
-                      </svg>
-                    </a>
-                  )}
-                </div>
-
-                {promo.availFrom && promo.availTo && (
-                  <p className="text-[10px] opacity-60 mt-1.5 flex items-center gap-1">
-                    <span>🕐</span>
-                    <span>{(AVAIL_LABEL[locale] || AVAIL_LABEL.fr)(promo.availFrom, promo.availTo)}</span>
-                  </p>
-                )}
-              </div>
+              {/* Availability */}
+              {promo.availFrom && promo.availTo && (
+                <p className="opacity-55 mt-1.5 flex items-center gap-1" style={{ fontSize: '10px' }}>
+                  <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="10"/><path strokeLinecap="round" d="M12 6v6l4 2"/>
+                  </svg>
+                  {(AVAIL_LABEL[locale] || AVAIL_LABEL.fr)(promo.availFrom, promo.availTo)}
+                </p>
+              )}
             </div>
-          );
-        })}
-      </div>
-
+          </div>
+        );
+      })}
     </div>
   );
 }

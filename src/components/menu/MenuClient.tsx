@@ -247,8 +247,15 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
 
       {/* ===== PROMO SLIDER ===== */}
       {promos.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 pt-6">
-          <h2 className="text-lg font-bold text-gray-900 mb-3">{L.promos}</h2>
+        <div className="max-w-7xl mx-auto px-4 pt-8">
+          <div className="flex items-center gap-3 mb-4">
+            <h2 className="text-xl font-black text-gray-900">{L.promos}</h2>
+            <span className="text-xs font-black px-2.5 py-1 rounded-full"
+              style={{ backgroundColor: `${primaryColor}22`, color: primaryColor }}>
+              {promos.length}
+            </span>
+            <div className="flex-1 h-px bg-gray-200" />
+          </div>
           <PromoSlider promos={promos} locale={locale} primaryColor={primaryColor} />
         </div>
       )}
