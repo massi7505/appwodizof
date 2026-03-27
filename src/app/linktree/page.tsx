@@ -1,6 +1,32 @@
+import type { Metadata } from 'next';
 import { prisma } from '@/lib/db';
 import { pickBestTranslation } from '@/lib/menu-data';
+import { getCachedSeoSettings, buildSeoBase, buildSharedMeta } from '@/lib/seo';
 import VisitTracker from '@/components/VisitTracker';
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const settings = await getCachedSeoSettings();
+    const seo = buildSeoBase(settings);
+    const pageUrl = `${seo.baseUrl}/linktree`;
+    return {
+      title: { absolute: seo.title },
+      ...buildSharedMeta(seo, pageUrl),
+      alternates: {
+        canonical: pageUrl,
+        languages: {
+          fr: `${seo.baseUrl}/linktree`,
+          en: `${seo.baseUrl}/en/linktree`,
+          it: `${seo.baseUrl}/it/linktree`,
+          es: `${seo.baseUrl}/es/linktree`,
+          'x-default': `${seo.baseUrl}/linktree`,
+        },
+      },
+    };
+  } catch {
+    return { title: 'Woodiz — Pizzeria artisanale Paris 15' };
+  }
+}
 import LinktreeCover from '@/components/linktree/LinktreeCover';
 import LinktreeProfile from '@/components/linktree/LinktreeProfile';
 import LinktreeButtons from '@/components/linktree/LinktreeButtons';

@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import MenuClient from '@/components/menu/MenuClient';
 import VisitTracker from '@/components/VisitTracker';
 import {
@@ -6,10 +7,35 @@ import {
   fetchHeroData,
   fetchPopupSettings,
 } from '@/lib/menu-data';
+import { getCachedSeoSettings, buildSeoBase, buildSharedMeta } from '@/lib/seo';
 
 export const revalidate = 30;
 
 const LOCALE = 'fr';
+
+export async function generateMetadata(): Promise<Metadata> {
+  try {
+    const settings = await getCachedSeoSettings();
+    const seo = buildSeoBase(settings);
+    const pageUrl = `${seo.baseUrl}/menu`;
+    return {
+      title: 'Menu',
+      ...buildSharedMeta(seo, pageUrl),
+      alternates: {
+        canonical: pageUrl,
+        languages: {
+          fr: `${seo.baseUrl}/menu`,
+          en: `${seo.baseUrl}/en/menu`,
+          it: `${seo.baseUrl}/it/menu`,
+          es: `${seo.baseUrl}/es/menu`,
+          'x-default': `${seo.baseUrl}/menu`,
+        },
+      },
+    };
+  } catch {
+    return { title: 'Menu' };
+  }
+}
 
 export default async function MenuPageFR() {
   const [core, secondary, heroData, popupSettings] = await Promise.all([

@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/db';
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { getCachedSeoSettings, buildSeoBase } from '@/lib/seo';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,8 +13,20 @@ function tJson(json: string | null | undefined, locale = 'fr', fb = ''): string 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
   const p = prisma as any;
-  const page = await p.legalPage.findUnique({ where: { slug } }).catch(() => null);
-  return { title: tJson(page?.titleJson, 'fr', slug) };
+  const [page, settings] = await Promise.all([
+    p.legalPage.findUnique({ where: { slug } }).catch(() => null),
+    getCachedSeoSettings(),
+  ]);
+  const { baseUrl } = buildSeoBase(settings);
+  const title = tJson(page?.titleJson, 'fr', slug);
+  const content = tJson(page?.contentJson, 'fr', '');
+  const description = content ? content.slice(0, 155).replace(/\s+/g, ' ').trim() + '…' : undefined;
+  return {
+    title,
+    ...(description && { description }),
+    robots: { index: false, follow: false },
+    alternates: { canonical: `${baseUrl}/legal/${slug}` },
+  };
 }
 
 export default async function LegalPageRoute({ params }: { params: Promise<{ slug: string }> }) {

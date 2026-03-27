@@ -75,7 +75,6 @@ export async function generateMetadata(): Promise<Metadata> {
         type: 'website',
         locale: 'fr_FR',
         alternateLocale: ['en_US', 'it_IT', 'es_ES'],
-        url: `${baseUrl}/linktree`,
         title: ogTitle,
         description: ogDescription,
         siteName,
@@ -90,18 +89,6 @@ export async function generateMetadata(): Promise<Metadata> {
         description: ogDescription,
         ...(image && { images: [image] }),
       },
-
-      alternates: {
-        canonical: `${baseUrl}/linktree`,
-        languages: {
-          fr: `${baseUrl}/linktree`,
-          en: `${baseUrl}/en/linktree`,
-          it: `${baseUrl}/it/linktree`,
-          es: `${baseUrl}/es/linktree`,
-          'x-default': `${baseUrl}/linktree`,
-        },
-      },
-
     };
   } catch {
     return {

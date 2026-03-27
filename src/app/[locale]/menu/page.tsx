@@ -1,3 +1,4 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import MenuClient from '@/components/menu/MenuClient';
 import VisitTracker from '@/components/VisitTracker';
@@ -7,8 +8,34 @@ import {
   fetchHeroData,
   fetchPopupSettings,
 } from '@/lib/menu-data';
+import { getCachedSeoSettings, buildSeoBase, buildSharedMeta } from '@/lib/seo';
 
 export const revalidate = 30;
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  try {
+    const { locale } = await params;
+    const settings = await getCachedSeoSettings();
+    const seo = buildSeoBase(settings);
+    const pageUrl = `${seo.baseUrl}/${locale}/menu`;
+    return {
+      title: 'Menu',
+      ...buildSharedMeta(seo, pageUrl),
+      alternates: {
+        canonical: pageUrl,
+        languages: {
+          fr: `${seo.baseUrl}/menu`,
+          en: `${seo.baseUrl}/en/menu`,
+          it: `${seo.baseUrl}/it/menu`,
+          es: `${seo.baseUrl}/es/menu`,
+          'x-default': `${seo.baseUrl}/menu`,
+        },
+      },
+    };
+  } catch {
+    return { title: 'Menu' };
+  }
+}
 
 type Props = { params: Promise<{ locale: string }> };
 

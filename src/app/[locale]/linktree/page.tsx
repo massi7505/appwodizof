@@ -1,6 +1,33 @@
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
 import { pickBestTranslation } from '@/lib/menu-data';
+import { getCachedSeoSettings, buildSeoBase, buildSharedMeta } from '@/lib/seo';
+
+export async function generateMetadata({ params }: { params: Promise<{ locale: string }> }): Promise<Metadata> {
+  try {
+    const { locale } = await params;
+    const settings = await getCachedSeoSettings();
+    const seo = buildSeoBase(settings);
+    const pageUrl = `${seo.baseUrl}/${locale}/linktree`;
+    return {
+      title: { absolute: seo.title },
+      ...buildSharedMeta(seo, pageUrl),
+      alternates: {
+        canonical: pageUrl,
+        languages: {
+          fr: `${seo.baseUrl}/linktree`,
+          en: `${seo.baseUrl}/en/linktree`,
+          it: `${seo.baseUrl}/it/linktree`,
+          es: `${seo.baseUrl}/es/linktree`,
+          'x-default': `${seo.baseUrl}/linktree`,
+        },
+      },
+    };
+  } catch {
+    return { title: 'Woodiz — Pizzeria artisanale Paris 15' };
+  }
+}
 import VisitTracker from '@/components/VisitTracker';
 import LinktreeCover from '@/components/linktree/LinktreeCover';
 import LinktreeProfile from '@/components/linktree/LinktreeProfile';
