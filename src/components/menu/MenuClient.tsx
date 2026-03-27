@@ -11,12 +11,12 @@ import HeroSection from '@/components/linktree/HeroSection';
 import { SmartNotificationBar } from '@/components/linktree/NotificationBar';
 import type { NotificationBannerData, OpeningHoursData } from '@/components/linktree/NotificationBar';
 
-const ProductModal = dynamic(() => import('./ProductModal'), { ssr: false });
-const GoogleReviewPopup = dynamic(() => import('./GoogleReviewPopup'), { ssr: false });
-const LeadsPopup = dynamic(() => import('./LeadsPopup'), { ssr: false });
-const ReviewsSection = dynamic(() => import('./ReviewsSection').then(m => ({ default: m.ReviewsSection })), { ssr: false });
-const FAQSection = dynamic(() => import('./ReviewsSection').then(m => ({ default: m.FAQSection })), { ssr: false });
-const MenuFooter = dynamic(() => import('./MenuFooter'), { ssr: false });
+const ProductModal = dynamic(() => import('./ProductModal'), { ssr: false, loading: () => null });
+const GoogleReviewPopup = dynamic(() => import('./GoogleReviewPopup'), { ssr: false, loading: () => null });
+const LeadsPopup = dynamic(() => import('./LeadsPopup'), { ssr: false, loading: () => null });
+const ReviewsSection = dynamic(() => import('./ReviewsSection').then(m => ({ default: m.ReviewsSection })), { ssr: false, loading: () => <div className="h-48 skeleton mx-4 rounded-2xl" /> });
+const FAQSection = dynamic(() => import('./ReviewsSection').then(m => ({ default: m.FAQSection })), { ssr: false, loading: () => <div className="h-32 skeleton mx-4 rounded-2xl" /> });
+const MenuFooter = dynamic(() => import('./MenuFooter'), { ssr: false, loading: () => null });
 
 interface Translation { locale: string; name: string; description?: string | null }
 interface Product {

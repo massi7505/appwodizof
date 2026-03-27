@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Playfair_Display, DM_Sans } from 'next/font/google';
 import { headers } from 'next/headers';
 import { unstable_cache } from 'next/cache';
@@ -28,6 +28,12 @@ const dmSans = DM_Sans({
   display: 'swap',
   preload: true,
 });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  themeColor: '#111827',
+};
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
@@ -187,6 +193,8 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <html lang="fr" className={`${playfair.variable} ${dmSans.variable}`}>
       <head>
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link rel="preconnect" href="https://public.blob.vercel-storage.com" crossOrigin="anonymous" />
         {faviconUrl ? (
           <>

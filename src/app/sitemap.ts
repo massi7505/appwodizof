@@ -22,12 +22,20 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const entries: MetadataRoute.Sitemap = [];
 
   for (const page of pages) {
+    const allLocales = ['fr', ...locales];
+    const alternates = {
+      languages: Object.fromEntries(
+        allLocales.map(l => [l, l === 'fr' ? `${baseUrl}${page.path}` : `${baseUrl}/${l}${page.path}`])
+      ) as Record<string, string>,
+    };
+
     // French (default, no locale prefix)
     entries.push({
       url: `${baseUrl}${page.path}`,
       lastModified: now,
       changeFrequency: page.changeFreq,
       priority: page.priority,
+      alternates,
     });
     // Other locales
     for (const locale of locales) {
@@ -36,6 +44,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         lastModified: now,
         changeFrequency: page.changeFreq,
         priority: Math.round(page.priority * 0.85 * 100) / 100,
+        alternates,
       });
     }
   }
