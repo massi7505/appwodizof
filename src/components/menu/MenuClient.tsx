@@ -242,6 +242,7 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
           slides={heroData.slides}
           featureCards={heroData.featureCards}
           locale={locale}
+          primaryColor={primaryColor}
         />
       )}
 
