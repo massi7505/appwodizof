@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/db';
+import { pickBestTranslation } from '@/lib/menu-data';
 import VisitTracker from '@/components/VisitTracker';
 import LinktreeCover from '@/components/linktree/LinktreeCover';
 import LinktreeProfile from '@/components/linktree/LinktreeProfile';
@@ -39,6 +40,7 @@ export default async function LinktreePageFR() {
     ...p,
     promoPrice: p.promoPrice != null ? p.promoPrice.toString() : null,
     originalPrice: p.originalPrice != null ? p.originalPrice.toString() : null,
+    translations: pickBestTranslation(p.translations || [], LOCALE),
   }));
   const faqsList = faqs.status === 'fulfilled' ? faqs.value : [];
   const faqSchemaItems = (faqsList as any[]).filter(f => f.translations?.[0]).map(f => ({

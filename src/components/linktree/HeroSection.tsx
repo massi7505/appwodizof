@@ -355,10 +355,12 @@ export default function HeroSection({ settings, slides, featureCards, locale, pr
                 </div>
               )}
 
-              {/* Accent line */}
-              <div className="hero-anim-0 mb-3">
-                <span className="h-[3px] w-10 rounded-full inline-block" style={{ backgroundColor: accent }} />
-              </div>
+              {/* Accent line — only if there's actual text content */}
+              {title && (
+                <div className="hero-anim-0 mb-3">
+                  <span className="h-[3px] w-10 rounded-full inline-block" style={{ backgroundColor: accent }} />
+                </div>
+              )}
 
               {/* Badges */}
               {badges.length > 0 && (

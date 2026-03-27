@@ -20,7 +20,7 @@ export default async function MenuPageFR() {
   ]);
 
   const { categories, promos, reviews, faqs, notifBar, site } = core;
-  const { banners, openingHours, orderLinks } = secondary;
+  const { banners, openingHours, orderLinks, footerSettings } = secondary;
 
   const faqSchemaItems = faqs
     .filter((f: any) => f.translations?.[0])
@@ -57,6 +57,7 @@ export default async function MenuPageFR() {
         banners={banners}
         openingHours={openingHours}
         orderLinks={orderLinks}
+        footerSettings={footerSettings}
         popupSettings={popupSettings}
       />
     </div>

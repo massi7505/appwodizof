@@ -44,6 +44,7 @@ interface Props {
   banners?: NotificationBannerData[];
   openingHours?: OpeningHoursData[];
   orderLinks?: { label: string; url: string }[];
+  footerSettings?: any;
   popupSettings?: any;
 }
 
@@ -67,8 +68,9 @@ function sortProducts(products: Product[]): Product[] {
   });
 }
 
-export default function MenuClient({ categories, promos, reviews, faqs, site, locale, heroData, notifBar, banners = [], openingHours = [], orderLinks = [], popupSettings }: Props) {
+export default function MenuClient({ categories, promos, reviews, faqs, site, locale, heroData, notifBar, banners = [], openingHours = [], orderLinks = [], footerSettings, popupSettings }: Props) {
   const [search, setSearch] = useState('');
+  const [activePromoCount, setActivePromoCount] = useState(promos.length);
   const [activeCategoryId, setActiveCategoryId] = useState<number | null>(() => {
     if (site?.defaultCategoryId) return site.defaultCategoryId;
     return categories[0]?.id ?? null;
@@ -253,13 +255,15 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
         <div className="max-w-7xl mx-auto px-4 pt-8">
           <div className="flex items-center gap-3 mb-4">
             <h2 className="text-xl font-black text-gray-900">{L.promos}</h2>
-            <span className="text-xs font-black px-2.5 py-1 rounded-full"
-              style={{ backgroundColor: `${primaryColor}22`, color: primaryColor }}>
-              {promos.length}
-            </span>
+            {activePromoCount > 0 && (
+              <span className="text-xs font-black px-2.5 py-1 rounded-full"
+                style={{ backgroundColor: `${primaryColor}22`, color: primaryColor }}>
+                {activePromoCount}
+              </span>
+            )}
             <div className="flex-1 h-px bg-gray-200" />
           </div>
-          <PromoSlider promos={promos} locale={locale} primaryColor={primaryColor} />
+          <PromoSlider promos={promos} locale={locale} primaryColor={primaryColor} onActiveCount={setActivePromoCount} />
         </div>
       )}
 
@@ -408,7 +412,7 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
       </main>
 
       {/* ===== FOOTER ===== */}
-      <MenuFooter site={site} locale={locale} orderLinks={orderLinks} />
+      <MenuFooter site={site} locale={locale} orderLinks={orderLinks} footerSettings={footerSettings} />
 
       {/* ===== LEADS POPUP ===== */}
       {popupSettings?.enabled && (

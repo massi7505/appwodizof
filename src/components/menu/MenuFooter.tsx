@@ -4,7 +4,13 @@ import { useState } from 'react';
 import Image from 'next/image';
 
 interface OrderLink { label: string; url: string; }
-interface Props { site: any; locale: string; orderLinks?: OrderLink[]; }
+interface FooterLink { label: string; url: string; }
+interface FooterCol  { title: string; items: FooterLink[] }
+interface Props { site: any; locale: string; orderLinks?: OrderLink[]; footerSettings?: any; }
+
+function parseCol(raw: string | null | undefined, fallback: FooterCol): FooterCol {
+  try { return raw ? JSON.parse(raw) : fallback; } catch { return fallback; }
+}
 
 function ensureUrl(url: string): string {
   if (!url) return '#';
@@ -38,13 +44,29 @@ function footerBg(hex: string): string {
   return lum > 0.4 ? '#0f172a' : darken(hex, 0.15);
 }
 
-export default function MenuFooter({ site, locale, orderLinks = [] }: Props) {
+export default function MenuFooter({ site, locale, orderLinks = [], footerSettings }: Props) {
   const L = FOOTER_COLS[locale] || FOOTER_COLS.fr;
   const name = site?.siteName || 'Woodiz';
   const year = new Date().getFullYear();
-  const primary = site?.primaryColor || '#F59E0B';
-  const bg = footerBg(site?.backgroundColor || '#111827');
+  const primary = footerSettings?.accentColor || site?.primaryColor || '#F59E0B';
+  const bg = footerBg(footerSettings?.bgColor || site?.backgroundColor || '#111827');
   const borderStyle = `1px solid ${primary}18`;
+
+  // Footer columns from DB settings (with fallbacks)
+  const col1 = parseCol(footerSettings?.col1Json, {
+    title: L.menu,
+    items: [
+      { label: 'Base Tomate', url: locale === 'fr' ? '/menu' : `/${locale}/menu` },
+      { label: 'Base Crème',  url: locale === 'fr' ? '/menu' : `/${locale}/menu` },
+      { label: 'Boissons',    url: locale === 'fr' ? '/menu' : `/${locale}/menu` },
+      { label: 'Notre Histoire', url: '/notre-histoire' },
+    ],
+  });
+  const col2 = parseCol(footerSettings?.col2Json, { title: L.order, items: [] });
+  const col3 = parseCol(footerSettings?.col3Json, { title: '', items: [] });
+  const copyright = (footerSettings?.copyright || `© ${year} ${name}. Tous droits réservés.`)
+    .replace('{year}', String(year))
+    .replace('{name}', name);
 
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'loading' | 'ok' | 'err'>('idle');
@@ -127,25 +149,51 @@ export default function MenuFooter({ site, locale, orderLinks = [] }: Props) {
             </div>
           </div>
 
-          {/* ── Navigation ── */}
-          <div>
-            <h3 className="text-white font-bold text-sm mb-4">{L.menu}</h3>
-            <div className="space-y-2 text-xs text-gray-500">
-              <a href={locale === 'fr' ? '/menu' : `/${locale}/menu`} className="block hover:text-white transition-colors">Base Tomate</a>
-              <a href={locale === 'fr' ? '/menu' : `/${locale}/menu`} className="block hover:text-white transition-colors">Base Crème</a>
-              <a href={locale === 'fr' ? '/menu' : `/${locale}/menu`} className="block hover:text-white transition-colors">Boissons</a>
-              <a href="/notre-histoire" className="block hover:text-white transition-colors">Notre Histoire</a>
-            </div>
-          </div>
-
-          {/* ── Order links ── */}
-          {orderLinks.length > 0 && (
+          {/* ── Column 1 (navigation) ── */}
+          {(col1.items.length > 0 || col1.title) && (
             <div>
-              <h3 className="text-white font-bold text-sm mb-4">{L.order}</h3>
+              {col1.title && <h3 className="text-white font-bold text-sm mb-4">{col1.title}</h3>}
               <div className="space-y-2 text-xs text-gray-500">
-                {orderLinks.map(link => (
-                  <a key={link.url} href={ensureUrl(link.url)} target="_blank" rel="noopener noreferrer"
+                {col1.items.map((link, i) => (
+                  <a key={i} href={ensureUrl(link.url)} className="block hover:text-white transition-colors">
+                    {link.label}
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Column 2 (order links — merged with DB col2 + orderLinks prop) ── */}
+          {(col2.items.length > 0 || orderLinks.length > 0) && (
+            <div>
+              {col2.title && <h3 className="text-white font-bold text-sm mb-4">{col2.title}</h3>}
+              <div className="space-y-2 text-xs text-gray-500">
+                {col2.items.map((link, i) => (
+                  <a key={`c2-${i}`} href={ensureUrl(link.url)} target="_blank" rel="noopener noreferrer"
                     className="block hover:text-white transition-colors">
+                    {link.label}
+                  </a>
+                ))}
+                {/* Append order links from linktree buttons if not already in col2 */}
+                {orderLinks
+                  .filter(ol => !col2.items.some(c => c.url === ol.url))
+                  .map(link => (
+                    <a key={link.url} href={ensureUrl(link.url)} target="_blank" rel="noopener noreferrer"
+                      className="block hover:text-white transition-colors">
+                      {link.label}
+                    </a>
+                  ))}
+              </div>
+            </div>
+          )}
+
+          {/* ── Column 3 (optional extra column) ── */}
+          {(col3.items.length > 0 || col3.title) && (
+            <div>
+              {col3.title && <h3 className="text-white font-bold text-sm mb-4">{col3.title}</h3>}
+              <div className="space-y-2 text-xs text-gray-500">
+                {col3.items.map((link, i) => (
+                  <a key={i} href={ensureUrl(link.url)} className="block hover:text-white transition-colors">
                     {link.label}
                   </a>
                 ))}
@@ -155,7 +203,9 @@ export default function MenuFooter({ site, locale, orderLinks = [] }: Props) {
 
           {/* ── Subscribe ── */}
           <div className={orderLinks.length === 0 ? 'col-span-1' : ''}>
-            <h3 className="text-white font-bold text-sm mb-4">{L.subscribe}</h3>
+            <h3 className="text-white font-bold text-sm mb-4">
+              {parseCol(footerSettings?.col4Json, { title: L.subscribe, items: [] }).title || L.subscribe}
+            </h3>
             {status === 'ok' ? (
               <p className="text-sm font-semibold" style={{ color: primary }}>{L.subscribeOk}</p>
             ) : (
@@ -211,7 +261,7 @@ export default function MenuFooter({ site, locale, orderLinks = [] }: Props) {
             </a>
           </p>
           <p className="text-center text-xs text-gray-600">
-            © {year} {name}. Tous droits réservés. · Développé par{' '}
+            {copyright} · Développé par{' '}
             <a href="/" className="font-semibold hover:opacity-80 transition-opacity" style={{ color: primary }}>AdsBooster</a>
           </p>
         </div>

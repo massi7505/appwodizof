@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import { prisma } from '@/lib/db';
+import { pickBestTranslation } from '@/lib/menu-data';
 import VisitTracker from '@/components/VisitTracker';
 import LinktreeCover from '@/components/linktree/LinktreeCover';
 import LinktreeProfile from '@/components/linktree/LinktreeProfile';
@@ -24,7 +25,7 @@ export default async function LinktreePage({ params }: Props) {
     prisma.promotion.findMany({
       where: { isVisible: true, showOnLinktree: true },
       orderBy: { sortOrder: 'asc' },
-      include: { translations: { where: { locale } } },
+      include: { translations: { where: { locale: { in: [...new Set([locale, 'fr'])] } } } },
     }),
     prisma.fAQ.findMany({
       where: { isVisible: true, showOnMenu: true },
@@ -42,6 +43,7 @@ export default async function LinktreePage({ params }: Props) {
     ...p,
     promoPrice: p.promoPrice != null ? p.promoPrice.toString() : null,
     originalPrice: p.originalPrice != null ? p.originalPrice.toString() : null,
+    translations: pickBestTranslation(p.translations || [], locale),
   }));
   const faqsList = faqs.status === 'fulfilled' ? faqs.value : [];
   const faqSchemaItems = (faqsList as any[]).filter(f => f.translations?.[0]).map(f => ({

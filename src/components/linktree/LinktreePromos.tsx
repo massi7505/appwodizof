@@ -67,6 +67,15 @@ function safePrice(val: any): string | null {
   return isNaN(n) ? null : n.toFixed(2);
 }
 
+function getBestTranslation(promo: Promo, locale: string) {
+  if (!promo.translations?.length) return null;
+  return (
+    promo.translations.find(t => (t as any).locale === locale) ||
+    promo.translations.find(t => (t as any).locale === 'fr') ||
+    promo.translations[0]
+  );
+}
+
 export default function LinktreePromos({ promos, locale }: Props) {
   // Date filtering on client only (avoids SSR/hydration mismatch)
   const [active, setActive] = useState<Promo[]>(promos);
@@ -89,7 +98,7 @@ export default function LinktreePromos({ promos, locale }: Props) {
 
       <div className="space-y-3">
         {active.map((promo) => {
-          const t = promo.translations[0];
+          const t = getBestTranslation(promo, locale);
           if (!t) return null;
 
           const days = daysUntilExpiry(promo.endsAt);

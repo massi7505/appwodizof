@@ -23,7 +23,7 @@ export default async function MenuPage({ params }: Props) {
   ]);
 
   const { categories, promos, reviews, faqs, notifBar, site } = core;
-  const { banners, openingHours, orderLinks } = secondary;
+  const { banners, openingHours, orderLinks, footerSettings } = secondary;
 
   const enabledLocales: string[] = (() => {
     try { return JSON.parse(site?.enabledLocales || '["fr","en","it","es"]'); }
@@ -67,6 +67,7 @@ export default async function MenuPage({ params }: Props) {
         banners={banners}
         openingHours={openingHours}
         orderLinks={orderLinks}
+        footerSettings={footerSettings}
         popupSettings={popupSettings}
       />
     </div>

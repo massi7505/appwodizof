@@ -43,7 +43,7 @@ export function serializeCategories(categories: any[], locale: string) {
   });
 }
 
-export function serializePromos(promos: any[]) {
+export function serializePromos(promos: any[], locale = 'fr') {
   return promos.map(p => ({
     ...p,
     promoPrice: p.promoPrice ? parseFloat(p.promoPrice.toString()) : null,
@@ -52,6 +52,7 @@ export function serializePromos(promos: any[]) {
     updatedAt: p.updatedAt?.toISOString() ?? null,
     startsAt: p.startsAt?.toISOString() ?? null,
     endsAt: p.endsAt?.toISOString() ?? null,
+    translations: pickBestTranslation(p.translations || [], locale),
   }));
 }
 
@@ -93,7 +94,7 @@ export async function fetchMenuCoreData(locale: string) {
     prisma.promotion.findMany({
       where: { isVisible: true, showOnMenu: true },
       orderBy: { sortOrder: 'asc' },
-      include: { translations: { where: { locale } } },
+      include: { translations: { where: { locale: { in: [...new Set([locale, 'fr'])] } } } },
     }),
     prisma.review.findMany({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' } }),
     prisma.fAQ.findMany({
@@ -108,7 +109,7 @@ export async function fetchMenuCoreData(locale: string) {
   const rawCategories = categoriesRes.status === 'fulfilled' ? categoriesRes.value : [];
   return {
     categories: serializeCategories(rawCategories.filter((c: any) => c.products.length > 0), locale),
-    promos: serializePromos(promosRes.status === 'fulfilled' ? promosRes.value : []),
+    promos: serializePromos(promosRes.status === 'fulfilled' ? promosRes.value : [], locale),
     reviews: serializeReviews(reviewsRes.status === 'fulfilled' ? reviewsRes.value : []),
     faqs: (faqsRes.status === 'fulfilled' ? faqsRes.value : []) as any[],
     notifBar: notifRes.status === 'fulfilled' ? notifRes.value : null,
@@ -116,10 +117,10 @@ export async function fetchMenuCoreData(locale: string) {
   };
 }
 
-/** Secondary menu data: banners, opening hours, order links — run after core. */
+/** Secondary menu data: banners, opening hours, order links, footer settings — run after core. */
 export async function fetchMenuSecondaryData() {
   const p = prisma as any;
-  const [bannersRaw, openingHoursRaw, orderLinksRaw] = await Promise.all([
+  const [bannersRaw, openingHoursRaw, orderLinksRaw, footerRaw] = await Promise.all([
     p.notificationBanner?.findMany?.({
       where: { isVisible: true },
       orderBy: [{ priority: 'desc' }, { sortOrder: 'asc' }],
@@ -129,6 +130,7 @@ export async function fetchMenuSecondaryData() {
     prisma.linktreeButton
       .findMany({ where: { isVisible: true, section: { in: ['commander', 'contact'] } }, orderBy: { sortOrder: 'asc' } })
       .catch(() => []),
+    p.footerSettings?.findFirst?.().catch(() => null) ?? null,
   ]);
 
   return {
@@ -137,6 +139,7 @@ export async function fetchMenuSecondaryData() {
     orderLinks: ((orderLinksRaw ?? []) as any[])
       .filter((b: any) => b.url && !b.url.startsWith('/') && !b.url.startsWith('tel:') && !b.url.startsWith('mailto:'))
       .map((b: any) => ({ label: b.label, url: b.url })),
+    footerSettings: footerRaw ?? null,
   };
 }
 
