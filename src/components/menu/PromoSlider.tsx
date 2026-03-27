@@ -71,6 +71,9 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
         const origP = safePrice(promo.originalPrice);
         const isPriority = i === 0;
 
+        // Last item alone on mobile (odd total) → span 2 cols, landscape ratio
+        const isLastOdd = i === activePromos.length - 1 && activePromos.length % 2 !== 0;
+
         const isImageBg = promo.bgType === 'image' && promo.bgImageUrl;
         const bgStyle = isImageBg
           ? {}
@@ -80,129 +83,155 @@ export default function PromoSlider({ promos, locale, primaryColor }: Props) {
 
         const textCol = promo.textColor || '#fff';
 
-        // ── Photo-only card ──
-        if (promo.photoOnly && promo.bgImageUrl) {
-          return (
-            <div key={promo.id}
-              className="relative w-full rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-              style={{ height: 'clamp(160px, 40vw, 240px)' }}>
-              <Image src={promo.bgImageUrl} alt={tr?.title || ''} fill
-                sizes="(max-width: 640px) 100vw, 320px" quality={75} priority={isPriority}
-                className="object-cover" />
-            </div>
-          );
-        }
-
         const badgeText = (() => {
           try { const b = JSON.parse(promo.badgeText || '{}'); return b[locale] || b.fr || null; }
           catch { return promo.badgeText || null; }
         })();
 
+        // Discount % pill (only if both prices exist and promo is cheaper)
+        const discountPct = (promoP && origP)
+          ? Math.round((1 - parseFloat(promoP) / parseFloat(origP)) * 100)
+          : null;
+
+        // Card aspect ratio: landscape for lone last card on mobile, portrait elsewhere
+        const aspectClass = isLastOdd
+          ? 'aspect-[16/7] sm:aspect-[3/4]'
+          : 'aspect-[3/4]';
+
+        // ── Photo-only card ──
+        if (promo.photoOnly && promo.bgImageUrl) {
+          return (
+            <div key={promo.id}
+              className={`relative w-full rounded-2xl overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl ${aspectClass} ${isLastOdd ? 'col-span-2 sm:col-span-1' : ''}`}>
+              <Image src={promo.bgImageUrl} alt={tr?.title || ''} fill
+                sizes="(max-width: 640px) 100vw, 320px" quality={80} priority={isPriority}
+                className="object-cover" />
+            </div>
+          );
+        }
+
         // ── Regular card ──
         return (
           <div key={promo.id}
-            className="group relative w-full rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl"
-            style={{ ...bgStyle, minHeight: 'clamp(160px, 40vw, 240px)', color: textCol }}>
+            className={`group relative w-full rounded-2xl overflow-hidden flex flex-col transition-all duration-300 hover:-translate-y-1.5 hover:shadow-2xl ${aspectClass} ${isLastOdd ? 'col-span-2 sm:col-span-1' : ''}`}
+            style={{ ...bgStyle, color: textCol }}>
 
-            {/* Background image + overlay */}
+            {/* Background image + strong bottom gradient */}
             {isImageBg && (
               <>
                 <Image src={promo.bgImageUrl} alt="" fill
-                  sizes="(max-width: 640px) 100vw, 320px" quality={75} priority={isPriority}
-                  className="object-cover" />
+                  sizes="(max-width: 640px) 100vw, 320px" quality={80} priority={isPriority}
+                  className="object-cover group-hover:scale-105 transition-transform duration-500" />
                 <div className="absolute inset-0"
-                  style={{ background: 'linear-gradient(170deg, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.88) 100%)' }} />
+                  style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.2) 35%, rgba(0,0,0,0.82) 75%, rgba(0,0,0,0.95) 100%)' }} />
               </>
             )}
 
-            {/* Decorative circle for solid/gradient cards */}
+            {/* Decorative circles for solid / gradient cards */}
             {!isImageBg && (
-              <div className="absolute -top-8 -right-8 w-32 h-32 rounded-full pointer-events-none"
-                style={{ backgroundColor: 'rgba(255,255,255,0.08)' }} />
+              <>
+                <div className="absolute -top-8 -right-8 w-28 h-28 rounded-full pointer-events-none"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.12)' }} />
+                <div className="absolute top-4 -right-4 w-14 h-14 rounded-full pointer-events-none"
+                  style={{ backgroundColor: 'rgba(255,255,255,0.07)' }} />
+                <div className="absolute -bottom-10 -left-10 w-36 h-36 rounded-full pointer-events-none"
+                  style={{ backgroundColor: 'rgba(0,0,0,0.12)' }} />
+              </>
             )}
 
-            {/* Top row: badges */}
-            <div className="relative z-10 flex items-start justify-between gap-1 p-2 sm:p-3">
-              <div className="flex flex-wrap gap-1.5">
-                {badgeText && (
-                  <span className="font-black uppercase px-2.5 py-1 rounded-full shadow-sm tracking-wide"
+            {/* ── Top row: badge + expiry ── */}
+            <div className="relative z-10 flex items-start justify-between gap-1 p-2 sm:p-3 flex-shrink-0">
+              {badgeText ? (
+                <span className="font-black uppercase rounded-md shadow tracking-wide leading-none px-1.5 py-1 sm:px-2.5 sm:py-1"
+                  style={{
+                    backgroundColor: promo.badgeColor || '#EF4444',
+                    color: autoTextColor(promo.badgeColor || '#EF4444'),
+                    fontSize: `clamp(7px, 1.8vw, ${promo.badgeSize || 10}px)`,
+                  }}>
+                  {badgeText}
+                </span>
+              ) : <span />}
+
+              <div className="flex flex-col items-end gap-1">
+                {showExpiry && (
+                  <span className="bg-red-500 text-white font-black rounded-md leading-none tracking-wide uppercase shadow px-1.5 py-1"
+                    style={{ fontSize: 'clamp(7px, 1.6vw, 9px)' }}>
+                    {expiryFn(days!)}
+                  </span>
+                )}
+                {discountPct !== null && discountPct > 0 && (
+                  <span className="font-black rounded-md leading-none shadow px-1.5 py-1"
                     style={{
-                      backgroundColor: promo.badgeColor || '#EF4444',
-                      color: autoTextColor(promo.badgeColor || '#EF4444'),
-                      fontSize: `${promo.badgeSize || 10}px`,
+                      fontSize: 'clamp(7px, 1.6vw, 9px)',
+                      backgroundColor: '#22c55e',
+                      color: '#052e16',
                     }}>
-                    {badgeText}
+                    -{discountPct}%
                   </span>
                 )}
               </div>
-              {showExpiry && (
-                <span className="flex-shrink-0 bg-red-500 text-white font-black px-2 py-0.5 rounded-full tracking-wide uppercase shadow-sm"
-                  style={{ fontSize: '9px' }}>
-                  {expiryFn(days!)}
-                </span>
-              )}
             </div>
 
-            {/* Spacer to push content to bottom */}
+            {/* Spacer */}
             <div className="flex-1" />
 
-            {/* Bottom content */}
-            <div className="relative z-10 p-2.5 sm:p-4 sm:pt-2">
+            {/* ── Bottom content ── */}
+            <div className="relative z-10 p-2 sm:p-3 flex-shrink-0">
               {tr?.title && (
-                <p className="font-black leading-tight mb-1 line-clamp-2"
+                <p className="font-black leading-tight line-clamp-2 mb-0.5"
                   style={{
-                    fontSize: `clamp(12px, 2.5vw, ${promo.titleSize || 16}px)`,
-                    textShadow: isImageBg ? '0 1px 10px rgba(0,0,0,0.7)' : 'none',
+                    fontSize: `clamp(11px, 2.8vw, ${promo.titleSize || 15}px)`,
+                    textShadow: isImageBg ? '0 1px 6px rgba(0,0,0,0.9)' : 'none',
                   }}>
                   {tr.title}
                 </p>
               )}
 
               {tr?.description && (
-                <p className="opacity-70 mb-1.5 line-clamp-2 leading-snug hidden sm:block"
+                <p className="opacity-75 line-clamp-1 leading-snug mb-1 hidden sm:block"
                   style={{ fontSize: `${promo.descSize || 11}px` }}>
                   {tr.description}
                 </p>
               )}
 
-              {/* Price row */}
+              {/* Price */}
               {promoP && (
-                <div className="flex items-baseline gap-1 mb-2">
+                <div className="flex items-baseline gap-1 mt-0.5">
                   {origP && (
-                    <span className="line-through opacity-50"
-                      style={{ fontSize: `clamp(9px, 2vw, ${Math.max(10, (promo.priceSize || 22) - 8)}px)` }}>
+                    <span className="line-through opacity-55"
+                      style={{ fontSize: `clamp(9px, 2vw, ${Math.max(10, (promo.priceSize || 20) - 6)}px)` }}>
                       {origP}€
                     </span>
                   )}
                   <span className="font-black leading-none"
                     style={{
-                      fontSize: `clamp(14px, 4vw, ${promo.priceSize || 22}px)`,
-                      textShadow: isImageBg ? '0 1px 10px rgba(0,0,0,0.6)' : 'none',
+                      fontSize: `clamp(14px, 4.2vw, ${promo.priceSize || 22}px)`,
+                      textShadow: isImageBg ? '0 1px 8px rgba(0,0,0,0.9)' : 'none',
                     }}>
                     {promoP}€
                   </span>
                 </div>
               )}
 
-              {/* CTA button — hidden on mobile (cards too narrow) */}
+              {/* CTA — desktop only */}
               {tr?.ctaUrl && tr?.cta && (
                 <a href={tr.ctaUrl} target="_blank" rel="noopener noreferrer"
-                  className="hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-full font-black transition-all hover:scale-105 hover:shadow-lg active:scale-95 mb-1"
+                  className="hidden sm:inline-flex items-center gap-1.5 mt-2 px-3 py-1.5 rounded-full font-black transition-all hover:scale-105 hover:shadow-lg active:scale-95"
                   style={{
-                    fontSize: `${promo.ctaSize || 12}px`,
+                    fontSize: `${promo.ctaSize || 11}px`,
                     backgroundColor: primaryColor,
                     color: autoTextColor(primaryColor),
                   }}>
                   {tr.cta}
-                  <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <svg className="w-2.5 h-2.5 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
                   </svg>
                 </a>
               )}
 
-              {/* Availability */}
+              {/* Availability — desktop only */}
               {promo.availFrom && promo.availTo && (
-                <p className="opacity-55 mt-1.5 flex items-center gap-1" style={{ fontSize: '10px' }}>
+                <p className="opacity-55 mt-1 hidden sm:flex items-center gap-1" style={{ fontSize: '9px' }}>
                   <svg className="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="10"/><path strokeLinecap="round" d="M12 6v6l4 2"/>
                   </svg>
