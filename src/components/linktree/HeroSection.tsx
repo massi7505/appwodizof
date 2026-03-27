@@ -258,7 +258,7 @@ export default function HeroSection({ settings, slides, featureCards, locale, pr
       {/* ── Hero container — full bleed mobile, rounded desktop ── */}
       <div
         ref={containerRef}
-        className="relative w-full overflow-hidden select-none md:rounded-3xl"
+        className="relative w-full overflow-hidden select-none md:rounded-3xl aspect-[4/3] sm:aspect-video md:aspect-[21/9]"
         style={{ ...slideBg(slide), cursor: isDragging.current ? 'grabbing' : 'grab' }}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}
@@ -291,7 +291,7 @@ export default function HeroSection({ settings, slides, featureCards, locale, pr
                 />
               </div>
             )}
-            <div style={{ minHeight: 'min(60vh, 640px)' }} />
+            <div className="absolute inset-0" />
           </>
         ) : (
           <>
@@ -338,8 +338,8 @@ export default function HeroSection({ settings, slides, featureCards, locale, pr
             {/* ── Content ── */}
             <div
               key={animKey}
-              className="relative flex flex-col justify-end p-5 pb-16 md:p-10 md:pb-20"
-              style={{ minHeight: 'min(65vh, 680px)', zIndex: 10 }}
+              className="absolute inset-0 flex flex-col justify-end p-5 pb-14 md:p-10 md:pb-16"
+              style={{ zIndex: 10 }}
             >
               {/* Rating badge — top left */}
               {settings.showRating && settings.ratingCount && (
