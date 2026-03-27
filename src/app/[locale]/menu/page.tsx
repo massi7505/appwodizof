@@ -19,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
     const seo = buildSeoBase(settings);
     const pageUrl = `${seo.baseUrl}/${locale}/menu`;
     return {
-      title: 'Menu',
+      title: { absolute: seo.title },
       ...buildSharedMeta(seo, pageUrl),
       alternates: {
         canonical: pageUrl,
@@ -33,7 +33,7 @@ export async function generateMetadata({ params }: { params: Promise<{ locale: s
       },
     };
   } catch {
-    return { title: 'Menu' };
+    return { title: 'Woodiz — Pizzeria artisanale Paris 15' };
   }
 }
 
