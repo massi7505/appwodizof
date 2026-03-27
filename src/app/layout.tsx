@@ -102,11 +102,6 @@ export async function generateMetadata(): Promise<Metadata> {
         },
       },
 
-      icons: {
-        icon: settings?.faviconUrl || '/favicon.ico',
-        apple: settings?.faviconUrl || '/favicon.ico',
-        shortcut: settings?.faviconUrl || '/favicon.ico',
-      },
     };
   } catch {
     return {
@@ -199,11 +194,22 @@ async function getJsonLd() {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const nonce = (await headers()).get('x-nonce') ?? undefined;
   const jsonLd = await getJsonLd();
+  const settings = await getCachedSiteSettings();
+  const faviconUrl = settings?.faviconUrl || null;
 
   return (
     <html lang="fr" className={`${playfair.variable} ${dmSans.variable}`}>
       <head>
         <link rel="preconnect" href="https://public.blob.vercel-storage.com" crossOrigin="anonymous" />
+        {faviconUrl ? (
+          <>
+            <link rel="icon" href={faviconUrl} />
+            <link rel="shortcut icon" href={faviconUrl} />
+            <link rel="apple-touch-icon" href={faviconUrl} />
+          </>
+        ) : (
+          <link rel="icon" href="/favicon.ico" />
+        )}
         {jsonLd && (
           <script
             type="application/ld+json"
