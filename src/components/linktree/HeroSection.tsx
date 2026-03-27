@@ -258,7 +258,7 @@ export default function HeroSection({ settings, slides, featureCards, locale, pr
       {/* ── Hero container — full bleed mobile, rounded desktop ── */}
       <div
         ref={containerRef}
-        className="relative w-full overflow-hidden select-none md:rounded-3xl aspect-[4/3] sm:aspect-video md:aspect-[21/9]"
+        className="relative w-full overflow-hidden select-none rounded-2xl md:rounded-3xl aspect-[4/3] sm:aspect-video md:aspect-[5/2] lg:aspect-[3/1]"
         style={{ ...slideBg(slide), cursor: isDragging.current ? 'grabbing' : 'grab' }}
         onTouchStart={onTouchStart}
         onTouchEnd={onTouchEnd}

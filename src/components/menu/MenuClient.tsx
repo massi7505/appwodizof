@@ -235,15 +235,17 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
 
       <main id="main-content">
 
-      {/* ===== HERO SECTION — full-bleed ===== */}
+      {/* ===== HERO SECTION ===== */}
       {heroData?.slides && heroData.slides.length > 0 && (
-        <HeroSection
-          settings={heroData.settings}
-          slides={heroData.slides}
-          featureCards={heroData.featureCards}
-          locale={locale}
-          primaryColor={primaryColor}
-        />
+        <div className="max-w-7xl mx-auto px-4 pt-4">
+          <HeroSection
+            settings={heroData.settings}
+            slides={heroData.slides}
+            featureCards={heroData.featureCards}
+            locale={locale}
+            primaryColor={primaryColor}
+          />
+        </div>
       )}
 
       {/* ===== PROMO SLIDER ===== */}
