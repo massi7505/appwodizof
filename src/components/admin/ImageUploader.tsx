@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import Image from 'next/image';
+import { upload } from '@vercel/blob/client';
 import { UploadIcon, CloseIcon } from '@/components/ui/icons';
 
 interface Props {
@@ -27,17 +28,21 @@ export default function ImageUploader({
   async function handleFile(file: File) {
     setUploading(true); setError(''); setProgress(10);
     try {
-      const fd = new FormData();
-      fd.append('file', file);
-      fd.append('folder', folder);
-      setProgress(50);
-      const res = await fetch('/api/upload', { method: 'POST', body: fd, credentials: 'include' });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Upload failed');
+      // Sanitize filename and prefix with folder
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '-');
+      const pathname = `${folder}/${Date.now()}-${safeName}`;
+
+      const blob = await upload(pathname, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+        onUploadProgress: ({ percentage }) => {
+          setProgress(Math.min(99, Math.round(percentage)));
+        },
+      });
       setProgress(100);
-      onChange(data.url);
+      onChange(blob.url);
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Upload failed');
     } finally {
       setUploading(false); setProgress(0);
     }
