@@ -85,13 +85,33 @@ function timeLabel(hhmm: string): string {
 function getRestaurantStatus(hours: OpeningHoursData[], now: Date) {
   const day = schemaDay(now.getDay());
   const min = now.getHours() * 60 + now.getMinutes();
-  const todayHours = hours.find(h => h.dayOfWeek === day);
 
+  // Check if we are still inside a midnight-crossing slot from YESTERDAY
+  // e.g. Friday slot 18:00→02:00, and it's now Saturday 01:00
+  const prevDay = (day + 6) % 7;
+  const prevHours = hours.find(h => h.dayOfWeek === prevDay);
+  if (prevHours?.isOpen) {
+    let prevSlots: { open: string; close: string }[] = [];
+    try { prevSlots = JSON.parse(prevHours.slots); } catch { prevSlots = []; }
+    for (const s of prevSlots) {
+      const open = parseHHMM(s.open);
+      const close = parseHHMM(s.close);
+      if (close < open && min < close) {
+        // Past midnight, still within yesterday's slot
+        return { isOpen: true, minutesUntilOpen: null as number | null, nextOpenHHMM: null as string | null, nextOpenDaysAhead: 0 };
+      }
+    }
+  }
+
+  const todayHours = hours.find(h => h.dayOfWeek === day);
   if (todayHours?.isOpen) {
     let slots: { open: string; close: string }[] = [];
     try { slots = JSON.parse(todayHours.slots); } catch { slots = []; }
     for (const s of slots) {
-      if (min >= parseHHMM(s.open) && min < parseHHMM(s.close))
+      const open = parseHHMM(s.open);
+      let close = parseHHMM(s.close);
+      if (close < open) close += 24 * 60; // handle midnight-crossing slots
+      if (min >= open && min < close)
         return { isOpen: true, minutesUntilOpen: null as number | null, nextOpenHHMM: null as string | null, nextOpenDaysAhead: 0 };
     }
     // Later slot today? (sorted to get the earliest upcoming slot)

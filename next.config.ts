@@ -58,4 +58,12 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default withNextIntl(nextConfig);
+// next-intl injects experimental.turbo at runtime — migrate it to turbopack to silence the deprecation warning
+const config = withNextIntl(nextConfig) as any;
+if (config?.experimental?.turbo !== undefined) {
+  const { turbo, ...experimental } = config.experimental;
+  config.experimental = experimental;
+  config.turbopack = { ...config.turbopack, ...turbo };
+}
+
+export default config;

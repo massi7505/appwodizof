@@ -34,13 +34,13 @@ async function main() {
   // ===== OPENING HOURS =====
   await prisma.openingHours.deleteMany();
   const hoursData = [
-    { dayOfWeek: 0, dayName: 'Lundi', isOpen: true, slots: JSON.stringify([{ open: '18:00', close: '02:00' }]), sortOrder: 0 },
-    { dayOfWeek: 1, dayName: 'Mardi', isOpen: true, slots: JSON.stringify([{ open: '11:30', close: '14:30' }, { open: '18:00', close: '23:00' }]), sortOrder: 1 },
-    { dayOfWeek: 2, dayName: 'Mercredi', isOpen: true, slots: JSON.stringify([{ open: '11:30', close: '14:30' }, { open: '18:00', close: '02:00' }]), sortOrder: 2 },
-    { dayOfWeek: 3, dayName: 'Jeudi', isOpen: true, slots: JSON.stringify([{ open: '11:30', close: '14:30' }, { open: '18:00', close: '02:00' }]), sortOrder: 3 },
-    { dayOfWeek: 4, dayName: 'Vendredi', isOpen: true, slots: JSON.stringify([{ open: '11:30', close: '14:30' }, { open: '18:00', close: '02:00' }]), sortOrder: 4 },
-    { dayOfWeek: 5, dayName: 'Samedi', isOpen: true, slots: JSON.stringify([{ open: '11:30', close: '14:30' }, { open: '18:00', close: '02:00' }]), sortOrder: 5 },
-    { dayOfWeek: 6, dayName: 'Dimanche', isOpen: true, slots: JSON.stringify([{ open: '11:30', close: '14:30' }, { open: '18:00', close: '02:00' }]), sortOrder: 6 },
+    { dayOfWeek: 0, dayName: 'Lundi',    isOpen: true, sortOrder: 0, slots: JSON.stringify([{ open: '18:00', close: '00:00' }, { open: '00:00', close: '02:00' }]) },
+    { dayOfWeek: 1, dayName: 'Mardi',    isOpen: true, sortOrder: 1, slots: JSON.stringify([{ open: '11:30', close: '14:30' }, { open: '18:00', close: '23:00' }]) },
+    { dayOfWeek: 2, dayName: 'Mercredi', isOpen: true, sortOrder: 2, slots: JSON.stringify([{ open: '11:30', close: '14:30' }, { open: '18:00', close: '00:00' }, { open: '00:00', close: '02:00' }]) },
+    { dayOfWeek: 3, dayName: 'Jeudi',    isOpen: true, sortOrder: 3, slots: JSON.stringify([{ open: '11:30', close: '14:30' }, { open: '18:00', close: '00:00' }, { open: '00:00', close: '02:00' }]) },
+    { dayOfWeek: 4, dayName: 'Vendredi', isOpen: true, sortOrder: 4, slots: JSON.stringify([{ open: '11:30', close: '14:30' }, { open: '18:00', close: '00:00' }, { open: '00:00', close: '02:00' }]) },
+    { dayOfWeek: 5, dayName: 'Samedi',   isOpen: true, sortOrder: 5, slots: JSON.stringify([{ open: '11:30', close: '14:30' }, { open: '18:00', close: '00:00' }, { open: '00:00', close: '02:00' }]) },
+    { dayOfWeek: 6, dayName: 'Dimanche', isOpen: true, sortOrder: 6, slots: JSON.stringify([{ open: '11:30', close: '14:30' }, { open: '18:00', close: '00:00' }, { open: '00:00', close: '02:00' }]) },
   ];
   await prisma.openingHours.createMany({ data: hoursData });
   console.log('✅ Opening hours created');

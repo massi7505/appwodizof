@@ -206,7 +206,7 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
   return (
     <div className="bg-gray-50 min-h-screen">
       {/* ===== NOTIFICATION BAR (fixed, above header) ===== */}
-      {(banners.length > 0 || notifBar?.isVisible) && (
+      {(banners.length > 0 || notifBar?.isVisible || openingHours.length > 0) && (
         <div ref={notifBarRef} className="fixed top-0 left-0 right-0 z-50">
           {banners.length > 0 ? (
             <SmartNotificationBar banners={banners} openingHours={openingHours} locale={locale} />
@@ -224,7 +224,9 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
               openingHours={openingHours}
               locale={locale}
             />
-          ) : null}
+          ) : (
+            <SmartNotificationBar banners={[]} openingHours={openingHours} locale={locale} />
+          )}
         </div>
       )}
 

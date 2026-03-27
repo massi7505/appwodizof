@@ -49,10 +49,26 @@ interface StatusResult {
 
 function computeStatus(hours: HourRow[], L: Record<string, string>, dayNames: Record<number, string>): StatusResult {
   const today = getCurrentDayOfWeek();
-  const row = hours.find(r => r.dayOfWeek === today);
-
   const now = new Date();
   const currentMin = now.getHours() * 60 + now.getMinutes();
+
+  // Check if we are still inside a midnight-crossing slot from YESTERDAY
+  const prevDay = (today + 6) % 7;
+  const prevRow = hours.find(r => r.dayOfWeek === prevDay);
+  if (prevRow?.isOpen) {
+    try {
+      const prevSlots: HourSlot[] = JSON.parse(prevRow.slots);
+      for (const slot of prevSlots) {
+        const open = parseTime(slot.open);
+        const close = parseTime(slot.close);
+        if (close < open && currentMin < close) {
+          return { isOpenNow: true, badge: L.open, closeTime: slot.close };
+        }
+      }
+    } catch { /* noop */ }
+  }
+
+  const row = hours.find(r => r.dayOfWeek === today);
 
   // Check if open now
   if (row?.isOpen) {

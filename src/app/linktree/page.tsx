@@ -35,16 +35,23 @@ import LinktreePromos from '@/components/linktree/LinktreePromos';
 import LinktreeFAQs from '@/components/linktree/LinktreeFAQs';
 import LinktreeFooter from '@/components/linktree/LinktreeFooter';
 import LanguageSwitcher from '@/components/ui/LanguageSwitcher';
+import { SmartNotificationBar } from '@/components/linktree/NotificationBar';
 
 export const revalidate = 30;
 
 const LOCALE = 'fr';
 
 export default async function LinktreePageFR() {
-  const [ltSettings, ltButtons, hours, promos, faqs, siteSettings, footerData] = await Promise.allSettled([
+  const p = prisma as any;
+  const [ltSettings, ltButtons, hours, banners, promos, faqs, siteSettings, footerData] = await Promise.allSettled([
     prisma.linktreeSettings.findFirst(),
     prisma.linktreeButton.findMany({ where: { isVisible: true }, orderBy: { sortOrder: 'asc' } }),
     prisma.openingHours.findMany({ orderBy: { dayOfWeek: 'asc' } }),
+    p.notificationBanner?.findMany?.({
+      where: { isVisible: true },
+      orderBy: [{ priority: 'desc' }, { sortOrder: 'asc' }],
+      include: { translations: true },
+    }).catch(() => []) ?? [],
     prisma.promotion.findMany({
       where: { isVisible: true, showOnLinktree: true },
       orderBy: { sortOrder: 'asc' },
@@ -62,6 +69,7 @@ export default async function LinktreePageFR() {
   const settings = ltSettings.status === 'fulfilled' ? ltSettings.value : null;
   const buttons = ltButtons.status === 'fulfilled' ? ltButtons.value : [];
   const openHours = hours.status === 'fulfilled' ? hours.value : [];
+  const notifBanners = (banners.status === 'fulfilled' ? banners.value : []) as any[];
   const promotions = (promos.status === 'fulfilled' ? promos.value : []).map((p: any) => ({
     ...p,
     promoPrice: p.promoPrice != null ? p.promoPrice.toString() : null,
@@ -97,6 +105,9 @@ export default async function LinktreePageFR() {
         />
       )}
       <VisitTracker page="linktree" />
+      {openHours.length > 0 && (
+        <SmartNotificationBar banners={notifBanners} openingHours={openHours} locale={LOCALE} />
+      )}
       <div className="max-w-md mx-auto pb-12 relative">
         {visibleLocales.length > 1 && (
           <div className="absolute top-3 right-3 z-40">

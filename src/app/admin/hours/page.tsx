@@ -82,15 +82,15 @@ export default function AdminHoursPage() {
   }
 
   // Quick fill buttons
-  function applyToAll(slots: Slot[]) {
-    setDays(ds => ds.map(d => ({ ...d, slots: JSON.parse(JSON.stringify(slots)) })));
+  function applyToAll(isOpen: boolean, slots: Slot[]) {
+    setDays(ds => ds.map(d => ({ ...d, isOpen, slots: JSON.parse(JSON.stringify(slots)) })));
   }
 
   const QUICK_FILLS = [
-    { label: 'Midi + Soir', slots: [{ open: '11:30', close: '14:30' }, { open: '18:00', close: '23:00' }] },
-    { label: 'Soir uniquement', slots: [{ open: '18:00', close: '23:00' }] },
-    { label: 'Non-stop', slots: [{ open: '11:30', close: '23:00' }] },
-    { label: 'Fermé', slots: [] },
+    { label: 'Midi + Soir', isOpen: true, slots: [{ open: '11:30', close: '14:30' }, { open: '18:00', close: '23:00' }] },
+    { label: 'Soir uniquement', isOpen: true, slots: [{ open: '18:00', close: '23:00' }] },
+    { label: 'Non-stop', isOpen: true, slots: [{ open: '11:30', close: '23:00' }] },
+    { label: 'Fermé', isOpen: false, slots: [] },
   ];
 
   return (
@@ -111,8 +111,8 @@ export default function AdminHoursPage() {
       <div className="admin-card mb-5">
         <p className="text-sm font-semibold text-white mb-3">Application rapide à tous les jours :</p>
         <div className="flex gap-2 flex-wrap">
-          {QUICK_FILLS.map(({ label, slots }) => (
-            <button key={label} onClick={() => applyToAll(slots)}
+          {QUICK_FILLS.map(({ label, isOpen, slots }) => (
+            <button key={label} onClick={() => applyToAll(isOpen, slots)}
               className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-gray-300 text-xs font-semibold rounded-lg transition-colors">
               {label}
             </button>
