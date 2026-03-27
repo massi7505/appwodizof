@@ -28,7 +28,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       request,
       onBeforeGenerateToken: async () => ({
         allowedContentTypes: ALLOWED_TYPES,
-        maximumSizeInBytes: 20 * 1024 * 1024, // 20 MB
+        maximumSizeInBytes: 100 * 1024 * 1024, // 100 MB
         addRandomSuffix: true,
       }),
       onUploadCompleted: async ({ blob }) => {
