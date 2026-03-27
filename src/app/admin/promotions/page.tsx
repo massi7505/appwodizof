@@ -61,7 +61,7 @@ const DEFAULT_PROMO = {
   availFrom: '', availTo: '',
   titleSize: null, descSize: null, priceSize: null, badgeSize: null, ctaSize: null,
   isVisible: true, showOnLinktree: true, showOnMenu: true,
-  translations: LOCALES.map(l => ({ locale: l, title: '', description: '', note: '', cta: '', ctaUrl: '' })),
+  translations: LOCALES.map(l => ({ locale: l, title: '', description: '', note: '', cta: '', ctaUrl: '', imageUrl: '' })),
 };
 
 function parseBadge(val: string | null | undefined): Record<string, string> {
@@ -473,17 +473,27 @@ export default function AdminPromotionsPage() {
                   <p className="text-sm font-semibold text-white mb-3">Traductions</p>
                   <div className="space-y-4">
                     {LOCALES.map(locale => {
-                      const t = editing.translations?.find((x: any) => x.locale === locale) || { locale, title: '', description: '', note: '', cta: '', ctaUrl: '' };
+                      const t = editing.translations?.find((x: any) => x.locale === locale) || { locale, title: '', description: '', note: '', cta: '', ctaUrl: '', imageUrl: '' };
                       const update = (field: string, val: string) => setEditing((e: any) => ({ ...e, translations: (e.translations || []).map((x: any) => x.locale === locale ? { ...x, [field]: val } : x) }));
                       return (
                         <div key={locale}>
                           <label className="block text-xs font-bold text-gray-500 mb-2">{LOCALE_LABELS[locale]}</label>
                           <input type="text" value={t.title || ''} onChange={e => update('title', e.target.value)} className="admin-input mb-2" placeholder="Titre de l'offre *" />
                           <textarea value={t.description || ''} onChange={e => update('description', e.target.value)} className="admin-input text-xs resize-none h-14 mb-2" placeholder="Description" />
-                          <div className="grid grid-cols-2 gap-2">
+                          <div className="grid grid-cols-2 gap-2 mb-2">
                             <input type="text" value={t.cta || ''} onChange={e => update('cta', e.target.value)} className="admin-input text-xs" placeholder="Texte CTA (ex: J'en profite)" />
                             <input type="url" value={t.ctaUrl || ''} onChange={e => update('ctaUrl', e.target.value)} className="admin-input text-xs" placeholder="URL CTA" />
                           </div>
+                          {(editing.bgType === 'image' || editing.photoOnly) && (
+                            <ImageUploader
+                              value={t.imageUrl || ''}
+                              onChange={(url: string) => update('imageUrl', url)}
+                              onRemove={() => update('imageUrl', '')}
+                              folder="promos"
+                              label={`Image spécifique ${LOCALE_LABELS[locale]} (remplace l'image globale)`}
+                              aspectRatio="aspect-video"
+                            />
+                          )}
                         </div>
                       );
                     })}

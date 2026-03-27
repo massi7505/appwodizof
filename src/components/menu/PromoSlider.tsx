@@ -83,7 +83,8 @@ export default function PromoSlider({ promos, locale, primaryColor, onActiveCoun
         const origP = safePrice(promo.originalPrice);
         const isPriority = i < 3;
 
-        const isImageBg = promo.bgType === 'image' && promo.bgImageUrl;
+        const displayImageUrl = tr?.imageUrl || promo.bgImageUrl;
+        const isImageBg = promo.bgType === 'image' && displayImageUrl;
         const solidBgStyle = isImageBg
           ? undefined
           : promo.bgType === 'gradient' && promo.bgGradient
@@ -107,14 +108,14 @@ export default function PromoSlider({ promos, locale, primaryColor, onActiveCoun
             : null;
 
         // ── Photo-only card ──
-        if (promo.photoOnly && promo.bgImageUrl) {
+        if (promo.photoOnly && displayImageUrl) {
           return (
             <div
               key={promo.id}
               className="relative w-full rounded-2xl overflow-hidden aspect-[3/4] transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
             >
               <Image
-                src={promo.bgImageUrl}
+                src={displayImageUrl}
                 alt={tr?.title || ''}
                 fill
                 sizes="(max-width: 640px) 50vw, 260px"
@@ -137,7 +138,7 @@ export default function PromoSlider({ promos, locale, primaryColor, onActiveCoun
               {isImageBg ? (
                 <>
                   <Image
-                    src={promo.bgImageUrl}
+                    src={displayImageUrl!}
                     alt={tr?.title || ''}
                     fill
                     sizes="(max-width: 640px) 50vw, 260px"

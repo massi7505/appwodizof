@@ -219,6 +219,7 @@ model PromotionTranslation {
   note        String?   @db.Text
   cta         String?
   ctaUrl      String?
+  imageUrl    String?   // per-locale image override (replaces bgImageUrl for this language)
   promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
 
   @@unique([promotionId, locale])

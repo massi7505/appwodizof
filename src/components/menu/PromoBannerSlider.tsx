@@ -49,8 +49,11 @@ export default function PromoBannerSlider({ promos, locale, primaryColor, orderL
   if (activePromos.length === 0) return null;
 
   const promo = activePromos[current];
-  const tr = promo.translations?.[0];
-  const isImageBg = promo.bgType === 'image' && promo.bgImageUrl;
+  const tr = promo.translations?.find((t: any) => t.locale === locale)
+    || promo.translations?.find((t: any) => t.locale === 'fr')
+    || promo.translations?.[0];
+  const displayImageUrl = tr?.imageUrl || promo.bgImageUrl;
+  const isImageBg = promo.bgType === 'image' && displayImageUrl;
   const bgStyle = isImageBg
     ? {}
     : promo.bgType === 'gradient' && promo.bgGradient
@@ -70,7 +73,7 @@ export default function PromoBannerSlider({ promos, locale, primaryColor, orderL
         {isImageBg && (
           <div key={`bg-${animKey}`} className="absolute inset-0 hero-anim-overlay">
             <Image
-              src={promo.bgImageUrl}
+              src={displayImageUrl!}
               alt=""
               fill
               sizes="(max-width:640px) 100vw, (max-width:1280px) 90vw, 1200px"
