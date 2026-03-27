@@ -398,7 +398,7 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
 
         {/* ===== FAQS ===== */}
         {faqs.length > 0 && (
-          <FAQSection faqs={faqs} locale={locale} L={L} />
+          <FAQSection faqs={faqs} locale={locale} L={L} primaryColor={primaryColor} />
         )}
       </div>
 

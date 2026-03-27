@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { autoTextColor } from '@/lib/color';
 
 // ===== REVIEWS SECTION =====
 interface Review {
@@ -108,9 +109,10 @@ interface FAQProps {
   faqs: any[];
   locale: string;
   L: Record<string, string>;
+  primaryColor?: string;
 }
 
-export function FAQSection({ faqs, locale, L }: FAQProps) {
+export function FAQSection({ faqs, locale, L, primaryColor = '#111827' }: FAQProps) {
   const [openId, setOpenId] = useState<number | null>(null);
   const titles = FAQ_TITLES[locale] || FAQ_TITLES.fr;
 
@@ -128,14 +130,17 @@ export function FAQSection({ faqs, locale, L }: FAQProps) {
           const t = faq.translations[0];
           if (!t) return null;
           const isOpen = openId === faq.id;
+          const openTextColor = autoTextColor(primaryColor);
+          const openTextMuted = openTextColor === '#000000' ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.72)';
+          const openIconBg = openTextColor === '#000000' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.15)';
           return (
             <div
               key={faq.id}
               className="rounded-2xl overflow-hidden transition-all duration-200"
               style={{
-                backgroundColor: isOpen ? '#111827' : '#fff',
+                backgroundColor: isOpen ? primaryColor : '#fff',
                 boxShadow: isOpen
-                  ? '0 4px 24px rgba(0,0,0,0.18)'
+                  ? `0 4px 24px ${primaryColor}40`
                   : '0 1px 4px rgba(0,0,0,0.06)',
                 border: isOpen ? 'none' : '1px solid #f0f0f0',
               }}
@@ -146,20 +151,20 @@ export function FAQSection({ faqs, locale, L }: FAQProps) {
               >
                 <span
                   className="text-sm font-bold leading-snug"
-                  style={{ color: isOpen ? '#fff' : '#111827' }}
+                  style={{ color: isOpen ? openTextColor : '#111827' }}
                 >
                   {t.question}
                 </span>
                 <span
                   className="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center transition-all duration-200"
                   style={{
-                    backgroundColor: isOpen ? 'rgba(255,255,255,0.15)' : '#f3f4f6',
+                    backgroundColor: isOpen ? openIconBg : '#f3f4f6',
                   }}
                 >
                   <svg
                     className={`w-3.5 h-3.5 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`}
                     fill="none"
-                    stroke={isOpen ? '#fff' : '#6b7280'}
+                    stroke={isOpen ? openTextColor : '#6b7280'}
                     viewBox="0 0 24 24"
                   >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
@@ -172,7 +177,7 @@ export function FAQSection({ faqs, locale, L }: FAQProps) {
                 style={{ gridTemplateRows: isOpen ? '1fr' : '0fr' }}
               >
                 <div className="overflow-hidden">
-                  <p className="px-6 pb-5 text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.72)' }}>
+                  <p className="px-6 pb-5 text-sm leading-relaxed" style={{ color: openTextMuted }}>
                     {t.answer}
                   </p>
                 </div>
