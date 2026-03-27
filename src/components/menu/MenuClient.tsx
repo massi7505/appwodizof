@@ -265,13 +265,13 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
         {/* ===== FEATURED ===== */}
         {showFeatured && featuredProducts.length > 0 && !search && (
           <section className="mt-8">
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-3">{featuredTitle}</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide md:grid md:grid-cols-3 md:overflow-visible md:pb-0 xl:grid-cols-5">
-              {featuredProducts.slice(0, 5).map(p => {
+            <h2 className="text-lg font-bold text-gray-900 mb-4">{featuredTitle}</h2>
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide md:grid md:grid-cols-4 md:overflow-visible md:pb-0 lg:grid-cols-5 xl:grid-cols-6">
+              {featuredProducts.slice(0, 6).map(p => {
                 const cat = categories.find(c => c.products.some(cp => cp.id === p.id));
                 return (
-                  <div key={p.id} className="w-40 flex-shrink-0 md:w-auto">
-                    <ProductCard product={p} locale={locale} onClick={() => cat && handleProductClick(p, cat)} primaryColor={primaryColor} />
+                  <div key={p.id} className="w-28 flex-shrink-0 md:w-auto">
+                    <ProductCard product={p} locale={locale} onClick={() => cat && handleProductClick(p, cat)} primaryColor={primaryColor} compact />
                   </div>
                 );
               })}
@@ -282,13 +282,13 @@ export default function MenuClient({ categories, promos, reviews, faqs, site, lo
         {/* ===== WEEK SPECIALS ===== */}
         {showWeekSpecial && weekSpecials.length > 0 && !search && (
           <section className="mt-6">
-            <h2 className="text-sm font-semibold text-gray-400 uppercase tracking-widest mb-3">{weekTitle}</h2>
-            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide md:grid md:grid-cols-3 md:overflow-visible md:pb-0 xl:grid-cols-5">
-              {weekSpecials.slice(0, 5).map(p => {
+            <h2 className="text-lg font-bold text-gray-900 mb-4">{weekTitle}</h2>
+            <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide md:grid md:grid-cols-4 md:overflow-visible md:pb-0 lg:grid-cols-5 xl:grid-cols-6">
+              {weekSpecials.slice(0, 6).map(p => {
                 const cat = categories.find(c => c.products.some(cp => cp.id === p.id));
                 return (
-                  <div key={p.id} className="w-40 flex-shrink-0 md:w-auto">
-                    <ProductCard product={p} locale={locale} onClick={() => cat && handleProductClick(p, cat)} primaryColor={primaryColor} />
+                  <div key={p.id} className="w-28 flex-shrink-0 md:w-auto">
+                    <ProductCard product={p} locale={locale} onClick={() => cat && handleProductClick(p, cat)} primaryColor={primaryColor} compact />
                   </div>
                 );
               })}
