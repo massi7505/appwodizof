@@ -183,7 +183,7 @@ model Promotion {
   bgType          String   @default("color") // "color" | "image" | "gradient"
   bgColor         String   @default("#F59E0B")
   bgGradient      String?  // CSS gradient string
-  bgImageUrl      String?
+  bgImageUrl      String?  @db.Text
   textColor       String   @default("#FFFFFF")
   badgeText       String?  // "MENU MIDI", "OFFRE À EMPORTER"
   badgeColor      String   @default("#EF4444")
@@ -219,7 +219,7 @@ model PromotionTranslation {
   note        String?   @db.Text
   cta         String?
   ctaUrl      String?
-  imageUrl    String?   // per-locale image override (replaces bgImageUrl for this language)
+  imageUrl    String?   @db.Text // per-locale image override (replaces bgImageUrl for this language)
   promotion   Promotion @relation(fields: [promotionId], references: [id], onDelete: Cascade)
 
   @@unique([promotionId, locale])
