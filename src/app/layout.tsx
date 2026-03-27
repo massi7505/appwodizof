@@ -10,7 +10,7 @@ import CookieConsent from '@/components/CookieConsent';
 const getCachedSiteSettings = unstable_cache(
   () => prisma.siteSettings.findFirst(),
   ['root-site-settings'],
-  { revalidate: 60 },
+  { revalidate: 60, tags: ['site-settings'] },
 );
 
 const playfair = Playfair_Display({
