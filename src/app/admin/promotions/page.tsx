@@ -96,12 +96,12 @@ export default function AdminPromotionsPage() {
     try {
       if (isNew) {
         const res = await fetch('/api/promotions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editing) });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.error || `HTTP ${res.status}`); }
         const p = await res.json();
         setPromos(ps => [...ps, p]);
       } else {
         const res = await fetch(`/api/promotions/${editing.id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(editing) });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        if (!res.ok) { const j = await res.json().catch(() => ({})); throw new Error(j.error || `HTTP ${res.status}`); }
         const p = await res.json();
         setPromos(ps => ps.map(x => x.id === p.id ? p : x));
       }
